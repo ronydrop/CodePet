@@ -17,18 +17,18 @@ async function doctor() {
   ));
   const records = await diagnoseProviders();
 
-  console.log("CodePet doctor — 프로바이더 CLI 상태\n");
+  console.log("CodePet doctor — estado das CLIs\n");
   for (const record of records) {
-    const statusLabel = record.installed === true ? "설치됨" : record.installed === false ? "설치되지 않음" : "확인 실패";
+    const statusLabel = record.installed === true ? "Instalado" : record.installed === false ? "Não instalado" : "Falha na verificação";
     console.log(`  ${record.name} (@${record.provider})`);
-    console.log(`    상태: ${statusLabel}${record.version ? ` · ${record.version}` : ""}`);
+    console.log(`    Estado: ${statusLabel}${record.version ? ` · ${record.version}` : ""}`);
     if (record.installed === true) {
-      const loginLabel = record.loggedIn === true ? "로그인됨" : record.loggedIn === false ? "로그인 필요" : "자동 확인 불가";
-      console.log(`    로그인: ${loginLabel}`);
+      const loginLabel = record.loggedIn === true ? "Conectado" : record.loggedIn === false ? "Login necessário" : "Confirmação automática indisponível";
+      console.log(`    Login: ${loginLabel}`);
     }
-    if (record.message) console.log(`    안내: ${record.message}`);
+    if (record.message) console.log(`    Aviso: ${record.message}`);
   }
-  console.log("\n세션/설정 저장 위치: ~/.code-pet (CODE_PET_HOME으로 변경 가능)");
+  console.log("\nSessões e configurações: ~/.code-pet (dá para mudar com CODE_PET_HOME)");
   const failed = records.some(
     (record) => record.installed !== true || record.loggedIn === false
   );
@@ -43,10 +43,10 @@ function launchApp(extraArgs) {
   } catch {
     console.error(
       [
-        "Electron 런타임을 찾을 수 없습니다.",
-        "데스크톱 배포판(포터블/설치본)으로 실행하거나, 저장소에서",
+        "O runtime do Electron não foi encontrado.",
+        "Execute a versão de distribuição (portátil ou instalada) ou, no repositório,",
         "  npm install && npm start",
-        "로 실행해 주세요. `code-pet doctor`는 Electron 없이도 동작합니다.",
+        "para executar. `code-pet doctor` funciona sem o Electron.",
       ].join("\n")
     );
     process.exitCode = 1;
@@ -63,7 +63,7 @@ function launchApp(extraArgs) {
 const args = process.argv.slice(2);
 if (args[0] === "doctor") {
   doctor().catch((error) => {
-    console.error("doctor 실행 실패:", error?.message || error);
+    console.error("Falha ao executar o doctor:", error?.message || error);
     process.exitCode = 1;
   });
 } else {

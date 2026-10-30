@@ -3,7 +3,7 @@ const { StringDecoder } = require("node:string_decoder");
 
 const MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,63}$/;
 const EFFORT_ID = /^[a-z][a-z0-9_-]{0,15}$/;
-const CATALOG_ERROR = "CLI에서 모델 목록을 확인하지 못했습니다. CLI 로그인 상태를 확인한 뒤 다시 탐지해 주세요.";
+const CATALOG_ERROR = "A CLI não informou a lista de modelos. Confira o login da CLI e detecte de novo.";
 
 function cleanText(value) {
   return String(value || "").replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "");
@@ -112,10 +112,10 @@ function probeClaudeModelCatalog(commandPath, needsShell, timeoutMs = 15000, opt
 function selectionError(provider, model = "default", effort = "default") {
   if (provider.catalogStatus !== "ready" || !provider.modelOptions?.length) return provider.catalogReason || CATALOG_ERROR;
   const selected = model && model !== "default" ? provider.modelOptions.find((row) => row.id === model) : null;
-  if (model && model !== "default" && !selected) return "선택한 모델을 현재 CLI 목록에서 확인할 수 없습니다. 모델을 다시 선택해 주세요.";
+  if (model && model !== "default" && !selected) return "O modelo escolhido não está na lista atual da CLI. Selecione o modelo de novo.";
   // Without an explicit model we cannot infer which model the CLI settings pick.
   if (effort && effort !== "default" && !selected?.efforts?.includes(effort)) {
-    return "선택한 모델에서 지원 여부가 확인되지 않은 추론 단계입니다. 추론 설정을 다시 선택해 주세요.";
+    return "Este modelo não confirma o nível de raciocínio escolhido. Selecione o raciocínio de novo.";
   }
   return "";
 }

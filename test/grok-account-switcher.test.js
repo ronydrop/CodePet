@@ -31,7 +31,7 @@ test("Grok 동적 auth.json 키에서 자격 증명 메타데이터를 찾는다
   assert.equal(grokCredential({ unrelated: true }), null);
 });
 
-test("Grok 현재 계정을 비밀 값 없이 저장·표시한다", (t) => {
+test("Grok Conta atual을 비밀 값 없이 저장·표시한다", (t) => {
   const home = tempHome(t);
   atomicWrite(path.join(home, ".grok", "auth.json"), auth("alpha", "Alpha@Example.com"));
   const switcher = new GrokAccountSwitcher({ home });
@@ -63,7 +63,7 @@ test("Grok 계정 전환은 auth.json을 원자 교체하고 hot reload용 활�
   assert.equal(switcher.listProfiles().find((profile) => profile.key === beta.key).active, true);
 });
 
-test("Grok 새 로그인 준비는 현재 계정을 보존하고 활성 계정 삭제는 거부한다", (t) => {
+test("Grok 새 로그인 준비는 Conta atual을 보존하고 활성 계정 삭제는 거부한다", (t) => {
   const home = tempHome(t);
   atomicWrite(path.join(home, ".grok", "auth.json"), auth("alpha", "alpha@example.com"));
   const switcher = new GrokAccountSwitcher({ home });
@@ -71,5 +71,5 @@ test("Grok 새 로그인 준비는 현재 계정을 보존하고 활성 계정 �
   const active = switcher.listProfiles().find((profile) => profile.active);
 
   assert.equal(active.email, "alpha@example.com");
-  assert.throws(() => switcher.deleteProfile(active.key), /현재 사용 중/);
+  assert.throws(() => switcher.deleteProfile(active.key), /conta em uso/);
 });

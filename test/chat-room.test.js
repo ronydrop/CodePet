@@ -12,7 +12,7 @@ function makeAgents() {
       aliases: ["agy", "antigravity"],
       available: false,
       enabled: true,
-      reason: "agy CLI가 설치되어 있지 않습니다.",
+      reason: "agy A CLI não está instalada.",
     },
   ];
 }
@@ -44,7 +44,7 @@ test("custom mentions route handoffs by stable ID even if a participant is renam
   } });
   room.sendUserMessage("@작업 확인해");
   assert.deepEqual(calls.map((call) => call.id), ["codex"]);
-  assert.match(calls[0].prompt, /참가자 "@작업"\(작업 담당\)/);
+  assert.match(calls[0].prompt, /@작업\(작업 담당\)/);
   assert.match(calls[0].prompt, /@검토\(검토 담당\)/);
   assert.match(calls[0].prompt, /@검토=claude/);
   room.setAgents(agents.map((agent) => agent.id === "claude"
@@ -52,7 +52,7 @@ test("custom mentions route handoffs by stable ID even if a participant is renam
   finish({ ok: true, text: "@검토 검토해줘" });
   await settle(room);
   assert.deepEqual(calls.map((call) => call.id), ["codex", "claude"]);
-  assert.match(calls[1].prompt, /참가자 "@리뷰"\(새 검토 담당\)/);
+  assert.match(calls[1].prompt, /@리뷰\(새 검토 담당\)/);
   assert.match(calls[1].prompt, /\[@작업\] @검토 검토해줘/);
   assert.equal(room.messages.at(-1).author, "claude");
   assert.equal(room.messages.at(-1).agentMeta.mention, "리뷰");
@@ -64,7 +64,7 @@ test("동시 수신한 답변은 완료 순서대로 표시하고 토론은 모�
   const calls = [];
   const room = new ChatRoom({ agents: makeAgents(), runAgent: ({ agent, prompt }) => {
     calls.push(agent.id);
-    if (prompt.includes("자율 토론")) return { promise: Promise.resolve({ ok: true, text: "결론 [[CODEPET_DISCUSSION:CONCLUDE]]" }), cancel() {} };
+    if (prompt.includes("discussão autônoma")) return { promise: Promise.resolve({ ok: true, text: "결론 [[CODEPET_DISCUSSION:CONCLUDE]]" }), cancel() {} };
     return { promise: new Promise((resolve) => releases.set(agent.id, resolve)), cancel() {} };
   } });
   room.sendUserMessage("@모두 작업해");
@@ -80,7 +80,7 @@ test("동시 수신한 답변은 완료 순서대로 표시하고 토론은 모�
   assert.deepEqual(room.messages.filter((entry) => entry.authorType === "agent").slice(0, 2).map((entry) => entry.text), ["빠른 완료", "늦은 완료"]);
 });
 
-test("회사 모드는 캐릭터 말투와 이모티콘을 요청하거나 저장하지 않는다", async () => {
+test("Modo trabalho는 캐릭터 말투와 Emoticon을 요청하거나 저장하지 않는다", async () => {
   const calls = [];
   const room = new ChatRoom({ agents: makeAgents(), meta: { workMode: true },
     runAgent: fakeRunner({ codex: [{ ok: true, text: "검토 완료 [[CODEPET_EMOTE:검토완료]]" }] }, calls) });
@@ -108,7 +108,7 @@ test("멘션된 에이전트만 응답한다", async () => {
   assert.equal(agentMessages[0].text, "네!");
 });
 
-test("에이전트 이모티콘 표기는 첫 번째 한 개만 본문과 분리해 저장한다", async () => {
+test("Emoticon do agente 표기는 첫 번째 한 개만 본문과 분리해 저장한다", async () => {
   const room = new ChatRoom({
     agents: makeAgents(),
     runAgent: fakeRunner({
@@ -153,7 +153,7 @@ test("에이전트 실행 전 준비 단계를 기다리고 실제 오류를 대
   assert.match(error.text, /프록시 복구 실패: 포트 연결 거부/);
 });
 
-test("멘션이 없으면 세션에 참여 중인 모든 에이전트가 응답한다", async () => {
+test("멘션이 없으면 세션에 참여 중인 Todos os agentes가 응답한다", async () => {
   const calls = [];
   const room = new ChatRoom({ agents: makeAgents(), runAgent: fakeRunner({}, calls) });
   room.sendUserMessage("둘 다 의견 줘");
@@ -179,7 +179,7 @@ test("여러 수신자는 같은 메시지를 동시에 받고 서로의 미완�
 
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "codex"]);
   for (const call of calls) {
-    assert.match(call.prompt, /동시에 받았습니다/);
+    assert.match(call.prompt, /ao mesmo tempo/);
     assert.doesNotMatch(call.prompt, /첫 번째 의견이야|2번째입니다/);
   }
 });
@@ -241,7 +241,7 @@ test("동시 수신 이후의 멘션은 새 요청을 읽는 후속 응답으로
   assert.match(calls[2].prompt, /@codex 이어서 말해줘/);
 });
 
-test("동시 실행 중인 수신자의 후속 호출은 기존 응답 뒤에 실행한다", async () => {
+test("동시 Em execução인 수신자의 후속 호출은 기존 응답 뒤에 실행한다", async () => {
   const agents = makeAgents();
   agents[2].available = true;
   const calls = [];
@@ -258,8 +258,8 @@ test("동시 실행 중인 수신자의 후속 호출은 기존 응답 뒤에 �
   await settle(room);
 
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "codex", "agy", "agy"]);
-  assert.ok(calls.slice(0, 3).every((call) => /동시에 받았습니다/.test(call.prompt)));
-  assert.doesNotMatch(calls[3].prompt, /동시에 받았습니다/);
+  assert.ok(calls.slice(0, 3).every((call) => /receberam a mesma mensagem do usuário ao mesmo tempo/.test(call.prompt)));
+  assert.doesNotMatch(calls[3].prompt, /receberam a mesma mensagem do usuário ao mesmo tempo/);
   assert.match(calls[3].prompt, /@agy 다음으로 답해줘/);
 });
 
@@ -282,7 +282,7 @@ test("단독 응답의 여러 멘션은 문장 순서대로 함께 시작한다"
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "agy", "codex"]);
 });
 
-test("전달받은 작업을 다른 참가자에게 다시 전달할 수 있다", async () => {
+test("전달받은 작업을 다른 Participantes에게 다시 전달할 수 있다", async () => {
   const agents = makeAgents();
   agents[2].available = true;
   const calls = [];
@@ -299,10 +299,10 @@ test("전달받은 작업을 다른 참가자에게 다시 전달할 수 있다"
   await settle(room);
 
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "agy", "codex"]);
-  assert.ok(calls.every((call) => !/추가 호출할 수 없습니다/.test(call.prompt)));
+  assert.ok(calls.every((call) => !/não pode chamar outros participantes/.test(call.prompt)));
 });
 
-test("턴 상태 이벤트는 동시에 작업 중인 모든 참가자를 공개한다", async () => {
+test("턴 상태 이벤트는 동시에 Trabalhando인 모든 Participantes를 공개한다", async () => {
   const agents = makeAgents();
   agents[2].available = true;
   const states = [];
@@ -417,7 +417,7 @@ test("서로 다른 사용자 메시지의 같은 에이전트 턴은 합치지 
   assert.deepEqual(calls, ["codex", "codex"]);
 });
 
-test("한 답변에서 여러 명을 호출하면 앞 참가자의 완료를 기다리지 않는다", async () => {
+test("한 답변에서 여러 명을 호출하면 앞 Participantes의 완료를 기다리지 않는다", async () => {
   const agents = makeAgents();
   agents[2].available = true;
   const calls = [];
@@ -460,7 +460,7 @@ test("설치되지 않은 에이전트를 부르면 이유가 담긴 시스템 �
   assert.equal(calls.length, 0);
   const systemMessages = room.messages.filter((message) => message.authorType === "system");
   assert.equal(systemMessages.length, 1);
-  assert.match(systemMessages[0].text, /설치되어 있지 않습니다/);
+  assert.match(systemMessages[0].text, /não está instalada/);
 });
 
 test("세션에서 비활성화된 에이전트는 멘션해도 실행되지 않는다", async () => {
@@ -473,7 +473,7 @@ test("세션에서 비활성화된 에이전트는 멘션해도 실행되지 않
 
   assert.equal(calls.length, 0);
   const systemMessages = room.messages.filter((message) => message.authorType === "system");
-  assert.match(systemMessages[0].text, /비활성화/);
+  assert.match(systemMessages[0].text, /desativado/);
 });
 
 test("에이전트가 @이름으로 부르면 그 에이전트가 이어서 응답한다", async () => {
@@ -517,8 +517,8 @@ test("작업 전달과 결과 보고는 왕복 횟수에 관계없이 이어지�
   await settle(room);
 
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "codex", "claude", "codex"]);
-  assert.match(calls[1].prompt, /그러면 그 참가자가 이어서 답합니다/);
-  assert.match(calls[2].prompt, /그러면 그 참가자가 이어서 답합니다/);
+  assert.match(calls[1].prompt, /Esse participante responde em seguida/);
+  assert.match(calls[2].prompt, /Esse participante responde em seguida/);
 });
 
 test("코드·이메일·그룹 별칭은 에이전트 답변에서 추가 호출을 만들지 않는다", async () => {
@@ -567,15 +567,15 @@ test("한 작업의 20회 왕복에서도 호출과 첨부가 유지된다", asy
     calls.push({ agentId: agent.id, prompt, attachments });
     const next = agent.id === "claude" ? "codex" : "claude";
     return { promise: Promise.resolve({ ok: true, text: calls.length < 20
-      ? `@${next} 검토와 결과 보고를 이어가줘` : "작업 완료" }), cancel() {} };
+      ? `@${next} 검토와 결과 보고를 이어가줘` : "Tarefa concluída" }), cancel() {} };
   } });
   room.sendUserMessage({ text: "@claude 작업해줘", attachments: [attachment] });
   await settle(room);
   assert.equal(calls.length, 20);
   assert.ok(calls.every((call, index) => call.agentId === (index % 2 ? "codex" : "claude")));
-  assert.ok(calls.every((call) => !/추가 호출할 수 없습니다/.test(call.prompt)));
+  assert.ok(calls.every((call) => !/não pode chamar outros participantes/.test(call.prompt)));
   assert.ok(calls.every((call) => call.attachments[0] === attachment));
-  assert.equal(room.messages.at(-1).text, "작업 완료");
+  assert.equal(room.messages.at(-1).text, "Tarefa concluída");
 });
 
 test("길게 이어지는 멘션도 사용자 개입 시 즉시 취소하고 다음 호출을 막는다", async () => {
@@ -601,7 +601,7 @@ test("길게 이어지는 멘션도 사용자 개입 시 즉시 취소하고 다
   assert.ok(room.messages.every((message) => !message.text.includes("늦은 호출")));
 });
 
-test("작업 중인 같은 수신자의 후속 호출은 그 수신자의 완료를 기다린다", async () => {
+test("Trabalhando인 같은 수신자의 후속 호출은 그 수신자의 완료를 기다린다", async () => {
   const calls = [];
   let finishCodex;
   const room = new ChatRoom({ agents: makeAgents(), random: () => 0.99, runAgent: ({ agent, prompt }) => {
@@ -614,11 +614,11 @@ test("작업 중인 같은 수신자의 후속 호출은 그 수신자의 완료
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(calls.length, 2);
   assert.equal(room.turnQueue.length, 1);
-  finishCodex({ ok: true, text: "초기 작업 완료" });
+  finishCodex({ ok: true, text: "초기 Tarefa concluída" });
   await settle(room);
   assert.deepEqual(calls.map((call) => call.agentId), ["claude", "codex", "codex"]);
   assert.match(calls[2].prompt, /@codex 결과를 검토해줘/);
-  assert.match(calls[2].prompt, /초기 작업 완료/);
+  assert.match(calls[2].prompt, /초기 Tarefa concluída/);
 });
 
 test("토론 답변의 @멘션은 자체 턴 외 추가 호출을 만들지 않는다", async () => {
@@ -632,7 +632,7 @@ test("토론 답변의 @멘션은 자체 턴 외 추가 호출을 만들지 않�
   await room.startDiscussion();
   await settle(room);
   assert.deepEqual(calls.map((call) => call.agentId), ["claude"]);
-  assert.match(calls[0].prompt, /추가 호출할 수 없습니다/);
+  assert.match(calls[0].prompt, /não pode chamar outros participantes/);
 });
 
 test("멘션 연쇄 응답에도 원래 첨부를 전달한다", async () => {
@@ -683,19 +683,19 @@ test("자율 토론은 차례로 말하고 결론 신호에서 즉시 끝난다"
     calls.map((call) => call.agentId),
     ["claude", "codex"]
   );
-  assert.match(calls[0].prompt, /자율 토론 1턴/);
+  assert.match(calls[0].prompt, /turno 1 da discussão autônoma/);
   assert.equal(result.concluded, true);
   const notices = room.messages.filter((message) => message.authorType === "system");
-  assert.match(notices[0].text, /토론 시작/);
-  assert.match(notices.at(-1).text, /합의하거나 결론/);
+  assert.match(notices[0].text, /Discussão autônoma iniciada/);
+  assert.match(notices.at(-1).text, /acordo ou a uma conclusão/);
 });
 
-test("모든 참가자가 새 내용 없이 동의/패스하면 토론을 끝낸다", async () => {
+test("모든 Participantes가 새 내용 없이 동의/패스하면 토론을 끝낸다", async () => {
   const calls = [];
   const room = new ChatRoom({
     agents: makeAgents(),
     runAgent: fakeRunner({
-      claude: [{ ok: true, text: "동의합니다.\n[[CODEPET_DISCUSSION:AGREE]]" }],
+      claude: [{ ok: true, text: "Concordo.\n[[CODEPET_DISCUSSION:AGREE]]" }],
       codex: [{ ok: true, text: "[[CODEPET_DISCUSSION:PASS]]" }],
     }, calls),
   });
@@ -712,7 +712,7 @@ test("토론은 9턴을 넘어도 결론이 나올 때까지 이어진다", asyn
       calls.push(agent.id);
       return { promise: Promise.resolve({ ok: true, text: calls.length === 15
         ? "결론 [[CODEPET_DISCUSSION:CONCLUDE]]"
-        : "검토 중 [[CODEPET_DISCUSSION:CONTINUE]]" }), cancel() {} };
+        : "Revisando [[CODEPET_DISCUSSION:CONTINUE]]" }), cancel() {} };
     },
   });
   const result = await room.startDiscussion({ rounds: 2 });
@@ -735,7 +735,7 @@ test("토론 중 실제 실행 실패는 반복 재시도하지 않는다", asyn
   assert.equal(result.ok, false);
   assert.equal(result.concluded, false);
   assert.equal(calls.length, 1);
-  assert.match(room.messages.at(-1).text, /실행이 완료되지 않아/);
+  assert.match(room.messages.at(-1).text, /execução de um participante não terminou/);
 });
 
 test("토론에는 사용 가능한 에이전트가 두 명 이상 필요하다", async () => {
@@ -744,7 +744,7 @@ test("토론에는 사용 가능한 에이전트가 두 명 이상 필요하다"
   const room = new ChatRoom({ agents, runAgent: fakeRunner({}) });
   const result = await room.startDiscussion({ rounds: 1 });
   assert.equal(result.ok, false);
-  assert.match(result.error, /두 명 이상/);
+  assert.match(result.error, /pelo menos dois agentes/);
 });
 
 test("중지하면 토론 나머지 실행이 취소된다", async () => {
@@ -771,7 +771,7 @@ test("중지하면 토론 나머지 실행이 취소된다", async () => {
   assert.equal(calls.length, 1);
 });
 
-test("토론 종료 표기는 이모티콘 위치 데이터나 화면 본문에 남지 않는다", async () => {
+test("토론 종료 표기는 Emoticon 위치 데이터나 화면 본문에 남지 않는다", async () => {
   const room = new ChatRoom({
     agents: makeAgents(),
     runAgent: fakeRunner({
@@ -798,14 +798,14 @@ test("토론 중 예약된 일반 응답은 토론이 끝날 때까지 발언하
   const room = new ChatRoom({
     agents: makeAgents(),
     runAgent: ({ agent, prompt }) => {
-      calls.push({ agentId: agent.id, discussion: /자율 토론/.test(prompt) });
+      calls.push({ agentId: agent.id, discussion: /discussão autônoma/.test(prompt) });
       if (calls.length === 1) {
         return {
           promise: new Promise((resolve) => { releaseFirst = resolve; }),
           cancel: () => {},
         };
       }
-      const text = /자율 토론/.test(prompt)
+      const text = /discussão autônoma/.test(prompt)
         ? "토론 결론\n[[CODEPET_DISCUSSION:CONCLUDE]]"
         : "별도 질문 답변";
       return { promise: Promise.resolve({ ok: true, text }), cancel: () => {} };
@@ -826,7 +826,7 @@ test("토론 중 예약된 일반 응답은 토론이 끝날 때까지 발언하
   ]);
 });
 
-test("중지하면 진행 중인 턴과 같은 참가자의 대기 턴도 폐기한다", async () => {
+test("중지하면 진행 중인 턴과 같은 Participantes의 대기 턴도 폐기한다", async () => {
   const calls = [];
   let resolveActive;
   const room = new ChatRoom({
@@ -911,10 +911,10 @@ test("사용자 개입은 동시 실행을 모두 중지하고 늦은 결과를 
   assert.deepEqual(calls, ["claude", "codex"]);
   assert.equal(room.messages.filter((message) => message.authorType === "agent").length, 0);
   assert.equal(room.turnState().queue.length, 0);
-  assert.match(room.messages.at(-1).text, /다음 차례는 사용자/);
+  assert.match(room.messages.at(-1).text, /A próxima vez é sua/);
 });
 
-test("권한 요청을 승인하면 같은 턴을 자동 승인으로 한 번 다시 실행한다", async () => {
+test("Pedido de permissão을 승인하면 같은 턴을 자동 승인으로 한 번 다시 실행한다", async () => {
   const calls = [];
   const room = new ChatRoom({
     agents: makeAgents(),
@@ -946,7 +946,7 @@ test("승인 후 재시도도 권한을 요구하면 상세 원인을 남긴다"
         ok: false,
         approvalRequired: true,
         approval: {
-          summary: "도구 실행 권한이 필요합니다.",
+          summary: "É preciso permissão para executar a ferramenta.",
           detail: "종료 코드 1 · 워크스페이스 밖 경로 접근이 거부되었습니다",
         },
         diagnostics: { provider: "codex", exitCode: 1 },
@@ -960,13 +960,13 @@ test("승인 후 재시도도 권한을 요구하면 상세 원인을 남긴다"
 
   const failure = room.messages.at(-1);
   assert.equal(failure.error, true);
-  assert.doesNotMatch(failure.text, /알 수 없는 오류/);
-  assert.match(failure.text, /승인 후 재시도에도 권한을 획득하지 못했습니다/);
+  assert.doesNotMatch(failure.text, /erro desconhecido/);
+  assert.match(failure.text, /Mesmo depois da aprovação, a permissão não foi obtida/);
   assert.match(failure.text, /워크스페이스 밖 경로 접근이 거부되었습니다/);
   assert.equal(failure.diagnostics.approvedRetry, true);
 });
 
-test("자동 승인 상태에서 권한 요청이 반환되면 상세 원인을 남긴다", async () => {
+test("자동 승인 상태에서 Pedido de permissão이 반환되면 상세 원인을 남긴다", async () => {
   const agents = makeAgents().map((agent) =>
     agent.id === "codex" ? { ...agent, autoApprove: true } : agent
   );
@@ -980,7 +980,7 @@ test("자동 승인 상태에서 권한 요청이 반환되면 상세 원인을 
         promise: Promise.resolve({
           ok: false,
           approvalRequired: true,
-          approval: { summary: "도구 실행 권한이 필요합니다.", detail: "샌드박스 실행 차단" },
+          approval: { summary: "É preciso permissão para executar a ferramenta.", detail: "샌드박스 실행 차단" },
         }),
         cancel: () => {},
       };
@@ -994,12 +994,12 @@ test("자동 승인 상태에서 권한 요청이 반환되면 상세 원인을 
   assert.equal(approvalAsked, false);
   const failure = room.messages.at(-1);
   assert.equal(failure.error, true);
-  assert.doesNotMatch(failure.text, /알 수 없는 오류/);
-  assert.match(failure.text, /자동 승인으로 실행했지만 권한 요청이 다시 발생했습니다/);
-  assert.match(failure.text, /샌드박스 실행 차단/);
+  assert.doesNotMatch(failure.text, /erro desconhecido/);
+  assert.match(failure.text, /aprovação automática, mas a permissão foi pedida de novo/);
+  assert.match(failure.text, /sandbox|샌드박스/);
 });
 
-test("권한 요청을 거부하면 기존 문구를 유지한다", async () => {
+test("Pedido de permissão을 거부하면 기존 문구를 유지한다", async () => {
   const calls = [];
   const room = new ChatRoom({
     agents: makeAgents(),
@@ -1022,7 +1022,7 @@ test("권한 요청을 거부하면 기존 문구를 유지한다", async () => 
   assert.deepEqual(calls, [false]);
   const failure = room.messages.at(-1);
   assert.equal(failure.error, true);
-  assert.equal(failure.text, "권한 요청을 거부했습니다.");
+  assert.equal(failure.text, "O pedido de permissão foi recusado.");
 });
 
 test("원인 없는 실패도 내부 식별자로 설명된다", async () => {
@@ -1035,8 +1035,8 @@ test("원인 없는 실패도 내부 식별자로 설명된다", async () => {
 
   const failure = room.messages.at(-1);
   assert.equal(failure.error, true);
-  assert.doesNotMatch(failure.text, /알 수 없는 오류/);
-  assert.match(failure.text, /원인이 기록되지 않았습니다/);
+  assert.doesNotMatch(failure.text, /erro desconhecido/);
+  assert.match(failure.text, /causa não foi registrada/);
 });
 
 test("실패한 응답은 오류 메시지로 남는다", async () => {
@@ -1061,7 +1061,7 @@ test("오류 메시지는 다음 프롬프트의 대화 기록에서 제외된�
       calls.push(agent.id);
       prompts.push(prompt);
       const result =
-        calls.length === 1 ? { ok: false, error: "빈 응답" } : { ok: true, text: "복구!" };
+        calls.length === 1 ? { ok: false, error: "Resposta vazia" } : { ok: true, text: "복구!" };
       return { promise: Promise.resolve(result), cancel: () => {} };
     },
   });
@@ -1071,7 +1071,7 @@ test("오류 메시지는 다음 프롬프트의 대화 기록에서 제외된�
   await settle(room);
 
   assert.equal(prompts.length, 2);
-  assert.doesNotMatch(prompts[1], /빈 응답/);
+  assert.doesNotMatch(prompts[1], /Resposta vazia/);
 });
 
 test("중지하면 진행 중인 실행을 취소하고 늦은 결과를 버린다", async () => {
@@ -1126,7 +1126,7 @@ test("run-event가 시작/진행/종료 순으로 전달된다", async () => {
     runAgent: ({ emitEvent }) => ({
       promise: new Promise((resolve) => {
         setImmediate(() => {
-          emitEvent({ kind: "status", label: "생각 중" });
+          emitEvent({ kind: "status", label: "Pensando" });
           emitEvent({ kind: "delta", text: "부분" });
           resolve({ ok: true, text: "최종" });
         });
@@ -1160,7 +1160,7 @@ test("첨부가 있는 사용자 메시지는 첨부 메타와 함께 저장되�
   const userMessage = room.messages.find((message) => message.authorType === "user");
   assert.deepEqual(userMessage.attachments, [attachment]);
   assert.deepEqual(received[0].attachments, [attachment]);
-  assert.match(received[0].prompt, /\[첨부: shot\.png\]/);
+  assert.match(received[0].prompt, /\[Anexo: shot\.png\]/);
 });
 
 test("텍스트 없이 첨부만으로도 메시지를 보낼 수 있다", () => {

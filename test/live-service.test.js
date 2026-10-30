@@ -53,7 +53,7 @@ test('refresh and account change query new capabilities and dispose the old runt
 });
 test('start validates actual selections, forwards SDP and limits untrusted permissions', async t => {
   const f = fixture(t), events = []; f.service.on('event', event => events.push(event));
-  await assert.rejects(f.service.start({ ...input('bad'), model: 'invented' }), /다시 선택/);
+  await assert.rejects(f.service.start({ ...input('bad'), model: 'invented' }), /de novo/);
   await f.service.start(input('call-a'));
   const start = f.requests.find(r => r.method === 'thread/realtime/start');
   assert.equal(start.params.transport.sdp, input('call-a').sdp);
@@ -174,7 +174,7 @@ test('failed realtime start declines pending approvals before the next call', as
   ]);
   rpc.request = request;
   await f.service.start(input('call-b'));
-  assert.throws(() => f.service.respondApproval({ key: 'call-b', id: '30', approve: true }), /만료/);
+  assert.throws(() => f.service.respondApproval({ key: 'call-b', id: '30', approve: true }), /expirou/);
   assert.equal(replies.length, 2);
 });
 test('completed transcripts survive reconnection and are supplied when continuing a selected conversation', async t => {
@@ -217,7 +217,7 @@ test('deleting an active conversation stops it, deletes the native thread, and k
   assert.deepEqual((await f.service.listHistory()).map(record => record.id), [other]);
   f.service.resetConnection();
   assert.deepEqual((await f.service.listHistory()).map(record => record.id), [other]);
-  await assert.rejects(f.service.selectHistory(threadId), /삭제된/);
+  await assert.rejects(f.service.selectHistory(threadId), /excluída/);
   assert.equal(f.service.history.read(other).messages[0].text, 'Keep me');
   await assert.rejects(f.service.deleteHistory('../invalid'), /ID/);
 });
@@ -259,7 +259,7 @@ test('a changed workspace starts a fresh thread with the selected directory', as
 test('cancel during capability loading prevents a voice session from starting', async t => {
   const f = fixture(t), gate = deferred(); f.gates.set('model/list', gate);
   const starting = f.service.start(input('call-a'));
-  const rejected = assert.rejects(starting, /취소/);
+  const rejected = assert.rejects(starting, /cancelad/);
   const stopped = f.service.stop('call-a'); gate.resolve(); await Promise.all([rejected, stopped]);
   assert.equal(f.requests.some(r => r.method === 'thread/realtime/start'), false);
 });
@@ -267,9 +267,9 @@ test('cancel during realtime negotiation stops the late session and rejects conc
   const f = fixture(t), gate = deferred(); f.gates.set('thread/realtime/start', gate);
   await f.service.prepare();
   const starting = f.service.start(input('call-a'));
-  const rejected = assert.rejects(starting, /취소/);
+  const rejected = assert.rejects(starting, /cancelad/);
   while (!f.requests.some(r => r.method === 'thread/realtime/start')) await new Promise(r => setImmediate(r));
-  await assert.rejects(f.service.start(input('call-b')), /진행 중/);
+  await assert.rejects(f.service.start(input('call-b')), /em andamento/);
   const stopped = f.service.stop('call-a'); gate.resolve(); await Promise.all([rejected, stopped]);
   assert.equal(f.requests.filter(r => r.method === 'thread/realtime/stop').length, 1);
   assert.equal(f.service.call, null);
@@ -281,14 +281,14 @@ test('reconnect waits for the previous stop and old keys cannot append text', as
   await new Promise(r => setImmediate(r));
   assert.equal(f.requests.filter(r => r.method === 'thread/realtime/start').length, 1);
   gate.resolve(); await Promise.all([stopping, next]);
-  await assert.rejects(f.service.text({ key: 'call-a', text: 'stale' }), /종료/);
-  await assert.rejects(f.service.text({ key: 'call-b', text: 'x'.repeat(8001) }), /8,000/);
+  await assert.rejects(f.service.text({ key: 'call-a', text: 'stale' }), /encerrada/);
+  await assert.rejects(f.service.text({ key: 'call-b', text: 'x'.repeat(8001) }), /8\.000/);
   await f.service.text({ key: 'call-b', text: ' hello ' });
   assert.equal(f.requests.at(-1).params.text, 'hello');
 });
 test('dispose during command resolution cancels and finalizes its private auth runtime', async t => {
   const f = fixture(t), gate = deferred(); f.service.resolveCommand = () => gate.promise;
-  const preparing = f.service.prepare(); const rejected = assert.rejects(preparing, /취소/);
+  const preparing = f.service.prepare(); const rejected = assert.rejects(preparing, /cancelad/);
   f.service.dispose(); gate.resolve({ command: 'fixture' }); await rejected;
   assert.equal(f.instances.length, 0); assert.equal(f.getFinished(), 1);
 });

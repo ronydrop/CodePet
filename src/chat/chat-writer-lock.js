@@ -11,7 +11,7 @@ function alive(pid) {
 }
 
 function acquire(file, depth = 0) {
-  if (depth > 8) throw new Error("저장소 잠금 복구가 필요합니다.");
+  if (depth > 8) throw new Error("O bloqueio do armazenamento precisa ser recuperado.");
   const hostname = os.hostname();
   const token = JSON.stringify({ hostname, pid: process.pid, token: randomUUID() });
   const temporary = `${file}.${randomUUID()}.tmp`;
@@ -21,7 +21,7 @@ function acquire(file, depth = 0) {
     catch (error) {
       if (error.code !== "EEXIST") {
         if (["ENOTSUP", "EOPNOTSUPP", "ENOSYS", "EPERM", "EXDEV"].includes(error.code)) {
-          throw new Error("저장소 writer 잠금을 만들 수 없습니다. 하드 링크를 지원하는 로컬 폴더를 사용해 주세요.", { cause: error });
+          throw new Error("Não foi possível criar o bloqueio do writer. Use uma pasta local que aceite hard links.", { cause: error });
         }
         throw error;
       }
@@ -30,16 +30,16 @@ function acquire(file, depth = 0) {
       // A PID is meaningful only on its own host. Unknown/legacy owners must
       // also stay locked rather than risk reclaiming another machine's writer.
       if (!hostname || owner.hostname !== hostname) {
-        throw new Error("저장소 writer의 소유 호스트를 확인할 수 없습니다. 공유 저장소를 사용하지 말고 잠금 소유자를 확인해 주세요.");
+        throw new Error("Não foi possível identificar o host dono do writer do armazenamento. Não use um armazenamento compartilhado e confira quem está com o bloqueio.");
       }
       if (!Number.isSafeInteger(owner.pid) || owner.pid <= 0 || alive(owner.pid)) {
-        throw new Error("다른 writer가 이 저장소를 사용 중입니다.");
+        throw new Error("Outro writer está usando este armazenamento.");
       }
       // Serialize stale-owner recovery. New writers can only claim the main
       // file after unlink; no reclaimer removes a replacement owner's file.
       const releaseRecovery = acquire(`${file}.recovery`, depth + 1);
       try {
-        if (fs.readFileSync(file, "utf8") !== previous) throw new Error("저장소 writer가 변경되었습니다.");
+        if (fs.readFileSync(file, "utf8") !== previous) throw new Error("O writer do armazenamento mudou.");
         fs.unlinkSync(file);
         fs.linkSync(temporary, file);
       } finally { releaseRecovery(); }

@@ -24,7 +24,7 @@ async function run() {
   const monitor = new EventEmitter();
   let rows = [
     { id: "codex", label: "Codex", account: "demo@example.com", plan: "Pro", connected: true, updatedAt: Date.now(),
-      gauges: [{ label: "5시간", usedPercent: 24, resetText: "2026-10-15T09:00:00Z" }, { label: "주간", usedPercent: 73, resetText: "2026-10-20T09:00:00Z" }] },
+      gauges: [{ label: "5 horas", usedPercent: 24, resetText: "2026-10-15T09:00:00Z" }, { label: "주간", usedPercent: 73, resetText: "2026-10-20T09:00:00Z" }] },
     { id: "agy", label: "AGY", account: "demo@example.com", plan: "Antigravity", connected: true, updatedAt: Date.now(),
       gauges: [
         ...normalizeAgyQuota({ groups: [{ displayName: "Claude and GPT models", buckets: [
@@ -34,9 +34,9 @@ async function run() {
           "gemini-flash": { displayName: "Gemini Flash", quotaInfo: { remainingFraction: 0.54, resetTime: "2026-11-03T01:00:00Z" } },
         } }),
       ] },
-    { id: "claude", label: "Claude", account: "demo@example.com", connected: true, stale: true, error: "조회 불가", updatedAt: Date.now() - 600000,
-      gauges: [{ label: "5시간", usedPercent: 92 }, { label: "7일", usedPercent: 59 }] },
-    { id: "grok", label: "Grok", connected: false, error: "로그인 필요", gauges: [] },
+    { id: "claude", label: "Claude", account: "demo@example.com", connected: true, stale: true, error: "Consulta indisponível", updatedAt: Date.now() - 600000,
+      gauges: [{ label: "5 horas", usedPercent: 92 }, { label: "7 dias", usedPercent: 59 }] },
+    { id: "grok", label: "Grok", connected: false, error: "Login necessário", gauges: [] },
   ];
   monitor.snapshot = () => ({ providers: rows, intervalMs: 60000 });
   monitor.start = monitor.stop = () => {};
@@ -78,9 +78,9 @@ async function run() {
   await until(() => popup.webContents.executeJavaScript("document.querySelectorAll('progress').length === 2"));
   const agyText = await popup.webContents.executeJavaScript("document.getElementById('providers').innerText");
   assert.ok(agyText.includes("Claude and GPT models") && agyText.includes("Gemini"));
-  assert.ok(agyText.includes("100% 남음") && agyText.includes("54% 남음"));
+  assert.ok(agyText.includes("100% restante") && agyText.includes("54% restante"));
   fs.writeFileSync(path.join(output, "agy-gemini.png"), (await popup.webContents.capturePage()).toPNG());
-  rows = [{ id: "codex", label: "Codex", connected: false, error: "로그인 필요", gauges: [] }];
+  rows = [{ id: "codex", label: "Codex", connected: false, error: "Login necessário", gauges: [] }];
   monitor.emit("update", monitor.snapshot()); await pause();
   assert.equal(nativeBar.value.providers[0].connected, false);
   feature.toggleBar(); assert.equal(nativeBar.visible, false); assert.equal(settings.taskbarUsageVisible, false);

@@ -153,7 +153,7 @@ test("grok models가 성공 종료해도 미인증 문구를 놓치지 않는다
   });
   const grok = (await service.discover()).find((record) => record.id === "grok");
   assert.equal(grok.authStatus, "unauthenticated");
-  assert.match(grok.authReason, /로그인/);
+  assert.match(grok.authReason, /login/i);
   assert.deepEqual(grok.models, ["grok-4.5"]);
 });
 
@@ -165,7 +165,7 @@ test("grok 인증 프로브의 알 수 없는 출력은 로그인 완료로 추�
   });
   const grok = (await service.discover()).find((record) => record.id === "grok");
   assert.equal(grok.authStatus, "unknown");
-  assert.match(grok.authReason, /확인하지 못했습니다/);
+  assert.match(grok.authReason, /Não foi possível ler a resposta de login/);
 });
 
 test("Docker Linux 백엔드가 확인된 경우에만 Grok 읽기와 승인형 쓰기를 승격한다", async () => {
@@ -185,7 +185,7 @@ test("Docker Linux 백엔드가 확인된 경우에만 Grok 읽기와 승인형 
   });
 
   const unavailable = makeGrokService(modelsResult, {
-    grokDockerProbe: async () => ({ available: false, reason: "Docker Desktop이 실행 중이 아닙니다." }),
+    grokDockerProbe: async () => ({ available: false, reason: "Docker Desktop이 Em execução이 아닙니다." }),
   });
   const blocked = (await unavailable.service.discover()).find((record) => record.id === "grok");
   assert.equal(blocked.permissions["workspace-read"].supported, false);
@@ -200,7 +200,7 @@ test("GUI 흔적 경로는 Antigravity.exe를 가리키지만 실행 후보에�
   assert.ok(!candidates.some((entry) => entry.endsWith("Antigravity.exe")));
 });
 
-test("CLI 없음 + GUI 설치 → gui-only 상태와 설치 안내", async () => {
+test("CLI 없음 + GUI 설치 → gui-only 상태와 Como instalar", async () => {
   const files = new Set([
     path.win32.join(WIN_ENV.LOCALAPPDATA, "Programs", "antigravity", "Antigravity.exe"),
   ]);
@@ -209,7 +209,7 @@ test("CLI 없음 + GUI 설치 → gui-only 상태와 설치 안내", async () =>
   const agy = records.find((record) => record.id === "agy");
   assert.equal(agy.status, "gui-only");
   assert.equal(agy.guiInstalled, true);
-  assert.ok(agy.reason.includes("IDE는 설치되어 있지만"));
+  assert.ok(agy.reason.includes("IDE está instalado"));
 });
 
 test("CLI가 어디에도 없으면 absent + 설치 힌트", async () => {
@@ -438,7 +438,7 @@ test("agy 모델 목록은 `agy models` 프로브로 갱신된다", async () => 
   assert.ok(agy.modelOptions.every((model) => model.efforts.length === 0));
 });
 
-test("이전 캐시에 하드코딩 목록이 있어도 조회 실패 시 실행 불가다", async () => {
+test("이전 캐시에 하드코딩 목록이 있어도 Falha na consulta 시 실행 불가다", async () => {
   const claudePath = "C:\\Users\\u\\.local\\bin\\claude.exe";
   const cacheStore = { value: { [`claude:${claudePath}`]: {
     mtimeMs: 111, size: 222, version: "fixture-version", models: ["old-model"],
@@ -450,7 +450,7 @@ test("이전 캐시에 하드코딩 목록이 있어도 조회 실패 시 실행
   assert.equal(claude.status, "cli");
   assert.equal(claude.available, false);
   assert.deepEqual(claude.modelOptions, []);
-  assert.match(claude.reason, /모델 목록/);
+  assert.match(claude.reason, /lista de modelos/);
 });
 
 test("강제 재탐지는 계정 변경 후 목록을 교체하고 실패 시 기존 목록도 폐기한다", async () => {
@@ -470,7 +470,7 @@ test("강제 재탐지는 계정 변경 후 목록을 교체하고 실패 시 �
   assert.equal(failed.catalogStatus, "unavailable");
 });
 
-test("앱 시작 후 설치된 AGY를 재탐지하고 로그인 필요를 미설치와 구분한다", async () => {
+test("앱 시작 후 설치된 AGY를 재탐지하고 Login necessário를 미설치와 구분한다", async () => {
   const agyPath = path.win32.join(WIN_ENV.LOCALAPPDATA, "agy", "bin", "agy.exe");
   const files = new Set();
   const service = createCapabilityService({ platform: "win32", env: WIN_ENV, home: "C:\\Users\\u",
@@ -485,6 +485,6 @@ test("앱 시작 후 설치된 AGY를 재탐지하고 로그인 필요를 미설
   assert.equal(agy.status, "cli");
   assert.equal(agy.authStatus, "unauthenticated");
   assert.equal(agy.catalogStatus, "unavailable");
-  assert.match(toPublicProviders([agy])[0].reason, /CLI 로그인/);
+  assert.match(toPublicProviders([agy])[0].reason, /entrar na CLI/);
   assert.deepEqual(agy.models, []);
 });

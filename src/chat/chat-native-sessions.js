@@ -18,7 +18,7 @@ class NativeSessionLink {
     const previous = this.read()[agentId];
     if (previous && (typeof previous !== "object" || typeof previous.scope !== "string" ||
         (previous.cliSessionId !== null && !UUID.test(previous.cliSessionId)))) {
-      throw new Error("CLI 세션 연결 정보가 손상되었습니다.");
+      throw new Error("O vínculo da sessão da CLI está danificado.");
     }
     const legacyHash = legacyScope && createHash("sha256").update(JSON.stringify(legacyScope)).digest("hex");
     const migrating = previous?.scope === legacyHash && UUID.test(previous?.cliSessionId) && typeof migrate === "function";
@@ -34,7 +34,7 @@ class NativeSessionLink {
       if (value && typeof value === "object" && !Array.isArray(value)) return value;
       throw new Error("Invalid native session index");
     } catch (error) {
-      if (error.code !== "ENOENT") throw new Error("CLI 세션 연결 정보를 읽지 못했습니다.");
+      if (error.code !== "ENOENT") throw new Error("Não foi possível ler o vínculo da sessão da CLI.");
     }
     return {};
   }
@@ -52,9 +52,9 @@ class NativeSessionLink {
   }
 
   observe(id) {
-    if (!UUID.test(id)) throw new Error("CLI 세션 ID가 올바르지 않습니다.");
+    if (!UUID.test(id)) throw new Error("O ID da sessão da CLI é inválido.");
     if (this.cliSessionId && this.cliSessionId !== id) {
-      throw new Error("CLI가 기존 세션을 이어받지 못했습니다. 세션 기록을 확인해 주세요.");
+      throw new Error("A CLI não continuou a sessão existente. Confira o histórico da sessão.");
     }
     this.cliSessionId = id;
     this.write();

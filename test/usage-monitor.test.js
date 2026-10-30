@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { UsageMonitor, clampWindow, avoidWindows } = require("../src/usage-monitor");
 
 const result = (key = "a", error = null) => ({ accounts: [{ key, active: true, email: "test@example.com" }],
-  usage: { gauges: error ? [] : [{ label: "5시간", usedPercent: 25 }], error } });
+  usage: { gauges: error ? [] : [{ label: "5 horas", usedPercent: 25 }], error } });
 
 test("usage refreshes providers independently and coalesces/rate-limits requests", async () => {
   let finish; let calls = 0; let now = 100000;
@@ -25,12 +25,12 @@ test("usage refreshes providers independently and coalesces/rate-limits requests
 test("failed refresh preserves stale readings only for the same signed-in account", async () => {
   let now = 100000; let value = result();
   const monitor = new UsageMonitor([{ id: "a", label: "A", load: async () => value }], { now: () => now });
-  await monitor.refresh(); now += 300001; value = result("a", "조회 불가"); await monitor.refresh();
+  await monitor.refresh(); now += 300001; value = result("a", "Consulta indisponível"); await monitor.refresh();
   assert.equal(monitor.snapshot().providers[0].stale, true);
   assert.equal(monitor.snapshot().providers[0].updatedAt, 100000);
-  now += 300001; value = result("b", "조회 불가"); await monitor.refresh();
+  now += 300001; value = result("b", "Consulta indisponível"); await monitor.refresh();
   assert.deepEqual(monitor.snapshot().providers[0].gauges, []);
-  now += 300001; value = result("b", "로그인 필요"); await monitor.refresh();
+  now += 300001; value = result("b", "Login necessário"); await monitor.refresh();
   assert.equal(monitor.snapshot().providers[0].connected, false);
 });
 
@@ -48,7 +48,7 @@ test("missing and invalid limits never become 0 or 100 percent", async () => {
     usage: { gauges: [{ usedPercent: null }, { usedPercent: NaN }, { usedPercent: "" }] } }) }]);
   await monitor.refresh();
   assert.deepEqual(monitor.snapshot().providers[0].gauges, []);
-  assert.equal(monitor.snapshot().providers[0].error, "한도 정보 없음");
+  assert.equal(monitor.snapshot().providers[0].error, "Sem informação de limite");
 });
 
 test("usage windows stay inside small or negative-coordinate displays", () => {

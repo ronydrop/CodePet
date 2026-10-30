@@ -60,7 +60,7 @@ try {
   }
   exit 0
 } catch {
-  # WPF를 사용할 수 없는 Windows 환경에서는 아래 레지스트리 목록으로 대체합니다.
+  # Se o WPF não estiver disponível, use a lista do registro abaixo.
 }
 $paths = @(
 ${paths}

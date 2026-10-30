@@ -42,10 +42,10 @@ test('coordinator hands work to three participants together, including two accou
   assert.deepEqual(room.turnState().currentAgents, ['codex', 'agy', 'codex-2']);
   assert.deepEqual(room.turnState().queue, []);
   for (const call of calls.slice(1)) {
-    const roster = call.prompt.split('\n').find(line => line.startsWith('현재 함께 작업 중인 참가자:'));
+    const roster = call.prompt.split('\n').find(line => line.startsWith('Participantes trabalhando agora:'));
     assert.ok(roster);
     for (const peer of ['codex', 'agy', 'codex-2'].filter(id => id !== call.id)) assert.ok(roster.includes(`@${peer}`));
-    assert.match(call.prompt, /다른 참가자의 변경을 덮어쓰거나 되돌리지 마세요/);
+    assert.match(call.prompt, /Não sobrescreva nem reverta/);
   }
   calls[2].finish({ ok: true, text: 'first result' });
   await tick();
@@ -78,7 +78,7 @@ test('stop immediately clears current work and stale completion cannot change th
   room.interject();
   assert.equal(old.cancelled, true);
   assert.equal(room.turnState().current, null);
-  room.sendUserMessage('모두 작업 시작해');
+  room.sendUserMessage('모두 Tarefa iniciada해');
   assert.deepEqual(calls.slice(1).map(c => c.id), agents.map(a => a.id));
   assert.equal(room.turnState().currentAgents.length, 4);
   old.finish({ ok: true, text: '@agy obsolete result' });

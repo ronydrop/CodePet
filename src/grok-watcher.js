@@ -78,7 +78,7 @@ function parseGrokUpdate(row, file = "") {
   }
   if (kind === "agent_thought_chunk" || kind === "session_recap") return null;
   if (kind === "tool_call" || kind === "tool_call_update") {
-    const title = text(update.title || update.kind || "도구 실행", 220);
+    const title = text(update.title || update.kind || "Ferramenta em execução", 220);
     if (!title) return null;
     return {
       ...base,

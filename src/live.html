@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,50 +22,50 @@
   <div class="titlebar">
     <div class="titlebar-drag"><span class="titlebar-logo" aria-hidden="true"><i></i><i></i></span><span class="titlebar-title">CodePet Live</span></div>
     <div class="titlebar-controls">
-      <button class="titlebar-btn" id="minimize" aria-label="최소화"><svg viewBox="0 0 10 10"><path d="M1 5h8"/></svg></button>
-      <button class="titlebar-btn" id="maximize" aria-label="최대화"><svg viewBox="0 0 10 10"><path d="M2 2h6v6H2Z"/></svg></button>
-      <button class="titlebar-btn btn-close" id="close" aria-label="닫기"><svg viewBox="0 0 10 10"><path d="m2 2 6 6m0-6L2 8"/></svg></button>
+      <button class="titlebar-btn" id="minimize" aria-label="Minimizar"><svg viewBox="0 0 10 10"><path d="M1 5h8"/></svg></button>
+      <button class="titlebar-btn" id="maximize" aria-label="Maximizar"><svg viewBox="0 0 10 10"><path d="M2 2h6v6H2Z"/></svg></button>
+      <button class="titlebar-btn btn-close" id="close" aria-label="Fechar"><svg viewBox="0 0 10 10"><path d="m2 2 6 6m0-6L2 8"/></svg></button>
     </div>
   </div>
   <main class="live-window" data-mode="character" data-state="idle" data-sidebar="open">
-    <aside class="live-sidebar" id="sidebar" aria-label="대화 목록">
-      <div class="sidebar-header"><strong>대화</strong><button type="button" class="history-button" id="history-new">+ 새 대화</button></div>
-      <div id="history-list" class="history-list" aria-label="지난 대화"></div>
+    <aside class="live-sidebar" id="sidebar" aria-label="Lista de conversas">
+      <div class="sidebar-header"><strong>Conversas</strong><button type="button" class="history-button" id="history-new">+ Nova conversa</button></div>
+      <div id="history-list" class="history-list" aria-label="Conversas anteriores"></div>
     </aside>
-    <button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="대화 목록 닫기" tabindex="-1"></button>
+    <button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Fechar a lista de conversas" tabindex="-1"></button>
     <section class="live-main">
-    <header class="live-header"><div class="live-title"><button class="icon-button sidebar-toggle" id="history-open" aria-label="대화 목록 열기" aria-controls="sidebar" aria-expanded="true">☰</button><svg><use href="#i-wave"/></svg><h1>Live</h1></div><div class="header-actions"><button class="icon-button" id="settings-open" aria-label="음성 설정"><svg><use href="#i-settings"/></svg></button></div></header>
-    <button type="button" class="project-summary" id="project-open" title="프로젝트 폴더 변경"><span>프로젝트</span><span id="project-path"></span></button>
+    <header class="live-header"><div class="live-title"><button class="icon-button sidebar-toggle" id="history-open" aria-label="Abrir a lista de conversas" aria-controls="sidebar" aria-expanded="true">☰</button><svg><use href="#i-wave"/></svg><h1>Live</h1></div><div class="header-actions"><button class="icon-button" id="settings-open" aria-label="Configurações de voz"><svg><use href="#i-settings"/></svg></button></div></header>
+    <button type="button" class="project-summary" id="project-open" title="Mudar a pasta do projeto"><span>Projeto</span><span id="project-path"></span></button>
     <div class="conversation">
-      <div class="visual-stage"><div class="character" role="img" aria-label="GPT 캐릭터"><div class="character-frame"></div></div><div class="orb" aria-label="음성 상태" role="img"><i></i><i></i></div></div>
-      <div class="status" role="status"><span class="status-dot"></span><span id="status">연결 정보를 불러오는 중…</span></div>
-      <div id="history-messages" class="history-messages" aria-label="대화 내용" aria-live="polite" hidden></div>
-      <div class="captions"><p id="caption-user"></p><p id="caption-assistant">무엇부터 해볼까요?</p></div>
+      <div class="visual-stage"><div class="character" role="img" aria-label="Personagem GPT"><div class="character-frame"></div></div><div class="orb" aria-label="Estado da voz" role="img"><i></i><i></i></div></div>
+      <div class="status" role="status"><span class="status-dot"></span><span id="status">Carregando a conexão…</span></div>
+      <div id="history-messages" class="history-messages" aria-label="Conteúdo da conversa" aria-live="polite" hidden></div>
+      <div class="captions"><p id="caption-user"></p><p id="caption-assistant">Por onde começamos?</p></div>
       <p class="error" id="error" role="alert" hidden></p>
     </div>
     <footer class="live-footer">
-      <div class="live-controls"><button class="icon-button mic-button" id="mute" aria-label="마이크 끄기" aria-pressed="false" disabled><svg><use href="#i-mic"/></svg></button><form id="message-form"><input id="message" aria-label="메시지" placeholder="메시지 입력" maxlength="8000" disabled><button class="send-button" id="send" aria-label="메시지 보내기" disabled><svg><use href="#i-send"/></svg></button></form><button class="icon-button end-button" id="call" aria-label="음성 대화 시작" disabled><svg><use href="#i-play"/></svg></button></div>
-      <button class="voice-summary" id="settings-summary"><span id="voice-summary">음성 설정</span><svg><use href="#i-down"/></svg></button>
+      <div class="live-controls"><button class="icon-button mic-button" id="mute" aria-label="Desligar microfone" aria-pressed="false" disabled><svg><use href="#i-mic"/></svg></button><form id="message-form"><input id="message" aria-label="Mensagem" placeholder="Escreva uma mensagem" maxlength="8000" disabled><button class="send-button" id="send" aria-label="Enviar mensagem" disabled><svg><use href="#i-send"/></svg></button></form><button class="icon-button end-button" id="call" aria-label="Começar conversa de voz" disabled><svg><use href="#i-play"/></svg></button></div>
+      <button class="voice-summary" id="settings-summary"><span id="voice-summary">Configurações de voz</span><svg><use href="#i-down"/></svg></button>
     </footer>
     </section>
   </main>
   <dialog id="settings" aria-labelledby="settings-title">
-    <header class="settings-header"><h2 id="settings-title">음성 설정</h2><button class="icon-button" id="settings-close" aria-label="설정 닫기"><svg><use href="#i-close"/></svg></button></header>
+    <header class="settings-header"><h2 id="settings-title">Configurações de voz</h2><button class="icon-button" id="settings-close" aria-label="Fechar configurações"><svg><use href="#i-close"/></svg></button></header>
     <form id="settings-form">
       <p class="account-label" id="account-label"></p>
-      <label class="field">대화 모델<select id="model" required disabled></select></label>
-      <label class="field">음성<select id="voice" required disabled></select></label>
-      <div class="field"><span>작업 폴더</span><div class="workspace-row"><output id="workspace"></output><button type="button" class="button" id="workspace-choose">폴더 선택</button></div></div>
-      <label class="field">에이전트 권한<select id="permission"><option value="ask">승인 요청</option><option value="auto">나 대신 승인</option><option value="full">전체 권한</option></select><small id="permission-description"></small></label>
-      <div class="field"><span>음성 모델</span><output id="realtime-model">서버 기본값</output></div>
-      <div class="field"><span>언어</span><output id="language">말하는 언어에 맞춤</output></div>
-      <div class="settings-actions"><button type="button" class="button" id="reload-catalog">새로고침</button><button class="button button-primary" id="settings-apply" disabled>적용</button></div>
+      <label class="field">Modelo da conversa<select id="model" required disabled></select></label>
+      <label class="field">Voz<select id="voice" required disabled></select></label>
+      <div class="field"><span>Pasta de trabalho</span><div class="workspace-row"><output id="workspace"></output><button type="button" class="button" id="workspace-choose">Escolher pasta</button></div></div>
+      <label class="field">Permissão do agente<select id="permission"><option value="ask">Pedir aprovação</option><option value="auto">Aprovar por mim</option><option value="full">Acesso total</option></select><small id="permission-description"></small></label>
+      <div class="field"><span>Modelo de voz</span><output id="realtime-model">Padrão do servidor</output></div>
+      <div class="field"><span>Idioma</span><output id="language">Acompanha o idioma da fala</output></div>
+      <div class="settings-actions"><button type="button" class="button" id="reload-catalog">Atualizar</button><button class="button button-primary" id="settings-apply" disabled>Aplicar</button></div>
     </form>
   </dialog>
   <dialog id="approval" aria-labelledby="approval-title">
-    <h2 id="approval-title">권한 요청</h2>
+    <h2 id="approval-title">Pedido de permissão</h2>
     <pre id="approval-detail"></pre>
-    <div class="settings-actions"><button type="button" class="button" id="approval-deny">거부</button><button type="button" class="button button-primary" id="approval-accept">승인</button></div>
+    <div class="settings-actions"><button type="button" class="button" id="approval-deny">Recusar</button><button type="button" class="button button-primary" id="approval-accept">Aprovar</button></div>
   </dialog>
   <audio id="remote-audio" autoplay></audio>
   <script src="live.js"></script>

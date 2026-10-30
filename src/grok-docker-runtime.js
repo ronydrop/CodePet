@@ -115,7 +115,7 @@ function defaultRunCommand(file, args, options = {}) {
         try {
           child.kill();
         } catch {}
-        finish({ ok: false, code: null, stdout, stderr: "Docker 출력이 제한을 초과했습니다." });
+        finish({ ok: false, code: null, stdout, stderr: "A saída do Docker passou do limite." });
         return target;
       }
       return target + chunk.toString("utf8");
@@ -140,7 +140,7 @@ function defaultRunCommand(file, args, options = {}) {
       try {
         child.kill();
       } catch {}
-      finish({ ok: false, code: null, stdout, stderr: `Docker 명령 시간 초과 (${Math.round(timeoutMs / 1000)}초)` });
+      finish({ ok: false, code: null, stdout, stderr: `Tempo esgotado no comando Docker (${Math.round(timeoutMs / 1000)} s)` });
     }, timeoutMs);
     if (typeof timer.unref === "function") timer.unref();
   });
@@ -190,13 +190,13 @@ function parseAuthDocument(raw) {
 
 function validateWorkspaceMount(workspace, home = os.homedir()) {
   const resolved = path.resolve(String(workspace || ""));
-  if (!path.isAbsolute(resolved)) throw new Error("Grok Docker 워크스페이스는 절대 경로여야 합니다.");
+  if (!path.isAbsolute(resolved)) throw new Error("O workspace do Grok no Docker precisa ser um caminho absoluto.");
   const root = path.parse(resolved).root;
   if (resolved.toLocaleLowerCase("en") === root.toLocaleLowerCase("en")) {
-    throw new Error("드라이브 전체는 Grok Docker 워크스페이스로 지정할 수 없습니다.");
+    throw new Error("Um drive inteiro não pode ser o workspace do Grok no Docker.");
   }
   if (home && resolved.toLocaleLowerCase("en") === path.resolve(home).toLocaleLowerCase("en")) {
-    throw new Error("사용자 홈 전체는 Grok Docker 워크스페이스로 지정할 수 없습니다.");
+    throw new Error("A pasta pessoal inteira não pode ser o workspace do Grok no Docker.");
   }
   return resolved;
 }
@@ -226,7 +226,7 @@ function createLoginContainerName(randomUUID = crypto.randomUUID) {
 
 function assertContainerName(value, prefix) {
   if (!new RegExp(`^${prefix}[a-z0-9_.-]+$`).test(String(value || ""))) {
-    throw new Error("Grok Docker 컨테이너 이름이 올바르지 않습니다.");
+    throw new Error("O nome do contêiner Docker do Grok é inválido.");
   }
 }
 
@@ -414,7 +414,7 @@ class GrokDockerRuntime {
 
   async docker(args, options = {}) {
     const dockerPath = this.resolveDockerPath();
-    if (!dockerPath) return { ok: false, code: null, stdout: "", stderr: "Docker CLI를 찾지 못했습니다." };
+    if (!dockerPath) return { ok: false, code: null, stdout: "", stderr: "A CLI do Docker não foi encontrada." };
     return this.runCommand(dockerPath, args, {
       ...options,
       env: dockerEnvironment(dockerPath, this.env),
@@ -446,7 +446,7 @@ class GrokDockerRuntime {
     if (!["win32", "linux"].includes(this.platform)) {
       this.probeResult = {
         available: false,
-        reason: "Grok Docker 워크스페이스 통합은 현재 Windows와 Linux에서만 지원합니다.",
+        reason: "A integração do workspace Grok com Docker só funciona no Windows e no Linux.",
       };
       return this.probeResult;
     }
@@ -455,8 +455,8 @@ class GrokDockerRuntime {
       this.probeResult = {
         available: false,
         reason: this.platform === "win32"
-          ? "Docker Desktop CLI를 찾지 못했습니다."
-          : "Docker CLI를 찾지 못했습니다.",
+          ? "A CLI do Docker Desktop não foi encontrada."
+          : "A CLI do Docker não foi encontrada.",
       };
       return this.probeResult;
     }
@@ -465,8 +465,8 @@ class GrokDockerRuntime {
       this.probeResult = {
         available: false,
         reason: endpoint
-          ? "원격 Docker context는 Grok 인증과 로컬 워크스페이스를 안전하게 격리할 수 없어 지원하지 않습니다. 로컬 Docker 소켓을 선택해 주세요."
-          : "Docker context의 로컬 endpoint를 확인하지 못했습니다.",
+          ? "Um contexto Docker remoto não isola com segurança a autenticação do Grok nem o workspace local. Escolha o soquete Docker local."
+          : "Não foi possível confirmar o endpoint local do contexto Docker.",
       };
       return this.probeResult;
     }
@@ -478,8 +478,8 @@ class GrokDockerRuntime {
       this.probeResult = {
         available: false,
         reason: result.ok
-          ? "Docker의 Linux 컨테이너 백엔드가 필요합니다."
-          : `${this.platform === "win32" ? "Docker Desktop" : "Docker daemon"}을 사용할 수 없습니다. ${safeDockerError(result, "")}`.trim(),
+          ? "É preciso o backend de contêineres Linux do Docker."
+          : `${this.platform === "win32" ? "Docker Desktop" : "Docker daemon"} não está disponível. ${safeDockerError(result, "")}`.trim(),
       };
       return this.probeResult;
     }
@@ -507,7 +507,7 @@ class GrokDockerRuntime {
         ["build", "--pull", "--tag", this.image, "--label", "app.codepet.grok-image=isolated-write-v5", buildDir],
         { timeoutMs: DOCKER_SETUP_TIMEOUT_MS, maxOutputBytes: 4 * MAX_DOCKER_OUTPUT_BYTES }
       );
-      if (!result.ok) throw new Error(`Grok Docker 이미지 빌드 실패: ${safeDockerError(result, "알 수 없는 오류")}`);
+      if (!result.ok) throw new Error(`Falha ao construir a imagem Docker do Grok: ${safeDockerError(result, "erro desconhecido")}`);
     } finally {
       const root = path.resolve(this.tempRoot);
       const target = path.resolve(buildDir);
@@ -536,13 +536,13 @@ class GrokDockerRuntime {
       "-ceu",
       "if [ -f /home/node/.grok/auth.json ]; then cat /home/node/.grok/auth.json; fi",
     ], { timeoutMs: DOCKER_AUTH_TIMEOUT_MS, maxOutputBytes: MAX_AUTH_DOCUMENT_BYTES });
-    if (!result.ok) throw new Error("Grok Docker 인증 볼륨을 읽지 못했습니다.");
+    if (!result.ok) throw new Error("Não foi possível ler o volume de autenticação do Grok no Docker.");
     return parseAuthDocument(result.stdout || "");
   }
 
   async seedVolumeAuth(raw) {
     const auth = parseAuthDocument(raw);
-    if (!auth) throw new Error("동기화할 Grok 로그인 정보가 올바르지 않습니다.");
+    if (!auth) throw new Error("O login do Grok a sincronizar é inválido.");
     const result = await this.docker([
       "run", "--rm", "--interactive", "--network", "none", "--read-only",
       "--cap-drop", "ALL", "--cap-add", "CHOWN", "--cap-add", "FOWNER", "--cap-add", "DAC_OVERRIDE",
@@ -566,7 +566,7 @@ class GrokDockerRuntime {
       timeoutMs: DOCKER_AUTH_TIMEOUT_MS,
       maxOutputBytes: 64 * 1024,
     });
-    if (!result.ok) throw new Error(`Grok Docker 로그인 동기화 실패: ${safeDockerError(result, "알 수 없는 오류")}`);
+    if (!result.ok) throw new Error(`Falha ao sincronizar o login do Grok no Docker: ${safeDockerError(result, "erro desconhecido")}`);
     return auth;
   }
 
@@ -593,7 +593,7 @@ class GrokDockerRuntime {
       "-ceu",
       "chown 1000:1000 /home/node/.grok; chmod 700 /home/node/.grok; find /home/node/.grok -maxdepth 1 -type f -exec chown 1000:1000 {} + -exec chmod go-rwx {} +",
     ], { timeoutMs: DOCKER_AUTH_TIMEOUT_MS });
-    if (!result.ok) throw new Error(`Grok 인증 볼륨 준비 실패: ${safeDockerError(result, "알 수 없는 오류")}`);
+    if (!result.ok) throw new Error(`Falha ao preparar o volume de autenticação do Grok: ${safeDockerError(result, "erro desconhecido")}`);
   }
 
   async ensureVolume() {
@@ -602,7 +602,7 @@ class GrokDockerRuntime {
         ["volume", "create", "--label", "app.codepet.scope=grok-auth", this.authVolume],
         { timeoutMs: DOCKER_PROBE_TIMEOUT_MS }
       );
-      if (!created.ok) throw new Error(`Grok 인증 볼륨 생성 실패: ${safeDockerError(created, "알 수 없는 오류")}`);
+      if (!created.ok) throw new Error(`Falha ao criar o volume de autenticação do Grok: ${safeDockerError(created, "erro desconhecido")}`);
     }
     await this.prepareVolumeOwnership();
   }
@@ -611,7 +611,7 @@ class GrokDockerRuntime {
     if (this.setupPromise) return this.setupPromise;
     this.setupPromise = (async () => {
       const probe = await this.probe({ force: true });
-      if (!probe.available) throw new Error(probe.reason || "Docker를 사용할 수 없습니다.");
+      if (!probe.available) throw new Error(probe.reason || "O Docker não está disponível.");
       await this.ensureImage();
       await this.ensureVolume();
       return true;
@@ -666,8 +666,8 @@ class GrokDockerRuntime {
         authenticated: false,
         loginMode,
         reason: this.platform === "win32"
-          ? "Docker 전용 Grok 로그인이 필요합니다. 최초 준비에는 이미지 빌드가 포함됩니다."
-          : "최초 실행 시 Docker 이미지를 준비하고 호스트 Grok 로그인을 자동으로 동기화합니다.",
+          ? "É preciso um login do Grok exclusivo do Docker. A primeira preparação inclui a construção da imagem."
+          : "Na primeira execução, a imagem Docker é preparada e o login do Grok do host é sincronizado automaticamente.",
       };
     }
     try {
@@ -678,7 +678,7 @@ class GrokDockerRuntime {
         setupReady: true,
         authenticated: false,
         loginMode,
-        reason: error?.message || "Docker Grok 로그인 동기화에 실패했습니다.",
+        reason: error?.message || "A sincronização do login do Grok no Docker falhou.",
       };
     }
     const auth = await this.probeContainerAuthWithHostRecovery();
@@ -689,12 +689,12 @@ class GrokDockerRuntime {
       authenticated: auth.ok,
       loginMode,
       reason: auth.ok
-        ? "프로젝트 하나만 읽기 전용으로 노출합니다."
+        ? "Expõe só um projeto, somente leitura."
         : auth.status === "unauthenticated"
           ? this.platform === "win32"
-            ? "Docker 전용 Grok 로그인이 필요합니다."
-            : "호스트 Grok CLI 로그인을 새로 완료한 뒤 인증을 다시 동기화해 주세요."
-          : `Docker Grok 로그인 상태를 확인하지 못했습니다. ${safeDockerError(auth.result, "")}`.trim(),
+            ? "É preciso um login do Grok exclusivo do Docker."
+            : "Conclua de novo o login da CLI do Grok no host e sincronize a autenticação outra vez."
+          : `Não foi possível confirmar o login do Grok no Docker. ${safeDockerError(auth.result, "")}`.trim(),
     };
   }
 
@@ -709,13 +709,13 @@ class GrokDockerRuntime {
         this.authConfirmedAt = 0;
         if (this.platform !== "win32" && !this.readHostAuth()) {
           throw new Error(
-            "호스트 Grok CLI 로그인이 필요합니다. `grok login`을 완료한 뒤 다시 시도해 주세요."
+            "É preciso estar logado na CLI do Grok no host. Conclua `grok login` e tente de novo."
           );
         }
         throw new Error(
           this.platform === "win32"
-            ? "Docker Grok 전용 로그인이 필요합니다. 설정 > 계정 > Grok에서 ‘Docker 로그인’을 완료한 뒤 다시 시도해 주세요."
-            : "호스트 Grok 인증을 Docker 실행기에 동기화했지만 로그인 상태를 확인하지 못했습니다. `grok login`을 새로 완료한 뒤 다시 시도해 주세요."
+            ? "É preciso um login do Grok exclusivo do Docker. Em Configurações > Contas > Grok, conclua “Login do Docker” e tente de novo."
+            : "A autenticação do Grok do host foi sincronizada com o executor Docker, mas o login não pôde ser confirmado. Conclua `grok login` de novo e tente outra vez."
         );
       }
       this.authConfirmedAt = Date.now();
@@ -730,7 +730,7 @@ class GrokDockerRuntime {
 
   buildLoginExecution() {
     const dockerPath = this.resolveDockerPath();
-    if (!dockerPath) throw new Error("Docker CLI를 찾지 못했습니다.");
+    if (!dockerPath) throw new Error("A CLI do Docker não foi encontrada.");
     const containerName = createLoginContainerName(this.randomUUID);
     return {
       dockerPath,
@@ -744,7 +744,7 @@ class GrokDockerRuntime {
   }
 
   async prepareLoginScript(directory) {
-    if (this.platform !== "win32") throw new Error("Docker Grok 로그인 스크립트는 현재 Windows에서만 지원합니다.");
+    if (this.platform !== "win32") throw new Error("O script de login do Grok no Docker só funciona no Windows.");
     await this.ensureSetup();
     this.authConfirmedAt = 0;
     const execution = this.buildLoginExecution();
@@ -759,7 +759,7 @@ class GrokDockerRuntime {
 
   buildReadExecution({ workspace, grokArgv, runId, cwd }) {
     const dockerPath = this.resolveDockerPath();
-    if (!dockerPath) throw new Error("Docker CLI를 찾지 못했습니다.");
+    if (!dockerPath) throw new Error("A CLI do Docker não foi encontrada.");
     const containerName = createContainerName(runId, this.randomUUID);
     return {
       commandPath: dockerPath,
@@ -781,7 +781,7 @@ class GrokDockerRuntime {
 
   buildWriteExecution({ workspace, grokArgv, runId, cwd }) {
     const dockerPath = this.resolveDockerPath();
-    if (!dockerPath) throw new Error("Docker CLI를 찾지 못했습니다.");
+    if (!dockerPath) throw new Error("A CLI do Docker não foi encontrada.");
     const containerName = createWriteContainerName(runId, this.randomUUID);
     return {
       commandPath: dockerPath,

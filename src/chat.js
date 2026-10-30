@@ -108,8 +108,8 @@ function setSidebarCollapsed(collapsed, persist = true) {
   appEl.classList.toggle("is-sidebar-collapsed", collapsed);
   sidebarToggle.textContent = collapsed ? "›" : "‹";
   sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
-  sidebarToggle.setAttribute("aria-label", collapsed ? "세션 사이드바 펼치기" : "세션 사이드바 접기");
-  sidebarToggle.title = collapsed ? "사이드바 펼치기" : "사이드바 접기";
+  sidebarToggle.setAttribute("aria-label", collapsed ? "Expandir a barra de sessões" : "Recolher a barra de sessões");
+  sidebarToggle.title = collapsed ? "Expandir a barra lateral" : "Recolher a barra lateral";
   if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
 }
 
@@ -162,12 +162,12 @@ window.addEventListener("resize", () => {
 });
 
 const ENFORCEMENT_LABEL = {
-  "container-copy-approval": "Docker 격리 복제본 · 승인 필요",
-  sandbox: "샌드박스",
-  container: "Docker 격리",
-  "tool-policy": "도구 정책",
-  "prompt-only": "프롬프트 안내만",
-  unavailable: "미지원",
+  "container-copy-approval": "Cópia isolada do Docker · aprovação necessária",
+  sandbox: "Sandbox",
+  container: "Isolamento Docker",
+  "tool-policy": "Política de ferramentas",
+  "prompt-only": "Só orientação no prompt",
+  unavailable: "Sem suporte",
 };
 
 const AGENT_VISUALS = Object.freeze({
@@ -202,7 +202,7 @@ function makeMessageEmoticon(folder, emoticon) {
   image.className = "message-emoticon";
   const assetFolder = emoticon.folder === "default" ? "default" : folder;
   image.src = `./chat-icon/emoticons/${assetFolder}/${encodeURIComponent(file)}`;
-  image.alt = emoticon.key || "이모티콘";
+  image.alt = emoticon.key || "Emoticon";
   image.title = emoticon.key || "";
   image.loading = "lazy";
   image.draggable = false;
@@ -235,7 +235,7 @@ function renderAgentMessageContent(bubble, message) {
     if (!emoticonRow) {
       emoticonRow = document.createElement("div");
       emoticonRow.className = "message-emoticons";
-      emoticonRow.setAttribute("aria-label", "에이전트 이모티콘");
+      emoticonRow.setAttribute("aria-label", "Emoticon do agente");
       bubble.append(emoticonRow);
     }
     emoticonRow.append(image);
@@ -246,22 +246,22 @@ function renderAgentMessageContent(bubble, message) {
 }
 
 const EFFORT_LABELS = Object.freeze({
-  minimal: "최소",
-  low: "낮음",
-  medium: "중간",
-  high: "높음",
-  xhigh: "매우 높음",
-  max: "최대",
-  ultra: "극대",
+  minimal: "Mínimo",
+  low: "Baixo",
+  medium: "Médio",
+  high: "Alto",
+  xhigh: "Muito alto",
+  max: "Máximo",
+  ultra: "Extremo",
 });
 
 function effortLabel(value) {
-  if (value === "default") return "CLI 설정";
+  if (value === "default") return "Configuração da CLI";
   return EFFORT_LABELS[value] || value;
 }
 
 function modelLabel(value) {
-  return value === "default" ? "CLI 설정" : value || "모델 확인 불가";
+  return value === "default" ? "Configuração da CLI" : value || "Não foi possível ver o modelo";
 }
 
 function applyAppearance(appearance) {
@@ -288,22 +288,22 @@ function providerById(id) {
 
 function doctorStatus(diagnostic) {
   if (diagnostic.errorCode === "model-catalog-unavailable") {
-    return { tone: "error", label: "모델 조회 실패", detail: diagnostic.message };
+    return { tone: "error", label: "Falha ao consultar o modelo", detail: diagnostic.message };
   }
   if (diagnostic.installed !== true) {
     return {
       tone: "error",
-      label: diagnostic.errorCode === "gui-only" ? "CLI 필요" : diagnostic.installed === null ? "실행 오류" : "설치 필요",
-      detail: diagnostic.message || "CLI를 사용할 수 없습니다.",
+      label: diagnostic.errorCode === "gui-only" ? "CLI necessária" : diagnostic.installed === null ? "Erro de execução" : "Instalação necessária",
+      detail: diagnostic.message || "A CLI não está disponível.",
     };
   }
   if (diagnostic.loggedIn === false) {
-    return { tone: "error", label: "로그인 필요", detail: diagnostic.message || "로그인이 필요합니다." };
+    return { tone: "error", label: "Login necessário", detail: diagnostic.message || "É preciso entrar." };
   }
   if (diagnostic.loggedIn === null) {
-    return { tone: "warning", label: "CLI 확인됨", detail: diagnostic.message || "로그인 상태는 자동 확인할 수 없습니다." };
+    return { tone: "warning", label: "CLI confirmada", detail: diagnostic.message || "O login não pode ser verificado automaticamente." };
   }
-  return { tone: "ready", label: "준비됨", detail: diagnostic.version || "CLI와 로그인을 확인했습니다." };
+  return { tone: "ready", label: "Pronto", detail: diagnostic.version || "CLI e login confirmados." };
 }
 
 function renderDoctor() {
@@ -311,8 +311,8 @@ function renderDoctor() {
   const readyCount = diagnostics.filter((diagnostic) => doctorStatus(diagnostic).tone === "ready").length;
   const attentionCount = diagnostics.length - readyCount;
   doctorSummary.textContent = attentionCount > 0
-    ? `${readyCount}개 준비됨 · ${attentionCount}개 확인이 필요해요.`
-    : `${readyCount}개 에이전트가 모두 준비됐어요.`;
+    ? `${readyCount} prontos · ${attentionCount} precisam de atenção.`
+    : `Os ${readyCount} agentes estão prontos.`;
 
   for (const diagnostic of diagnostics) {
     const status = doctorStatus(diagnostic);
@@ -343,20 +343,20 @@ function renderDoctor() {
       const install = document.createElement("button");
       install.className = "button button-small";
       install.type = "button";
-      install.textContent = "설치 안내";
+      install.textContent = "Como instalar";
       install.addEventListener("click", () => call(window.chatApi.openExternal(diagnostic.installUrl)));
       actions.append(install);
     } else if (diagnostic.loggedIn === false && diagnostic.loginCommand) {
       const login = document.createElement("button");
       login.className = "button button-small";
       login.type = "button";
-      login.textContent = "로그인 명령 복사";
+      login.textContent = "Copiar comando de login";
       login.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(diagnostic.loginCommand);
-          flashNotice(`${diagnostic.loginCommand} 명령을 복사했습니다.`, false);
+          flashNotice(`O comando ${diagnostic.loginCommand} foi copiado.`, false);
         } catch {
-          flashNotice(`터미널에서 ${diagnostic.loginCommand} 명령을 실행해 주세요.`);
+          flashNotice(`Execute ${diagnostic.loginCommand} no terminal.`);
         }
       });
       actions.append(login);
@@ -389,7 +389,7 @@ function makeAgentAvatar(agent, className = "avatar") {
   if (visual) {
     const image = document.createElement("img");
     image.src = visual.src;
-    image.alt = `${agent.name} 프로필`;
+    image.alt = `Perfil de ${agent.name}`;
     image.draggable = false;
     avatar.append(image);
   } else {
@@ -430,9 +430,9 @@ function normalizeSessionSearchQuery(value) {
 function formatRelativeTime(ts) {
   if (!ts) return "";
   const diff = Date.now() - ts;
-  if (diff < 60_000) return "방금";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}분 전`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}시간 전`;
+  if (diff < 60_000) return "Agora";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} min atrás`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} h atrás`;
   return new Date(ts).toLocaleDateString();
 }
 
@@ -474,18 +474,18 @@ function renderSessionSearchState(text) {
 }
 
 function renderSessionSearchResults() {
-  sessionListEl.setAttribute("aria-label", "세션 검색 결과");
+  sessionListEl.setAttribute("aria-label", "Resultados da pesquisa");
   sessionListEl.setAttribute("aria-busy", String(sessionSearchLoading));
   if (sessionSearchLoading) {
-    renderSessionSearchState("검색 중…");
+    renderSessionSearchState("Pesquisando…");
     return;
   }
   if (sessionSearchFailed) {
-    renderSessionSearchState("검색하지 못했습니다.");
+    renderSessionSearchState("A pesquisa falhou.");
     return;
   }
   if (sessionSearchResults.length === 0) {
-    renderSessionSearchState("일치하는 메시지가 없습니다.");
+    renderSessionSearchState("Nenhuma mensagem encontrada.");
     return;
   }
 
@@ -500,7 +500,7 @@ function renderSessionSearchResults() {
     const titleLine = document.createElement("span");
     titleLine.className = "session-search-result-title";
     const title = document.createElement("strong");
-    title.textContent = result.title || "세션";
+    title.textContent = result.title || "Sessão";
     const time = document.createElement("span");
     time.textContent = formatRelativeTime(result.ts);
     titleLine.append(title, time);
@@ -520,7 +520,7 @@ function renderSessions() {
     renderSessionSearchResults();
     return;
   }
-  sessionListEl.setAttribute("aria-label", "세션 목록");
+  sessionListEl.setAttribute("aria-label", "Lista de sessões");
   sessionListEl.removeAttribute("aria-busy");
   for (const entry of sessions) {
     const item = document.createElement("li");
@@ -537,12 +537,12 @@ function renderSessions() {
     if (entry.status === "running") {
       const dot = document.createElement("i");
       dot.className = "session-status is-running";
-      dot.title = "실행 중";
+      dot.title = "Em execução";
       titleLine.append(dot);
     } else if (entry.status === "interrupted") {
       const dot = document.createElement("i");
       dot.className = "session-status is-interrupted";
-      dot.title = "이전 실행이 중단되었습니다";
+      dot.title = "A execução anterior foi interrompida";
       titleLine.append(dot);
     }
     const titleText = document.createElement("span");
@@ -578,7 +578,7 @@ function renderSessions() {
     const renameBtn = document.createElement("button");
     renameBtn.type = "button";
     renameBtn.className = "session-action";
-    renameBtn.title = "이름 바꾸기";
+    renameBtn.title = "Renomear";
     renameBtn.textContent = "✎";
     renameBtn.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -587,12 +587,12 @@ function renderSessions() {
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.className = "session-action";
-    deleteBtn.title = "휴지통으로 이동 (30일 후 정리)";
+    deleteBtn.title = "Mover para a lixeira (apagada em 30 dias)";
     deleteBtn.textContent = "🗑";
     deleteBtn.addEventListener("click", async (event) => {
       event.stopPropagation();
       const yes = window.confirm(
-        `"${entry.title}" 세션을 휴지통으로 옮길까요?\n첨부 사본도 함께 이동하며 30일 후 정리됩니다.`
+        `Mover a sessão "${entry.title}" para a lixeira?\nAs cópias dos anexos vão junto e são apagadas depois de 30 dias.`
       );
       if (!yes) return;
       const result = await call(window.chatApi.sessionsDelete(entry.id));
@@ -707,20 +707,20 @@ function activeSessionEntry() {
 function renderHeader() {
   sendButton.disabled = providersLoading && !agents.some((agent) => agent.available && agent.enabled);
   const entry = activeSessionEntry();
-  sessionTitleEl.textContent = sessionMeta?.title || entry?.title || "세션";
+  sessionTitleEl.textContent = sessionMeta?.title || entry?.title || "Sessão";
 
   const workspace = sessionMeta?.workspace || null;
-  workspaceLabel.textContent = workspace ? baseName(workspace) : "워크스페이스 없음";
+  workspaceLabel.textContent = workspace ? baseName(workspace) : "Sem workspace";
   workspaceButton.title = workspace
-    ? `${workspace}\n클릭해 변경 · 우클릭으로 해제`
-    : "세션에서 사용할 폴더를 선택합니다";
+    ? `${workspace}\nClique para alterar · clique direito para limpar`
+    : "Escolhe a pasta usada nesta sessão";
 
   const mode = sessionMeta?.permissionMode || "chat";
   permissionSelect.value = mode;
   for (const option of permissionSelect.options) {
     if (option.value !== "chat") {
       option.disabled = !workspace;
-      option.title = workspace ? "" : "먼저 워크스페이스를 선택하세요";
+      option.title = workspace ? "" : "Escolha um workspace antes";
     }
   }
 
@@ -732,13 +732,13 @@ function renderHeader() {
       hints.push(`${agentById(provider.id)?.name || provider.name}: ${ENFORCEMENT_LABEL[info.enforcement] || info.enforcement}`);
     }
   }
-  enforcementHint.textContent = hints.length > 0 ? `적용 방식 — ${hints.join(" · ")}` : "";
+  enforcementHint.textContent = hints.length > 0 ? `Como se aplica — ${hints.join(" · ")}` : "";
 
   const discussable = agents.filter((agent) => agent.available && agent.enabled).length >= 2;
   discussionButton.disabled = !discussable;
   discussionButton.title = discussable
-    ? "활성 에이전트들이 합의나 결론에 도달할 때까지 토론합니다"
-    : "토론에는 사용 가능한 에이전트가 두 명 이상 필요합니다";
+    ? "Os agentes ativos discutem até chegarem a um acordo ou a uma conclusão"
+    : "A discussão precisa de pelo menos dois agentes disponíveis";
   exportSessionButton.disabled = !activeSessionId;
 }
 
@@ -755,9 +755,9 @@ function renderAgents() {
     if (typingAgents.has(agent.id)) chip.classList.add("is-typing");
     chip.title = agent.available
       ? agent.enabled
-        ? `${agent.name} · 클릭해 이름/모델/추론 설정`
-        : "이 세션에서 비활성화됨 · 클릭해 설정"
-      : agent.reason || "CLI를 찾지 못했습니다";
+        ? `${agent.name} · clique para nome, modelo e raciocínio`
+        : "Desativado nesta sessão · clique para configurar"
+      : agent.reason || "A CLI não foi encontrada";
 
     const avatar = makeAgentAvatar(agent, "agent-avatar");
     const label = document.createElement("span");
@@ -824,11 +824,11 @@ function openAgentPopover(anchor, agentId) {
     const status = document.createElement("p");
     status.className = "popover-status";
     if (provider.available) {
-      status.textContent = `CLI 확인됨 · ${provider.version || ""}`;
+      status.textContent = `CLI confirmada · ${provider.version || ""}`;
       if (agent.reason) status.textContent += ` · ${agent.reason}`;
     } else {
       status.classList.add("is-warning");
-      status.textContent = provider.reason || "CLI를 사용할 수 없습니다.";
+      status.textContent = provider.reason || "A CLI não está disponível.";
     }
     root.append(status);
     if (agent.accountLabel) {
@@ -854,8 +854,8 @@ function openAgentPopover(anchor, agentId) {
     const saveIdentity = document.createElement("button");
     saveIdentity.type = "submit";
     saveIdentity.className = "button popover-submit";
-    saveIdentity.textContent = "이름 저장";
-    identityForm.append(makeField("표시 이름", nameInput), makeField("호출명 (@)", mentionInput), saveIdentity);
+    saveIdentity.textContent = "Salvar nome";
+    identityForm.append(makeField("Nome de exibição", nameInput), makeField("Apelido (@)", mentionInput), saveIdentity);
     identityForm.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && event.isComposing) event.preventDefault();
     });
@@ -877,14 +877,14 @@ function openAgentPopover(anchor, agentId) {
     enableToggle.addEventListener("change", () => {
       configureAgent(agentId, { enabled: enableToggle.checked });
     });
-    root.append(makeField("이 세션에 참여", enableToggle));
+    root.append(makeField("Participar desta sessão", enableToggle));
 
     // 모델 선택
     const modelSelect = document.createElement("select");
     const modelOptions = provider.modelOptions || [];
     const defaultModel = document.createElement("option");
     defaultModel.value = "default";
-    defaultModel.textContent = provider.available ? "CLI 설정 따름" : "모델 목록 확인 불가";
+    defaultModel.textContent = provider.available ? "Seguir a configuração da CLI" : "Não foi possível ver a lista de modelos";
     modelSelect.append(defaultModel);
     for (const model of modelOptions) {
       const option = document.createElement("option");
@@ -896,7 +896,7 @@ function openAgentPopover(anchor, agentId) {
     if (currentModel !== "default" && !modelOptions.some((option) => option.id === currentModel)) {
       const legacyOption = document.createElement("option");
       legacyOption.value = currentModel;
-      legacyOption.textContent = `${currentModel} (현재 설정 · 목록에 없음)`;
+      legacyOption.textContent = `${currentModel} (configuração atual · fora da lista)`;
       legacyOption.disabled = true;
       modelSelect.append(legacyOption);
     }
@@ -907,7 +907,7 @@ function openAgentPopover(anchor, agentId) {
       populateEfforts(modelSelect.value, nextEffort);
       configureAgent(agentId, { model: modelSelect.value, effort: nextEffort });
     });
-    root.append(makeField("모델", modelSelect));
+    root.append(makeField("Modelo", modelSelect));
 
     // 추론 단계 선택
     const effortSelect = document.createElement("select");
@@ -920,7 +920,7 @@ function openAgentPopover(anchor, agentId) {
       const efforts = effortsForModel(modelId);
       const cliDefault = document.createElement("option");
       cliDefault.value = "default";
-      cliDefault.textContent = provider.available ? "CLI 설정 따름" : "조회 불가";
+      cliDefault.textContent = provider.available ? "Seguir a configuração da CLI" : "Consulta indisponível";
       effortSelect.append(cliDefault);
       for (const effort of efforts) {
         const option = document.createElement("option");
@@ -931,7 +931,7 @@ function openAgentPopover(anchor, agentId) {
       if (selected !== "default" && !efforts.includes(selected)) {
         const stale = document.createElement("option");
         stale.value = selected;
-        stale.textContent = `${effortLabel(selected)} (지원 확인 불가)`;
+        stale.textContent = `${effortLabel(selected)} (suporte não confirmado)`;
         stale.disabled = true;
         effortSelect.append(stale);
       }
@@ -940,14 +940,14 @@ function openAgentPopover(anchor, agentId) {
     }
     populateEfforts(currentModel, agent.effort);
     if (effortSelect.disabled && provider.status !== "cli") {
-      effortSelect.title = "CLI 설치 후 사용할 수 있습니다";
+      effortSelect.title = "Disponível depois de instalar a CLI";
     } else if (effortsForModel(currentModel).length === 0) {
-      effortSelect.title = "이 모델에서 CLI가 제공한 추론 선택지가 없습니다";
+      effortSelect.title = "A CLI não ofereceu opções de raciocínio para este modelo";
     }
     effortSelect.addEventListener("change", () => {
       configureAgent(agentId, { effort: effortSelect.value });
     });
-    root.append(makeField("추론", effortSelect));
+    root.append(makeField("Raciocínio", effortSelect));
 
     const autoApproveToggle = document.createElement("input");
     autoApproveToggle.type = "checkbox";
@@ -957,25 +957,25 @@ function openAgentPopover(anchor, agentId) {
       || sessionMeta?.permissionMode !== "workspace-write"
       || requiresPatchApproval;
     autoApproveToggle.title = requiresPatchApproval
-      ? "Grok 변경은 항상 복제본 diff를 검토한 뒤 적용해야 합니다"
+      ? "Alterações do Grok sempre precisam da revisão do diff da cópia antes de serem aplicadas"
       : autoApproveToggle.disabled
-        ? "워크스페이스 쓰기 권한에서만 사용할 수 있습니다"
-        : "이 에이전트가 요청하는 도구 권한을 개별 확인 없이 승인합니다";
+        ? "Só pode ser usado com permissão de escrita no workspace"
+        : "Aprova as ferramentas pedidas por este agente sem confirmação individual";
     autoApproveToggle.addEventListener("change", async () => {
       if (autoApproveToggle.checked) {
         const confirmed = window.confirm(
-          `${agent.name}의 도구 자동 승인을 켤까요?\n명령 실행과 파일 변경이 개별 확인 없이 진행됩니다. 신뢰하는 워크스페이스에서만 사용하세요.`
+          `Ativar a aprovação automática das ferramentas de ${agent.name}?\nComandos e alterações de arquivo seguem sem confirmação individual. Use só em um workspace em que você confia.`
         );
         if (!confirmed) { autoApproveToggle.checked = false; return; }
       }
       await configureAgent(agentId, { autoApprove: autoApproveToggle.checked });
     });
-    root.append(makeField("도구 자동 승인", autoApproveToggle));
+    root.append(makeField("Aprovação automática de ferramentas", autoApproveToggle));
     if (config.profileKey) {
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "button";
-      remove.textContent = "참가자 삭제";
+      remove.textContent = "Remover participante";
       remove.disabled = Boolean(turnState.current);
       remove.addEventListener("click", async () => {
         const sessionId = activeSessionId;
@@ -990,8 +990,8 @@ function openAgentPopover(anchor, agentId) {
       hint.className = "popover-hint";
       hint.textContent =
         provider.status === "gui-only"
-          ? "GUI 앱은 감지되었지만 CLI가 없어 채팅에는 참여할 수 없습니다."
-          : "CLI가 설치되어 있지 않습니다.";
+          ? "O aplicativo foi detectado, mas sem a CLI ele não entra no chat."
+          : "A CLI não está instalada.";
       root.append(hint);
     }
   });
@@ -1017,16 +1017,16 @@ document.getElementById("btn-add-account").addEventListener("click", async (even
   if (!result || activeSessionId !== sessionId) return;
   openPopover(anchor, (root) => {
     const heading = document.createElement("strong");
-    heading.textContent = "계정 추가";
+    heading.textContent = "Adicionar conta";
     root.append(heading);
     const accounts = result.accounts.filter((account) => !Object.values(sessionMeta?.agents || {}).some((config) => config.profileKey === account.key && config.providerId === (account.providerId || "codex")));
     if (!accounts.length) {
       const hint = document.createElement("p");
       hint.className = "popover-hint";
-      hint.textContent = "추가할 계정이 없습니다.";
+      hint.textContent = "Não há conta para adicionar.";
       const settings = document.createElement("button");
       settings.className = "button";
-      settings.textContent = "계정 설정 열기";
+      settings.textContent = "Abrir configurações da conta";
       settings.addEventListener("click", () => { closePopover(); window.chatApi.openSettings(); });
       root.append(hint, settings);
       return;
@@ -1039,21 +1039,21 @@ document.getElementById("btn-add-account").addEventListener("click", async (even
     const name = document.createElement("input");
     name.type = "text";
     name.maxLength = 40;
-    name.placeholder = "예: 검토 담당";
-    const accountField = makeField("계정", select);
+    name.placeholder = "Ex.: revisão";
+    const accountField = makeField("Conta", select);
     accountField.classList.add("account-picker");
-    root.append(accountField, makeField("참가자 이름 (선택)", name));
+    root.append(accountField, makeField("Nome do participante (opcional)", name));
     const add = document.createElement("button");
     add.className = "button button-primary";
-    add.textContent = "추가";
+    add.textContent = "Adicionar";
     add.addEventListener("click", async () => {
       add.disabled = true;
-      add.textContent = "모델 확인 중…";
+      add.textContent = "Conferindo o modelo…";
       const account = accounts[Number(select.value)];
       const added = await call(window.chatApi.agentAdd(sessionId, account.key, name.value, account.providerId || "codex"));
       if (added && activeSessionId === sessionId) { closePopover(); applyFullState(added); }
       add.disabled = false;
-      add.textContent = "추가";
+      add.textContent = "Adicionar";
     });
     root.append(add);
   });
@@ -1065,13 +1065,13 @@ discussionButton.addEventListener("click", () => {
     const head = document.createElement("div");
     head.className = "popover-head";
     const title = document.createElement("strong");
-    title.textContent = "에이전트 토론";
+    title.textContent = "Discussão dos agentes";
     head.append(title);
     root.append(head);
 
     const desc = document.createElement("p");
     desc.className = "popover-status";
-    desc.textContent = "한 턴씩 차례로 말하고, 합의·결론·패스가 이어지면 스스로 끝냅니다.";
+    desc.textContent = "Cada um fala na sua vez. A discussão termina sozinha quando há acordo, conclusão ou passes seguidos.";
     root.append(desc);
 
     const checkboxes = [];
@@ -1088,13 +1088,13 @@ discussionButton.addEventListener("click", () => {
     const startBtn = document.createElement("button");
     startBtn.type = "button";
     startBtn.className = "button button-primary popover-submit";
-    startBtn.textContent = "토론 시작";
+    startBtn.textContent = "Começar discussão";
     startBtn.addEventListener("click", async () => {
       const agentIds = checkboxes
         .filter((checkbox) => checkbox.checked)
         .map((checkbox) => checkbox.dataset.agentId);
       if (agentIds.length < 2) {
-        flashNotice("토론에는 두 명 이상을 선택해야 합니다.");
+        flashNotice("Selecione pelo menos duas pessoas para a discussão.");
         return;
       }
       closePopover();
@@ -1161,7 +1161,7 @@ function renderInlineTokens(container, tokens) {
       anchor.textContent = token.text;
       anchor.rel = "noreferrer noopener";
       anchor.addEventListener("click", (event) => event.preventDefault());
-      anchor.title = "외부 링크는 채팅창에서 열리지 않습니다";
+      anchor.title = "Links externos não abrem nesta janela de chat";
       container.append(anchor);
     } else if (token.type === "mention") {
       const span = document.createElement("span");
@@ -1191,13 +1191,13 @@ function renderRichText(container, text) {
       const copyBtn = document.createElement("button");
       copyBtn.type = "button";
       copyBtn.className = "code-copy";
-      copyBtn.textContent = "복사";
+      copyBtn.textContent = "Copiar";
       copyBtn.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(block.code);
-          copyBtn.textContent = "복사됨";
+          copyBtn.textContent = "Copiado";
           setTimeout(() => {
-            copyBtn.textContent = "복사";
+            copyBtn.textContent = "Copiar";
           }, 1500);
         } catch {}
       });
@@ -1291,7 +1291,7 @@ function makeAttachmentPill(attachment, { removable = false } = {}) {
     remove.type = "button";
     remove.className = "attachment-remove";
     remove.textContent = "×";
-    remove.title = "첨부 제거";
+    remove.title = "Remover anexo";
     remove.addEventListener("click", async () => {
       const result = await call(window.chatApi.attachmentsRemove(activeSessionId, attachment.id));
       if (result) {
@@ -1330,7 +1330,7 @@ function normalizeReplySnapshot(value) {
 }
 
 function replyAuthorLabel(replyTo) {
-  if (replyTo.authorType === "user") return "나";
+  if (replyTo.authorType === "user") return "Eu";
   const agent = agentById(replyTo.author);
   return agent ? `${agent.name} · @${agentMention(agent)}` : `@${replyTo.author}`;
 }
@@ -1350,7 +1350,7 @@ function makeReplyContext(replyTo) {
 
 function renderReplyPreview() {
   replyPreview.hidden = !pendingReplyTo;
-  replyPreviewAuthor.textContent = pendingReplyTo ? `${replyAuthorLabel(pendingReplyTo)}에게 답장` : "";
+  replyPreviewAuthor.textContent = pendingReplyTo ? `Resposta para ${replyAuthorLabel(pendingReplyTo)}` : "";
   replyPreviewExcerpt.textContent = pendingReplyTo?.excerpt || "";
 }
 
@@ -1384,8 +1384,8 @@ function renderMessageLabel(nameEl, message, live = false) {
   const parts = [agent?.name || saved.name || message.author,
     `@${agentMention(agent) || saved.mention || message.author}`,
     modelLabel(saved.model || agent?.model),
-    effortLabel(saved.effort || agent?.effort || "추론 강도 확인 불가")];
-  if (live) parts.push("응답 중");
+    effortLabel(saved.effort || agent?.effort || "Não foi possível ver a intensidade do raciocínio")];
+  if (live) parts.push("Respondendo");
   nameEl.textContent = parts.join(" · ");
 }
 
@@ -1400,10 +1400,10 @@ function refreshMessageLabels() {
     if (avatar) {
       avatar.dataset.initial = name.slice(0, 1).toUpperCase();
       const image = avatar.querySelector("img");
-      if (image) image.alt = `${name} 프로필`;
+      if (image) image.alt = `Perfil de ${name}`;
       else avatar.textContent = avatar.dataset.initial;
     }
-    item.querySelector(".message-reply")?.setAttribute("aria-label", `${name}의 메시지 인용`);
+    item.querySelector(".message-reply")?.setAttribute("aria-label", `Citar a mensagem de ${name}`);
   }
   for (const label of messageList.querySelectorAll("[data-reply-author]")) {
     label.textContent = replyAuthorLabel({ author: label.dataset.replyAuthor, authorType: label.dataset.replyAuthorType });
@@ -1430,7 +1430,7 @@ function renderMessage(message) {
   if (message.error) item.classList.add("is-error");
 
   const agent = isUser ? null : agentById(message.author);
-  const name = isUser ? "나" : agent ? agent.name : message.agentMeta?.name || message.author;
+  const name = isUser ? "Eu" : agent ? agent.name : message.agentMeta?.name || message.author;
   const color = isUser ? "var(--accent)" : agent ? agent.color : "#52525b";
 
   const body = document.createElement("div");
@@ -1453,8 +1453,8 @@ function renderMessage(message) {
     const replyButton = document.createElement("button");
     replyButton.type = "button";
     replyButton.className = "message-reply";
-    replyButton.textContent = "인용";
-    replyButton.setAttribute("aria-label", `${name}의 메시지 인용`);
+    replyButton.textContent = "Citar";
+    replyButton.setAttribute("aria-label", `Citar a mensagem de ${name}`);
     replyButton.addEventListener("click", () => quoteMessage(message));
     meta.append(replyButton);
   }
@@ -1487,7 +1487,7 @@ function renderMessage(message) {
     if (failed.length > 0) {
       const badge = document.createElement("div");
       badge.className = "delivery-badge";
-      badge.textContent = `⚠ 첨부 ${failed.length}개는 이 에이전트에 전달되지 않았습니다`;
+      badge.textContent = `⚠ ${failed.length} anexo(s) não foram entregues a este agente`;
       bubble.append(badge);
     }
   }
@@ -1497,30 +1497,30 @@ function renderMessage(message) {
     const review = document.createElement("section");
     review.className = "workspace-change-review";
     const title = document.createElement("strong");
-    title.textContent = "Docker 격리 복제본 변경 · 적용 승인 필요";
+    title.textContent = "Alteração na cópia isolada do Docker · precisa de aprovação";
     const files = document.createElement("ul");
     for (const change of (changeSet.changes || []).slice(0, 32)) {
       const row = document.createElement("li");
-      row.textContent = `${change.op === "delete" ? "삭제" : "변경"}: ${change.path}`;
+      row.textContent = `${change.op === "delete" ? "Exclusão" : "Alteração"}: ${change.path}`;
       files.append(row);
     }
     const diff = document.createElement("pre");
-    diff.textContent = changeSet.diff || "표시용 diff가 없습니다. 적용에는 검증된 파일 스냅숏을 사용합니다.";
+    diff.textContent = changeSet.diff || "Não há diff para exibir. A aplicação usa o snapshot verificado dos arquivos.";
     const expiry = document.createElement("small");
     expiry.className = "workspace-change-expiry";
     expiry.textContent = changeSet.expiresAt
-      ? `승인 만료: ${formatTime(changeSet.expiresAt)}`
-      : "승인 요청은 15분 뒤 만료됩니다.";
+      ? `Aprovação expira: ${formatTime(changeSet.expiresAt)}`
+      : "O pedido de aprovação expira em 15 minutos.";
     const actions = document.createElement("div");
     actions.className = "workspace-change-actions";
     const apply = document.createElement("button");
     apply.type = "button";
     apply.className = "button button-primary";
-    apply.textContent = "전체 적용";
+    apply.textContent = "Aplicar tudo";
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "button";
-    cancel.textContent = "취소";
+    cancel.textContent = "Cancelar";
     const setBusy = (busy) => {
       apply.disabled = busy;
       cancel.disabled = busy;
@@ -1540,7 +1540,7 @@ function renderMessage(message) {
         setBusy(false);
         return;
       }
-      finish(result.cleanupWarning || `${result.applied || 0}개 파일을 적용했습니다.`);
+      finish(result.cleanupWarning || `${result.applied || 0} arquivo(s) aplicado(s).`);
     });
     cancel.addEventListener("click", async () => {
       const sessionId = activeSessionId;
@@ -1550,7 +1550,7 @@ function renderMessage(message) {
         setBusy(false);
         return;
       }
-      finish(result.alreadyHandled ? "이미 처리되었거나 만료된 변경입니다." : "복제본 변경을 폐기했습니다.");
+      finish(result.alreadyHandled ? "Esta alteração já foi tratada ou expirou." : "As alterações da cópia foram descartadas.");
     });
     actions.append(apply, cancel);
     review.append(title, files, diff, expiry, actions);
@@ -1604,8 +1604,8 @@ function renderAllMessages(messages, history = {}) {
 function updateHistoryButton(failed = false) {
   historyLoadButton.hidden = !historyHasMore;
   historyLoadButton.disabled = historyLoading;
-  historyLoadButton.textContent = historyLoading ? "불러오는 중…"
-    : failed ? "이전 대화 다시 불러오기" : "이전 대화 불러오기";
+  historyLoadButton.textContent = historyLoading ? "Carregando…"
+    : failed ? "Carregar de novo a conversa anterior" : "Carregar conversa anterior";
 }
 
 async function loadOlderMessages() {
@@ -1754,7 +1754,7 @@ function renderTyping() {
     const dots = document.createElement("span");
     dots.className = "dots";
     dots.append(document.createElement("i"), document.createElement("i"), document.createElement("i"));
-    pill.append(dots, document.createTextNode(`${agent.name} 입력 중`));
+    pill.append(dots, document.createTextNode(`${agent.name} está digitando`));
     typingRow.append(pill);
   }
   renderAgents();
@@ -1799,7 +1799,7 @@ function renderTurnQueue() {
     const currentIds = turnState.currentAgents.length ? turnState.currentAgents : [turnState.current];
     const label = currentIds.map((id) => agentById(id)?.name || `@${id}`).join(", ");
     turnCurrent.style.setProperty("--turn-agent-color", currentAgent?.color || "#52525b");
-    turnCurrent.append(makeTurnAgentDot(currentAgent), document.createTextNode(`${label} 작업 중`));
+    turnCurrent.append(makeTurnAgentDot(currentAgent), document.createTextNode(`${label} trabalhando`));
   }
 
   turnQueueList.textContent = "";
@@ -1813,15 +1813,15 @@ function renderTurnQueue() {
     chip.setAttribute("role", "listitem");
     if (turn.deferred) chip.classList.add("is-deferred");
     chip.title = turn.deferred
-      ? `${agentLabel} · 토론이 끝난 뒤 대기`
-      : `${agentLabel}${turn.discussion ? " · 토론" : ""}`;
+      ? `${agentLabel} · espera depois da discussão`
+      : `${agentLabel}${turn.discussion ? " · discussão" : ""}`;
 
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "turn-cancel";
     cancel.textContent = "×";
-    cancel.title = `${agentLabel} 턴 취소`;
-    cancel.setAttribute("aria-label", `${agentLabel} 대기 턴 취소`);
+    cancel.title = `Cancelar o turno de ${agentLabel}`;
+    cancel.setAttribute("aria-label", `Cancelar o turno em espera de ${agentLabel}`);
     cancel.addEventListener("click", async () => {
       cancel.disabled = true;
       const result = await call(window.chatApi.turnCancel(activeSessionId, turn.turnId));
@@ -1905,8 +1905,8 @@ function mentionTargets() {
       available: agent.available && agent.enabled,
     })),
     {
-      alias: "모두",
-      label: "모든 에이전트",
+      alias: "todos",
+      label: "Todos os agentes",
       color: "#52525b",
       available: agents.some((agent) => agent.available && agent.enabled),
     },
@@ -1960,7 +1960,7 @@ function updateMentionPopup() {
     alias.textContent = `@${option.alias}`;
     const desc = document.createElement("span");
     desc.className = "desc";
-    desc.textContent = option.available ? option.label : `${option.label} · 사용 불가`;
+    desc.textContent = option.available ? option.label : `${option.label} · indisponível`;
     button.append(dot, alias, desc);
     button.addEventListener("mousedown", (event) => {
       event.preventDefault();
@@ -2076,8 +2076,8 @@ clearTurnsButton.addEventListener("click", async () => {
   if (!activeSessionId) return;
   const hasCurrent = Boolean(turnState.current);
   const prompt = hasCurrent
-    ? "현재 응답과 대기 중인 모든 턴을 중지할까요?"
-    : "대기 중인 모든 턴을 비울까요?";
+    ? "Parar a resposta atual e todos os turnos na fila?"
+    : "Limpar todos os turnos em espera?";
   if (!window.confirm(prompt)) return;
   const sessionId = activeSessionId;
   clearTurnsButton.disabled = true;
@@ -2096,7 +2096,7 @@ exportSessionButton.addEventListener("click", async () => {
   exportSessionButton.disabled = true;
   const result = await call(window.chatApi.sessionExport(sessionId));
   if (result && !result.canceled) {
-    flashNotice(`${result.fileName || "세션"} 파일로 내보냈습니다.`, false);
+    flashNotice(`Exportado para o arquivo ${result.fileName || "sessão"}.`, false);
   }
   exportSessionButton.disabled = !activeSessionId;
 });
@@ -2113,7 +2113,7 @@ async function refreshProviders({ quiet = false } = {}) {
     if (result?.providers) {
       providers = result.providers;
       diagnostics = result.diagnostics || diagnostics;
-      if (!quiet) flashNotice("CLI 탐지를 새로 고쳤습니다.", false);
+      if (!quiet) flashNotice("A detecção das CLIs foi atualizada.", false);
       renderHeader();
       if (!doctorBackdrop.hidden) renderDoctor();
     }
@@ -2139,14 +2139,14 @@ doctorBackdrop.addEventListener("click", (event) => {
 });
 doctorRefresh.addEventListener("click", async () => {
   doctorRefresh.disabled = true;
-  doctorRefresh.textContent = "진단 중…";
+  doctorRefresh.textContent = "Diagnosticando…";
   const result = await call(window.chatApi.providersRefresh());
   if (result?.providers) providers = result.providers;
   if (result?.diagnostics) diagnostics = result.diagnostics;
   renderDoctor();
   renderHeader();
   doctorRefresh.disabled = false;
-  doctorRefresh.textContent = "다시 진단";
+  doctorRefresh.textContent = "Diagnosticar de novo";
 });
 
 sessionTitleEl.addEventListener("dblclick", () => {
@@ -2197,12 +2197,12 @@ function applyFullState(full) {
   }
 
   if (full.error) {
-    storeWarning.textContent = `저장소 문제: ${full.error} — 대화가 저장되지 않을 수 있습니다.`;
+    storeWarning.textContent = `Problema no armazenamento: ${full.error} — a conversa pode não ser salva.`;
     storeWarning.classList.add("is-error");
     storeWarning.hidden = false;
   } else if (full.readOnly) {
     storeWarning.textContent =
-      "이 .code-pet 저장소는 더 새로운 버전이 만든 것이라 읽기 전용으로 열렸습니다.";
+      "Este armazenamento .code-pet foi criado por uma versão mais nova e foi aberto só para leitura.";
     storeWarning.classList.add("is-error");
     storeWarning.hidden = false;
   }
@@ -2280,7 +2280,7 @@ function showNextApproval() {
   activeApproval = approvalQueue.shift();
   const agent = agentById(activeApproval.agentId);
   approvalSummary.textContent = `${agent?.name || activeApproval.agentId}: ${activeApproval.summary}`;
-  approvalDetail.textContent = activeApproval.detail || "세부 정보가 없습니다.";
+  approvalDetail.textContent = activeApproval.detail || "Não há detalhes.";
   approvalBackdrop.hidden = false;
 }
 async function answerApproval(decision) {

@@ -47,7 +47,7 @@ async function main() {
   for (const area of ["sidebar", "header"]) {
     const open = area === "sidebar" ? "document.querySelector('.session-action').click()"
       : "sessionTitleEl.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))";
-    const title = `새 대화 ${area}`;
+    const title = `Nova conversa ${area}`;
     await js(`${open}; document.querySelector('.session-rename-input').value = ${JSON.stringify(title)}; document.querySelector('.session-rename-input').setSelectionRange(${title.length},${title.length})`);
     const before = renameCalls;
     key("Space", " ");

@@ -79,13 +79,13 @@ function detectMime(buffer, extension) {
 }
 
 function sanitizeDisplayName(name) {
-  const base = path.basename(String(name || "첨부파일"));
+  const base = path.basename(String(name || "anexo"));
   // 제어 문자 제거: 정규식 범위 대신 코드포인트 비교로 명시합니다.
   let clean = "";
   for (const ch of base) {
     if (ch.codePointAt(0) >= 32) clean += ch;
   }
-  return clean.slice(0, 120) || "첨부파일";
+  return clean.slice(0, 120) || "anexo";
 }
 
 function safeCopyExtension(extension, kind, mime) {
@@ -113,17 +113,17 @@ function persistAttachmentContent({
   if (size > maxFileBytes) {
     return {
       ok: false,
-      error: `파일이 너무 큽니다. (최대 ${Math.floor(maxFileBytes / 1024 / 1024)}MiB)`,
+      error: `O arquivo é grande demais (máximo de ${Math.floor(maxFileBytes / 1024 / 1024)} MiB).`,
     };
   }
   const extension = path.extname(String(name || "")).toLowerCase();
   if (DANGEROUS_EXTENSIONS.has(extension) || isExecutableMagic(content)) {
-    return { ok: false, error: "실행 파일 형식은 첨부할 수 없습니다." };
+    return { ok: false, error: "Arquivos executáveis não podem ser anexados." };
   }
 
   const { mime, kind } = detectMime(content, extension);
   if (requireImage && kind !== "image") {
-    return { ok: false, error: "클립보드 데이터가 지원되는 이미지 형식이 아닙니다." };
+    return { ok: false, error: "Os dados da área de transferência não são uma imagem suportada." };
   }
 
   const hash = crypto.createHash("sha256").update(content).digest("hex");
@@ -139,7 +139,7 @@ function persistAttachmentContent({
       if (currentSessionBytes + size > maxSessionBytes) {
         return {
           ok: false,
-          error: `세션 첨부 용량 한도를 초과합니다. (최대 ${Math.floor(maxSessionBytes / 1024 / 1024)}MiB)`,
+          error: `O anexo passa do limite da sessão (máximo de ${Math.floor(maxSessionBytes / 1024 / 1024)} MiB).`,
         };
       }
       // 임시 파일에 쓴 뒤 rename: 복사 도중 종료돼도 깨진 첨부가 남지 않습니다.
@@ -149,7 +149,7 @@ function persistAttachmentContent({
       addedBytes = size;
     }
   } catch {
-    return { ok: false, error: "첨부 파일을 저장하지 못했습니다." };
+    return { ok: false, error: "Não foi possível salvar o anexo." };
   }
 
   return {
@@ -176,7 +176,7 @@ function importAttachmentBuffer({ data, ...options }) {
   } else if (ArrayBuffer.isView(data)) {
     content = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
   } else {
-    return { ok: false, error: "첨부 데이터를 읽을 수 없습니다." };
+    return { ok: false, error: "Não foi possível ler os dados do anexo." };
   }
   return persistAttachmentContent({ ...options, content });
 }
@@ -193,27 +193,27 @@ function importAttachment({
   try {
     stat = fsApi.statSync(sourcePath);
   } catch {
-    return { ok: false, error: "파일을 읽을 수 없습니다." };
+    return { ok: false, error: "Não foi possível ler o arquivo." };
   }
   if (!stat.isFile()) {
-    return { ok: false, error: "일반 파일만 첨부할 수 있습니다." };
+    return { ok: false, error: "Só arquivos comuns podem ser anexados." };
   }
   if (stat.size > maxFileBytes) {
     return {
       ok: false,
-      error: `파일이 너무 큽니다. (최대 ${Math.floor(maxFileBytes / 1024 / 1024)}MiB)`,
+      error: `O arquivo é grande demais (máximo de ${Math.floor(maxFileBytes / 1024 / 1024)} MiB).`,
     };
   }
   const extension = path.extname(sourcePath).toLowerCase();
   if (DANGEROUS_EXTENSIONS.has(extension)) {
-    return { ok: false, error: "실행 파일 형식은 첨부할 수 없습니다." };
+    return { ok: false, error: "Arquivos executáveis não podem ser anexados." };
   }
 
   let content;
   try {
     content = fsApi.readFileSync(sourcePath);
   } catch {
-    return { ok: false, error: "파일을 읽을 수 없습니다." };
+    return { ok: false, error: "Não foi possível ler o arquivo." };
   }
   return persistAttachmentContent({
     name: sourcePath,
@@ -230,20 +230,20 @@ function importAttachment({
 // renderer에 파일 경로나 file:// 접근을 열지 않습니다.
 function readImagePreview({ attachmentsDir, fileName, fsApi = fs }) {
   const clean = String(fileName || "");
-  if (!COPY_NAME_PATTERN.test(clean)) return { ok: false, error: "잘못된 첨부 이름입니다." };
+  if (!COPY_NAME_PATTERN.test(clean)) return { ok: false, error: "O nome do anexo é inválido." };
   const filePath = path.join(attachmentsDir, clean);
   if (path.dirname(filePath) !== path.normalize(attachmentsDir)) {
-    return { ok: false, error: "잘못된 첨부 경로입니다." };
+    return { ok: false, error: "O caminho do anexo é inválido." };
   }
   let content;
   try {
     content = fsApi.readFileSync(filePath);
   } catch {
-    return { ok: false, error: "첨부 파일이 없습니다." };
+    return { ok: false, error: "O anexo não existe." };
   }
-  if (content.length > PREVIEW_MAX_BYTES) return { ok: false, error: "미리보기 용량 초과" };
+  if (content.length > PREVIEW_MAX_BYTES) return { ok: false, error: "A prévia passou do tamanho" };
   const mime = sniffImageMime(content);
-  if (!mime) return { ok: false, error: "이미지 형식이 아닙니다." };
+  if (!mime) return { ok: false, error: "Não é uma imagem." };
   return { ok: true, dataUrl: `data:${mime};base64,${content.toString("base64")}` };
 }
 

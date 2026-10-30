@@ -56,7 +56,7 @@ public sealed class CodePetTaskbar : Form {
   public CodePetTaskbar(IntPtr parent) {
     taskbar = parent;
     Text = "CodePet taskbar usage";
-    AccessibleName = "CodePet 남은 한도: 클릭하여 전체 한도 보기";
+    AccessibleName = "Limite restante do CodePet: clique para ver todos os limites";
     FormBorderStyle = FormBorderStyle.None;
     TopLevel = false;
     ShowInTaskbar = false;
@@ -94,8 +94,8 @@ public sealed class CodePetTaskbar : Form {
         }
       } catch { }
     }
-    string hint = "CodePet · 남은 한도 · 클릭하여 전체 보기";
-    foreach (Row row in state.rows) hint += "\n" + row.label + ": " + (row.remainingPercent.HasValue ? Math.Round(row.remainingPercent.Value) + "% 남음" : "조회 불가") + (row.stale ? " (이전 조회값)" : "");
+    string hint = "CodePet · limite restante · clique para ver tudo";
+    foreach (Row row in state.rows) hint += "\n" + row.label + ": " + (row.remainingPercent.HasValue ? Math.Round(row.remainingPercent.Value) + "% restante" : "Consulta indisponível") + (row.stale ? " (consulta anterior)" : "");
     tooltip.SetToolTip(this, hint);
     AccessibleName = hint;
     needsRender = true;

@@ -55,7 +55,7 @@ test("설정 Footer는 본문을 덮지 않고 보이는 글꼴만 미리보기�
   assert.match(settingsJs, /IntersectionObserver/);
 });
 
-test("말풍선 글자 색상은 작업 제목과 모델 상태까지 함께 바꾼다", () => {
+test("말풍선 Cor do texto은 작업 제목과 모델 상태까지 함께 바꾼다", () => {
   assert.doesNotMatch(bubbleJs, /dataset\.theme|resolvedTheme/);
   assert.doesNotMatch(bubbleCss, /data-theme/);
   assert.match(bubbleCss, /\.title\s*\{[^}]*color:\s*var\(--bubble-ink\)/s);
@@ -86,8 +86,8 @@ test("클릭·작업 상태·정지 랜덤·2차원 배회를 동작 규칙대�
   assert.match(mainJs, /createRoamingVector\(\)/);
   assert.match(mainJs, /advanceRoamingPosition\(\{/);
   assert.doesNotMatch(mainJs, /targetWorkArea/);
-  assert.match(mainJs, /label: "왼쪽 둘러보기"[^\n]+lookRow10/);
-  assert.match(mainJs, /label: "오른쪽 둘러보기"[^\n]+lookRow9/);
+  assert.match(mainJs, /label: "Olhar para a esquerda"[^\n]+lookRow10/);
+  assert.match(mainJs, /label: "Olhar para a direita"[^\n]+lookRow9/);
   assert.match(mainJs, /playManualReaction\("lookRow9"\)/);
   assert.match(mainJs, /playManualReaction\("lookRow10"\)/);
   assert.match(rendererJs, /scanSpriteFrameOccupancy/);
@@ -95,9 +95,9 @@ test("클릭·작업 상태·정지 랜덤·2차원 배회를 동작 규칙대�
   assert.match(rendererJs, /nearestPlayableDirection/);
 });
 
-test("프로젝트 연결과 Codex 현재 저장·재실행 UI는 제거됐다", () => {
-  assert.doesNotMatch(settingsHtml, /project-account|binding-list|save-binding|프로젝트 연결/);
-  assert.doesNotMatch(settingsHtml, /현재 계정 저장|Codex Desktop 재실행/);
+test("Projeto 연결과 Codex Salvar atual·재실행 UI는 제거됐다", () => {
+  assert.doesNotMatch(settingsHtml, /project-account|binding-list|save-binding|Projeto 연결/);
+  assert.doesNotMatch(settingsHtml, /Conta atual 저장|Codex Desktop 재실행/);
   assert.equal(fs.existsSync(path.join(__dirname, "..", "src", "project-account-bindings.js")), false);
 });
 
@@ -124,7 +124,7 @@ test("계정 설정은 비활성 프로필 삭제를 확인하고 삭제 중 상
   assert.match(settingsJs, /action: "delete", profileKey: account\.key/);
   assert.match(settingsJs, /window\.confirm/);
   assert.match(settingsJs, /deleteButton\.disabled = account\.active/);
-  assert.match(settingsJs, /"삭제 중…"/);
+  assert.match(settingsJs, /"Excluindo…"/);
   assert.match(settingsCss, /\.danger-button/);
 });
 
@@ -139,10 +139,10 @@ test("Codex 프록시 계정 전환은 새 프로필을 확정한 뒤 기존 Web
   );
 });
 
-test("메뉴에서 사용량 보기와 활동 말풍선 항목을 제거하고 수동 모션을 세 번 재생한다", () => {
-  assert.doesNotMatch(mainJs, /label:\s*"Codex 사용량 보기"/);
-  assert.doesNotMatch(mainJs, /label:\s*"활동 말풍선"/);
-  assert.match(mainJs, /label:\s*"설정…"/);
+test("메뉴에서 사용량 보기와 Balão de atividade 항목을 제거하고 수동 모션을 세 번 재생한다", () => {
+  assert.doesNotMatch(mainJs, /label:\s*"Uso do Codex 보기"/);
+  assert.doesNotMatch(mainJs, /label:\s*"Balão de atividade"/);
+  assert.match(mainJs, /label:\s*"Configurações…"/);
   assert.match(mainJs, /let remaining = 2/);
   assert.match(rendererJs, /window\.petApi\.showCodexStatus\(\)/);
   assert.match(mainJs, /SHOW_CODEX_STATUS[\s\S]*void showUsageBubble\(\)/);

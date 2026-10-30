@@ -73,7 +73,7 @@ test("붙여넣기 전용 경로는 이미지가 아닌 바이트와 용량 초�
     requireImage: true,
   });
   assert.equal(fakeImage.ok, false);
-  assert.match(fakeImage.error, /이미지 형식/);
+  assert.match(fakeImage.error, /imagem suportada/);
 
   const tooBig = importAttachmentBuffer({
     name: "large.png",
@@ -83,7 +83,7 @@ test("붙여넣기 전용 경로는 이미지가 아닌 바이트와 용량 초�
     requireImage: true,
   });
   assert.equal(tooBig.ok, false);
-  assert.match(tooBig.error, /너무 큽니다/);
+  assert.match(tooBig.error, /grande demais/);
 });
 
 test("같은 내용은 같은 id로 중복 제거된다", () => {
@@ -122,7 +122,7 @@ for (const mode of ["file", "buffer"]) {
     assert.equal(duplicate.attachment.fileName, first.attachment.fileName);
     const different = attach(PNG_BYTES.length, Buffer.concat([PNG_BYTES, Buffer.from([1])]));
     assert.equal(different.ok, false);
-    assert.match(different.error, /한도/);
+    assert.match(different.error, /limite/);
     assert.equal(fs.readdirSync(attachments).length, 1);
   });
 }
@@ -160,7 +160,7 @@ test("실행 파일은 확장자로 거부한다", () => {
   fs.writeFileSync(exe, "MZ fake binary");
   const result = importAttachment({ sourcePath: exe, attachmentsDir: attachments });
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("실행 파일"));
+  assert.ok(result.error.includes("executáv"));
 });
 
 test("확장자를 바꾼 실행 파일은 매직 바이트로 거부한다", () => {
@@ -169,7 +169,7 @@ test("확장자를 바꾼 실행 파일은 매직 바이트로 거부한다", ()
   fs.writeFileSync(disguised, Buffer.concat([Buffer.from([0x4d, 0x5a]), Buffer.from("PE junk")]));
   const result = importAttachment({ sourcePath: disguised, attachmentsDir: attachments });
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("실행 파일"));
+  assert.ok(result.error.includes("executáv"));
 });
 
 test("파일/세션 용량 한도", () => {
@@ -183,7 +183,7 @@ test("파일/세션 용량 한도", () => {
     maxFileBytes: 3,
   });
   assert.equal(tooBig.ok, false);
-  assert.ok(tooBig.error.includes("너무 큽니다"));
+  assert.ok(tooBig.error.includes("grande demais"));
 
   const sessionFull = importAttachment({
     sourcePath: filePath,
@@ -192,7 +192,7 @@ test("파일/세션 용량 한도", () => {
     maxSessionBytes: 205,
   });
   assert.equal(sessionFull.ok, false);
-  assert.ok(sessionFull.error.includes("한도"));
+  assert.ok(sessionFull.error.includes("limite"));
 
   assert.equal(MAX_FILE_BYTES, 20 * 1024 * 1024);
 });
@@ -201,7 +201,7 @@ test("디렉터리는 첨부할 수 없다", () => {
   const { source, attachments } = makeDirs();
   const result = importAttachment({ sourcePath: source, attachmentsDir: attachments });
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("일반 파일"));
+  assert.ok(result.error.includes("arquivos comuns"));
 });
 
 test("이미지 미리보기는 검증된 파일명만 데이터 URL로 응답한다", () => {

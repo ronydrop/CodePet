@@ -16,7 +16,7 @@ const backend =
         };
 
 function unsupported() {
-  return new Error(`이 플랫폼(${process.platform})에서는 보안 자격 증명 저장을 지원하지 않습니다.`);
+  return new Error(`O armazenamento seguro de credenciais não é suportado nesta plataforma (${process.platform}).`);
 }
 
 module.exports = {

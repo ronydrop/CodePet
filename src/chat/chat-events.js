@@ -33,7 +33,7 @@ function parseClaudeLine(line, event = parseJsonLine(line)) {
       return { kind: "delta", text: String(inner.delta.text || "") };
     }
     if (inner.type === "content_block_start" && inner.content_block?.type === "tool_use") {
-      return { kind: "status", label: `도구: ${truncateLabel(inner.content_block.name)}` };
+      return { kind: "status", label: `Ferramenta: ${truncateLabel(inner.content_block.name)}` };
     }
     return null;
   }
@@ -41,7 +41,7 @@ function parseClaudeLine(line, event = parseJsonLine(line)) {
   if (event.type === "assistant" && Array.isArray(event.message?.content)) {
     for (const block of event.message.content) {
       if (block?.type === "tool_use" && block.name) {
-        return { kind: "status", label: `도구: ${truncateLabel(block.name)}` };
+        return { kind: "status", label: `Ferramenta: ${truncateLabel(block.name)}` };
       }
     }
     return null;
@@ -52,7 +52,7 @@ function parseClaudeLine(line, event = parseJsonLine(line)) {
       return { kind: "final", text: event.result };
     }
     if (event.is_error || (event.subtype && event.subtype !== "success")) {
-      return { kind: "error", message: truncateLabel(event.result || event.subtype || "실행 오류", 200) };
+      return { kind: "error", message: truncateLabel(event.result || event.subtype || "Erro de execução", 200) };
     }
     return null;
   }
@@ -72,18 +72,18 @@ function parseCodexLine(line, event = parseJsonLine(line)) {
     }
     if (item.type === "command_execution" && item.command) {
       return event.type === "item.started"
-        ? { kind: "status", label: `실행: ${truncateLabel(item.command)}` }
+        ? { kind: "status", label: `Execução: ${truncateLabel(item.command)}` }
         : null;
     }
     if (item.type === "reasoning") {
-      return event.type === "item.started" ? { kind: "status", label: "생각 중" } : null;
+      return event.type === "item.started" ? { kind: "status", label: "Pensando" } : null;
     }
     if (item.type === "error") {
       const message = String(item.message || "");
       // Codex가 매 턴 시작에 error 아이템으로 보내는 스킬 컨텍스트 예산 경고는
       // 실행 오류가 아니므로 진단 기록을 오염시키지 않게 무시합니다.
       if (/skill descriptions were shortened/i.test(message)) return null;
-      return { kind: "error", message: truncateLabel(message || "실행 오류", 200) };
+      return { kind: "error", message: truncateLabel(message || "Erro de execução", 200) };
     }
     return null;
   }
@@ -102,9 +102,9 @@ function parseCodexLine(line, event = parseJsonLine(line)) {
     if (msg.type === "agent_message" && msg.message) {
       return { kind: "final", text: String(msg.message) };
     }
-    if (msg.type === "agent_reasoning") return { kind: "status", label: "생각 중" };
+    if (msg.type === "agent_reasoning") return { kind: "status", label: "Pensando" };
     if (msg.type === "exec_command_begin" && Array.isArray(msg.command)) {
-      return { kind: "status", label: `실행: ${truncateLabel(msg.command.join(" "))}` };
+      return { kind: "status", label: `Execução: ${truncateLabel(msg.command.join(" "))}` };
     }
     if (msg.type === "error" && msg.message) {
       return { kind: "error", message: truncateLabel(msg.message, 200) };
@@ -124,11 +124,11 @@ function parseAgyLine(line, event = parseJsonLine(line)) {
     if (step.state === "ERROR" && /permission|approval|권한|승인/i.test(error)) {
       return {
         kind: "approval-required",
-        summary: tool ? `도구 권한: ${tool}` : "도구 실행 권한",
+        summary: tool ? `Permissão da ferramenta: ${tool}` : "Permissão da ferramenta",
         detail: String(error),
       };
     }
-    if (tool) return { kind: "status", label: `도구: ${truncateLabel(tool)}` };
+    if (tool) return { kind: "status", label: `Ferramenta: ${truncateLabel(tool)}` };
   }
   if (event.event === "result") {
     const result = event.result || {};
@@ -145,12 +145,12 @@ function parseGrokLine(line, parsed = undefined) {
   if (raw.startsWith(GROK_CHANGESET_PREFIX)) {
     const payload = raw.slice(GROK_CHANGESET_PREFIX.length);
     if (Buffer.byteLength(payload, "utf8") > GROK_CHANGESET_LINE_LIMIT) {
-      return { kind: "error", message: "Grok 변경 세트가 출력 상한을 초과했습니다." };
+      return { kind: "error", message: "O conjunto de alterações do Grok passou do limite de saída." };
     }
     try {
       return { kind: "workspace-change-manifest", manifest: JSON.parse(payload) };
     } catch {
-      return { kind: "error", message: "Grok 변경 세트 형식을 읽지 못했습니다." };
+      return { kind: "error", message: "Não foi possível ler o formato do conjunto de alterações do Grok." };
     }
   }
   const event = parsed === undefined ? parseJsonLine(raw) : parsed;
@@ -163,10 +163,10 @@ function parseGrokLine(line, parsed = undefined) {
       return { kind: "delta", text: String(inner.delta.text || "") };
     }
     if (inner.type === "content_block_start" && inner.content_block?.type === "thinking") {
-      return { kind: "status", label: "생각 중" };
+      return { kind: "status", label: "Pensando" };
     }
     if (inner.type === "content_block_start" && inner.content_block?.type === "tool_use") {
-      return { kind: "status", label: `도구: ${truncateLabel(inner.content_block.name || "tool")}` };
+      return { kind: "status", label: `Ferramenta: ${truncateLabel(inner.content_block.name || "tool")}` };
     }
     return null;
   }
@@ -183,7 +183,7 @@ function parseGrokLine(line, parsed = undefined) {
         : "";
       return {
         kind: "error",
-        message: truncateLabel(event.result || errors || event.subtype || "Grok 실행 오류", 200),
+        message: truncateLabel(event.result || errors || event.subtype || "Erro de execução do Grok", 200),
       };
     }
   }

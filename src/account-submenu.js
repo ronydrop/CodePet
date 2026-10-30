@@ -11,9 +11,9 @@ function buildAccountSubmenu({ profiles = [], formatLabel, onSwitch, onLogin }) 
           enabled: profile.hasAuth !== false,
           click: () => onSwitch(profile.key),
         }))
-      : [{ label: "저장된 계정 없음", enabled: false }]),
+      : [{ label: "Nenhuma conta salva", enabled: false }]),
     { type: "separator" },
-    { label: "로그인 / 계정 추가", click: onLogin },
+    { label: "Entrar / adicionar conta", click: onLogin },
   ];
 }
 

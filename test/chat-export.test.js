@@ -21,7 +21,7 @@ test("export uses current nicknames for stable message authors and quoted replie
     { authorType: "user", text: "좋아요", replyTo: { authorType: "agent", author: "codex", excerpt: "기존 내용" } },
   ]);
   assert.ok(markdown.includes("### 검토 \\*담당\\* (@리뷰)"));
-  assert.ok(markdown.includes("> 인용: 검토 \\*담당\\* (@리뷰)"));
+  assert.ok(markdown.includes("> Citação: 검토 \\*담당\\* (@리뷰)"));
 });
 
 test("빈 세션을 제목과 날짜가 있는 마크다운으로 변환한다", () => {
@@ -32,13 +32,13 @@ test("빈 세션을 제목과 날짜가 있는 마크다운으로 변환한다",
 
   assert.equal(
     markdown,
-    "# 빈 세션\n\n_세션 날짜: 2026-08-08 09:05_\n\n_메시지가 없습니다._\n"
+    "# 빈 세션\n\n_Data da sessão: 2026-08-08 09:05_\n\n_Não há mensagens._\n"
   );
 });
 
 test("일반 메시지와 인용, 첨부, 시스템 메시지를 보존한다", () => {
   const ts = localTime(2026, 8, 8, 10, 30);
-  const markdown = formatSessionMarkdown({ title: "대화", createdAt: ts }, [
+  const markdown = formatSessionMarkdown({ title: "Conversas", createdAt: ts }, [
     {
       authorType: "user",
       author: "user",
@@ -50,11 +50,11 @@ test("일반 메시지와 인용, 첨부, 시스템 메시지를 보존한다", 
     { authorType: "system", author: "system", ts, text: "연결이\n복구되었습니다." },
   ]);
 
-  assert.match(markdown, /### 사용자 \(2026-08-08 10:30\)/);
-  assert.match(markdown, /> 인용: @codex\n>\n> 원문 \\\*발췌\\\*/);
+  assert.match(markdown, /### Usuário \(2026-08-08 10:30\)/);
+  assert.match(markdown, /> Citação: @codex\n>\n> 원문 \\\*발췌\\\*/);
   assert.match(markdown, /\*\*좋습니다\.\*\*/);
-  assert.match(markdown, /\*\*첨부\*\*\n- 화면\\\[1\\\]\.png \(image\/png, 128 bytes\)/);
-  assert.match(markdown, /_시스템 \(2026-08-08 10:30\): 연결이 복구되었습니다\._/);
+  assert.match(markdown, /\*\*Anexos\*\*\n- 화면\\\[1\\\]\.png \(image\/png, 128 bytes\)/);
+  assert.match(markdown, /_Sistema \(2026-08-08 10:30\): 연결이 복구되었습니다\._/);
 });
 
 test("제목의 마크다운과 파일명 금지 문자를 안전하게 처리한다", () => {
@@ -68,7 +68,7 @@ test("제목의 마크다운과 파일명 금지 문자를 안전하게 처리�
   assert.equal(safeExportFileName("CON"), "_CON.md");
 });
 
-test("내보내기 IPC가 저장 위치를 묻고 최신 세션 내용을 UTF-8로 쓴다", async (t) => {
+test("Exportar IPC가 저장 위치를 묻고 최신 세션 내용을 UTF-8로 쓴다", async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "codepet-export-ipc-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const storeRoot = path.join(root, "store");
@@ -117,7 +117,7 @@ test("내보내기 IPC가 저장 위치를 묻고 최신 세션 내용을 UTF-8�
   assert.match(fs.readFileSync(outputPath, "utf8"), /### @codex \(2026-08-08 11:05\)\n\n완료했습니다\./);
 });
 
-test("내보내기 UI와 preload 호출이 현재 세션에 연결된다", () => {
+test("Exportar UI와 preload 호출이 현재 세션에 연결된다", () => {
   const root = path.join(__dirname, "..");
   const html = fs.readFileSync(path.join(root, "src", "chat.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "src", "chat.css"), "utf8");

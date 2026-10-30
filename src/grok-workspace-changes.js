@@ -38,15 +38,15 @@ function normalizeChangePath(value) {
     || path.win32.isAbsolute(value)
     || path.posix.isAbsolute(value)
   ) {
-    throw new Error("변경 파일 경로가 올바르지 않습니다.");
+    throw new Error("O caminho do arquivo alterado é inválido.");
   }
 
   const parts = value.split("/");
   if (parts.some((part) => !part || part === "." || part === "..")) {
-    throw new Error("변경 파일 경로가 올바르지 않습니다.");
+    throw new Error("O caminho do arquivo alterado é inválido.");
   }
   if (PROTECTED_ROOTS.has(parts[0].toLocaleLowerCase("en"))) {
-    throw new Error("보호된 생성물 또는 저장소 메타데이터는 적용할 수 없습니다.");
+    throw new Error("Artefatos protegidos ou metadados do repositório não podem ser aplicados.");
   }
   for (const part of parts) {
     if (
@@ -55,7 +55,7 @@ function normalizeChangePath(value) {
       || /[. ]$/u.test(part)
       || WINDOWS_DEVICE_NAME.test(part)
     ) {
-      throw new Error("Windows에서 안전하지 않은 변경 파일 이름입니다.");
+      throw new Error("O nome do arquivo alterado não é seguro no Windows.");
     }
   }
   return parts.join("/");
@@ -75,7 +75,7 @@ function lstatSafe(fsApi, target) {
     || stat.isFIFO()
     || stat.isSocket()
   ) {
-    throw new Error("링크, 정션, 재분석 지점 및 특수 파일은 적용할 수 없습니다.");
+    throw new Error("Links, junções, pontos de reanálise e arquivos especiais não podem ser aplicados.");
   }
   return stat;
 }
@@ -83,7 +83,7 @@ function lstatSafe(fsApi, target) {
 function workspaceRoot(fsApi, workspace) {
   const root = fsApi.realpathSync(workspace);
   const stat = lstatSafe(fsApi, root);
-  if (!stat.isDirectory()) throw new Error("워크스페이스가 폴더가 아닙니다.");
+  if (!stat.isDirectory()) throw new Error("O workspace não é uma pasta.");
   return root;
 }
 
@@ -96,7 +96,7 @@ function safeTarget(fsApi, workspace, relativePath, { allowMissing = false } = {
 
   for (let index = 0; index < parts.length; index += 1) {
     current = path.join(current, parts[index]);
-    if (!isPathInside(root, current)) throw new Error("변경 경로가 워크스페이스를 벗어납니다.");
+    if (!isPathInside(root, current)) throw new Error("O caminho da alteração sai do workspace.");
 
     const exists = !missing && fsApi.existsSync(current);
     if (!exists) {
@@ -107,10 +107,10 @@ function safeTarget(fsApi, workspace, relativePath, { allowMissing = false } = {
 
     finalStat = lstatSafe(fsApi, current);
     if (index < parts.length - 1 && !finalStat.isDirectory()) {
-      throw new Error("변경 경로의 상위 항목이 폴더가 아닙니다.");
+      throw new Error("O item acima do caminho alterado não é uma pasta.");
     }
     const real = fsApi.realpathSync(current);
-    if (!isPathInside(root, real)) throw new Error("변경 경로가 워크스페이스를 벗어납니다.");
+    if (!isPathInside(root, real)) throw new Error("O caminho da alteração sai do workspace.");
   }
 
   return { root, target: current, exists: !missing, stat: missing ? null : finalStat };
@@ -118,14 +118,14 @@ function safeTarget(fsApi, workspace, relativePath, { allowMissing = false } = {
 
 function decodeContent(entry) {
   if (typeof entry.content !== "string" || !BASE64_PATTERN.test(entry.content)) {
-    throw new Error("변경 파일 내용이 올바르지 않습니다.");
+    throw new Error("O conteúdo do arquivo alterado é inválido.");
   }
   if (entry.content.length > Math.ceil(MAX_CHANGE_BYTES / 3) * 4 + 4) {
-    throw new Error("변경 파일 내용이 크기 제한을 초과했습니다.");
+    throw new Error("O conteúdo do arquivo alterado passou do limite de tamanho.");
   }
   const content = Buffer.from(entry.content, "base64");
   if (content.toString("base64") !== entry.content || !HASH_PATTERN.test(entry.sha256) || sha256(content) !== entry.sha256.toLowerCase()) {
-    throw new Error("변경 파일 내용 해시가 올바르지 않습니다.");
+    throw new Error("O hash do conteúdo alterado é inválido.");
   }
   return content;
 }
@@ -137,18 +137,18 @@ function validateManifest(manifest) {
     || !Array.isArray(manifest.changes)
     || manifest.changes.length > MAX_CHANGE_FILES
   ) {
-    throw new Error("워크스페이스 변경 세트가 올바르지 않습니다.");
+    throw new Error("O conjunto de alterações do workspace é inválido.");
   }
 
   let bytes = 0;
   const seen = new Set();
   const changes = manifest.changes.map((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-      throw new Error("워크스페이스 변경 항목이 올바르지 않습니다.");
+      throw new Error("Um item de alteração do workspace é inválido.");
     }
     const relativePath = normalizeChangePath(entry.path);
     const folded = relativePath.toLocaleLowerCase("en");
-    if (seen.has(folded)) throw new Error("같은 변경 파일이 중복되었습니다.");
+    if (seen.has(folded)) throw new Error("O mesmo arquivo aparece duas vezes nas alterações.");
     seen.add(folded);
 
     const op = entry.op === "delete" ? "delete" : entry.op === "write" ? "write" : null;
@@ -158,18 +158,18 @@ function validateManifest(manifest) {
       || !HASH_PATTERN.test(String(entry.originalSha256 || ""))
       || (op === "delete" && !entry.originalExists)
     ) {
-      throw new Error("워크스페이스 변경 항목이 올바르지 않습니다.");
+      throw new Error("Um item de alteração do workspace é inválido.");
     }
     const allowedKeys = op === "write"
       ? new Set(["path", "op", "originalExists", "originalSha256", "content", "sha256"])
       : new Set(["path", "op", "originalExists", "originalSha256"]);
     if (Object.keys(entry).some((key) => !allowedKeys.has(key))) {
-      throw new Error("파일 형식이나 실행 권한 변경은 적용할 수 없습니다.");
+      throw new Error("Não é possível aplicar mudança de tipo de arquivo ou de permissão de execução.");
     }
 
     const content = op === "write" ? decodeContent(entry) : null;
     bytes += content?.length || 0;
-    if (bytes > MAX_CHANGE_BYTES) throw new Error("워크스페이스 변경 세트가 크기 제한을 초과했습니다.");
+    if (bytes > MAX_CHANGE_BYTES) throw new Error("O conjunto de alterações do workspace passou do limite de tamanho.");
     return {
       relativePath,
       op,
@@ -182,7 +182,7 @@ function validateManifest(manifest) {
   const sorted = [...seen].sort();
   for (let index = 1; index < sorted.length; index += 1) {
     if (sorted[index].startsWith(`${sorted[index - 1]}/`)) {
-      throw new Error("파일과 그 하위 경로를 동시에 변경할 수 없습니다.");
+      throw new Error("Não é possível alterar um arquivo e um caminho dentro dele ao mesmo tempo.");
     }
   }
   return changes;
@@ -190,11 +190,11 @@ function validateManifest(manifest) {
 
 function inspectOriginal(fsApi, workspace, change) {
   const target = safeTarget(fsApi, workspace, change.relativePath, { allowMissing: true });
-  if (target.exists && !target.stat.isFile()) throw new Error("일반 파일만 변경할 수 있습니다.");
+  if (target.exists && !target.stat.isFile()) throw new Error("Só arquivos comuns podem ser alterados.");
   const content = target.exists ? fsApi.readFileSync(target.target) : Buffer.alloc(0);
   const exists = target.exists;
   if (exists !== change.originalExists || sha256(content) !== change.originalSha256) {
-    throw new Error(`워크스페이스 충돌: ${change.relativePath}`);
+    throw new Error(`Conflito no workspace: ${change.relativePath}`);
   }
   return {
     ...target,
@@ -206,7 +206,7 @@ function clampDiff(value) {
   const text = String(value || "");
   const bytes = Buffer.from(text, "utf8");
   if (bytes.length <= MAX_DIFF_BYTES) return text;
-  return `${bytes.subarray(0, MAX_DIFF_BYTES).toString("utf8")}\n[diff 표시 상한으로 이후 내용 생략]`;
+  return `${bytes.subarray(0, MAX_DIFF_BYTES).toString("utf8")}\n[o restante do diff foi omitido pelo limite de exibição]`;
 }
 
 function ensureParentDirectories(fsApi, root, relativePath, createdDirectories) {
@@ -214,13 +214,13 @@ function ensureParentDirectories(fsApi, root, relativePath, createdDirectories) 
   let current = root;
   for (const part of parts) {
     current = path.join(current, part);
-    if (!isPathInside(root, current)) throw new Error("변경 경로가 워크스페이스를 벗어납니다.");
+    if (!isPathInside(root, current)) throw new Error("O caminho da alteração sai do workspace.");
     if (!fsApi.existsSync(current)) {
       fsApi.mkdirSync(current, { mode: 0o700 });
       createdDirectories.push(current);
     }
     const stat = lstatSafe(fsApi, current);
-    if (!stat.isDirectory()) throw new Error("변경 경로의 상위 항목이 폴더가 아닙니다.");
+    if (!stat.isDirectory()) throw new Error("O item acima do caminho alterado não é uma pasta.");
   }
 }
 
@@ -235,10 +235,10 @@ class GrokWorkspaceChangeStore {
   stage({ sessionId, workspace, manifest, diff = manifest?.diff || "" }) {
     this.cleanup();
     if (typeof sessionId !== "string" || !sessionId || sessionId.length > 160) {
-      throw new Error("변경 승인의 세션 정보가 올바르지 않습니다.");
+      throw new Error("Os dados da sessão desta aprovação são inválidos.");
     }
     if (this.records.size >= MAX_PENDING_CHANGE_SETS) {
-      throw new Error("대기 중인 Grok 변경 승인이 너무 많습니다. 기존 요청을 먼저 처리해 주세요.");
+      throw new Error("Há aprovações demais do Grok aguardando. Resolva os pedidos atuais antes.");
     }
     const root = workspaceRoot(this.fs, workspace);
     const changes = validateManifest(manifest);
@@ -274,7 +274,7 @@ class GrokWorkspaceChangeStore {
     this.cleanup();
     const record = this.records.get(String(id || ""));
     if (!record || record.used || record.sessionId !== sessionId) {
-      throw new Error("변경 승인이 만료되었거나 이미 처리되었습니다.");
+      throw new Error("A aprovação da alteração expirou ou já foi tratada.");
     }
     return record;
   }
@@ -283,7 +283,7 @@ class GrokWorkspaceChangeStore {
     this.cleanup();
     const record = this.records.get(String(id || ""));
     if (!record) return { canceled: true, alreadyHandled: true };
-    if (record.sessionId !== sessionId) throw new Error("변경 승인이 만료되었거나 이미 처리되었습니다.");
+    if (record.sessionId !== sessionId) throw new Error("A aprovação da alteração expirou ou já foi tratada.");
     record.used = true;
     this.records.delete(record.id);
     return { canceled: true, alreadyHandled: false };
@@ -355,14 +355,14 @@ class GrokWorkspaceChangeStore {
         } catch {}
         throw error;
       }
-      throw new Error(`${error?.message || error} 롤백 일부가 실패했습니다. 복구 파일: ${transaction}`);
+      throw new Error(`${error?.message || error} Parte da reversão falhou. Arquivo de recuperação: ${transaction}`);
     }
 
     let cleanupWarning = "";
     try {
       this.fs.rmSync(transaction, { recursive: true, force: true });
     } catch (error) {
-      cleanupWarning = `적용은 완료됐지만 백업 정리에 실패했습니다: ${transaction}`;
+      cleanupWarning = `A aplicação terminou, mas a limpeza do backup falhou: ${transaction}`;
     }
     return { applied: plans.length, ...(cleanupWarning ? { cleanupWarning } : {}) };
   }

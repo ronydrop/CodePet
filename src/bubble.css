@@ -89,6 +89,27 @@ body {
   animation: pulse 1.2s ease-in-out infinite;
 }
 
+.agent-mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--bubble-accent);
+}
+
+.agent-mark.busy {
+  box-shadow: 0 0 0 1.5px var(--bubble-warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.agent-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 0.5;
@@ -243,7 +264,8 @@ body {
     transition: none;
   }
 
-  .title .dot.busy {
+  .title .dot.busy,
+  .agent-mark.busy {
     animation: none;
   }
 }

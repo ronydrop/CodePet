@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 function updateElements(button, version) {
-  const check = { events: {}, textContent: "업데이트 확인", addEventListener(name, fn) { this.events[name] = fn; }, setAttribute() {} };
+  const check = { events: {}, textContent: "Procurar atualizações", addEventListener(name, fn) { this.events[name] = fn; }, setAttribute() {} };
   const status = { textContent: "" };
   return { check, status, select: selector => ({ "#download-update": button, "#app-version": version, "#check-update": check, "#update-status": status })[selector] };
 }
@@ -25,20 +25,20 @@ test("settings shows the icon only for an available update, labels it, and handl
   context.registerUpdateControls(); await new Promise(setImmediate);
   assert.equal(button.hidden, true);
   assert.equal(version.textContent, "VERSION 1.0.12");
-  assert.match(elements.status.textContent, /최신 버전/);
+  assert.match(elements.status.textContent, /versão mais recente/);
   result = { status: "available", currentVersion: "1.0.12", latestVersion: "1.0.13" };
   await windowEvents.focus();
-  assert.equal(button.hidden, false); assert.match(button.title, /1\.0\.13.*다운로드/);
+  assert.equal(button.hidden, false); assert.match(button.title, /Baixar a versão 1\.0\.13/);
   assert.equal(button["aria-label"], button.title);
   await buttonEvents.click();
   assert.equal(downloadCalls, 1); assert.equal(button.disabled, false);
   result = { status: "unavailable", currentVersion: "1.0.12" };
   await windowEvents.focus(); assert.equal(button.hidden, true);
-  assert.match(elements.status.textContent, /확인하지 못/);
+  assert.match(elements.status.textContent, /Não foi possível procurar atualizações/);
   assert.deepEqual(errors, []);
   context.api.checkUpdate = async () => { throw new Error("offline"); };
   await windowEvents.focus(); assert.equal(button.hidden, true); assert.deepEqual(errors, []);
-  assert.match(elements.status.textContent, /다시/);
+  assert.match(elements.status.textContent, /Tente de novo/);
   context.api.downloadUpdate = async () => ({ ok: false, error: "브라우저 오류" });
   await buttonEvents.click(); assert.deepEqual(errors, ["브라우저 오류"]); assert.equal(button.disabled, false);
 });
@@ -59,16 +59,16 @@ test("automatic update UI shows progress, prevents duplicate clicks and stays bu
     showError: text => errors.push(text), responseError: (response, fallback) => response?.error || fallback };
   vm.runInNewContext(source.slice(source.indexOf("function registerUpdateControls()"), source.lastIndexOf("initialize();")), context);
   context.registerUpdateControls(); await new Promise(setImmediate);
-  assert.match(button.title, /업데이트 후 재시작/);
+  assert.match(button.title, /e reiniciar/);
   const click = buttonEvents.click();
   await buttonEvents.click(); assert.equal(calls, 1);
   progress({ phase: "downloading", percent: 42 });
   assert.equal(elements.check.disabled, true);
   await windowEvents.focus();
-  assert.equal(version.textContent, "다운로드 42%"); assert.equal(button.disabled, true);
-  progress({ phase: "verifying" }); assert.equal(version.textContent, "파일 확인 중…");
+  assert.equal(version.textContent, "Download 42%"); assert.equal(button.disabled, true);
+  progress({ phase: "verifying" }); assert.equal(version.textContent, "Conferindo o arquivo…");
   finish({ ok: true, restarting: true }); await click;
-  assert.equal(version.textContent, "재시작 중…"); assert.equal(button.disabled, true);
+  assert.equal(version.textContent, "Reiniciando…"); assert.equal(button.disabled, true);
   progress({ phase: "error" }); assert.equal(button.disabled, false);
   assert.equal(elements.check.disabled, false);
   assert.equal(version.textContent, "VERSION 1.0.12");
@@ -88,7 +88,7 @@ test("visible manual check refreshes without installing and prevents duplicate i
     }, downloadUpdate: () => { downloads++; } }, showError() {}, responseError: result => result.error };
   vm.runInNewContext(source.slice(source.indexOf("function registerUpdateControls()"), source.lastIndexOf("initialize();")), context);
   context.registerUpdateControls(); await new Promise(setImmediate);
-  assert.match(elements.status.textContent, /확인하지 못/); assert.equal(elements.check.disabled, false);
+  assert.match(elements.status.textContent, /Não foi possível procurar atualizações/); assert.equal(elements.check.disabled, false);
   const first = elements.check.events.click();
   await elements.check.events.click(); assert.equal(calls, 2); assert.equal(elements.check.disabled, true);
   finish({ status: "available", latestVersion: "1.1.8" }); await first;
@@ -97,7 +97,7 @@ test("visible manual check refreshes without installing and prevents duplicate i
   assert.equal(downloads, 0);
   const again = elements.check.events.click();
   finish({ status: "available", latestVersion: "1.1.8", retryAfterMs: 9000 }); await again;
-  assert.match(elements.status.textContent, /9초/);
+  assert.match(elements.status.textContent, /9 s/);
 });
 
 test("preload forwards only a boolean manual-check flag", async () => {

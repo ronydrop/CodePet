@@ -9,7 +9,7 @@ function createChatWindow({ BrowserWindow, onReady, onClosed }) {
     minHeight: 480,
     show: false,
     frame: false,
-    title: "CodePet 채팅",
+    title: "Chat do CodePet",
     backgroundColor: "#fafafa",
     autoHideMenuBar: true,
     webPreferences: {

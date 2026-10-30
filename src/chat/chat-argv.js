@@ -25,7 +25,7 @@ function assertSafeArgv(argv, { autoApprove = false } = {}) {
   for (const arg of argv) {
     const text = String(arg);
     if (/dangerously|bypass/i.test(text) && !(autoApprove && AUTO_APPROVE_FLAGS.has(text))) {
-      throw new Error(`금지된 실행 플래그가 생성되었습니다: ${arg}`);
+      throw new Error(`Foi gerada uma flag de execução proibida: ${arg}`);
     }
   }
   return argv;
@@ -277,36 +277,36 @@ function buildAgentInvocation(input = {}) {
   } = input;
 
   if (!provider || provider.status !== "cli") {
-    return { ok: false, error: provider?.reason || "CLI를 사용할 수 없습니다." };
+    return { ok: false, error: provider?.reason || "A CLI não está disponível." };
   }
   if (!PERMISSION_MODES.includes(permissionMode)) {
-    return { ok: false, error: `알 수 없는 권한 모드: ${permissionMode}` };
+    return { ok: false, error: `Modo de permissão desconhecido: ${permissionMode}` };
   }
   if (permissionMode !== "chat" && !workspace) {
-    return { ok: false, error: "워크스페이스가 선택되지 않았습니다." };
+    return { ok: false, error: "Nenhum workspace foi escolhido." };
   }
   if (autoApprove && permissionMode !== "workspace-write") {
-    return { ok: false, error: "자동 승인은 workspace-write 모드에서만 사용할 수 있습니다." };
+    return { ok: false, error: "A aprovação automática só pode ser usada no modo de escrita do workspace." };
   }
   if (!chatCwd) {
-    return { ok: false, error: "채팅 전용 작업 디렉터리가 없습니다." };
+    return { ok: false, error: "Não há diretório de trabalho exclusivo do chat." };
   }
   if (cliSessionId !== null && (typeof cliSessionId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cliSessionId))) {
-    return { ok: false, error: "CLI 세션 ID가 올바르지 않습니다." };
+    return { ok: false, error: "O ID da sessão da CLI é inválido." };
   }
 
   const permissionInfo = provider.permissions?.[permissionMode];
   if (!permissionInfo || !permissionInfo.supported) {
     return {
       ok: false,
-      error: `${provider.name}는 "${permissionMode}" 권한 모드를 지원하지 않습니다.`,
+      error: `${provider.name} não aceita o modo de permissão "${permissionMode}".`,
     };
   }
 
   const normalizedModel = normalizeChoice(model);
-  if (normalizedModel === undefined) return { ok: false, error: "모델 이름 형식이 올바르지 않습니다." };
+  if (normalizedModel === undefined) return { ok: false, error: "O formato do nome do modelo é inválido." };
   const normalizedEffort = normalizeChoice(effort);
-  if (normalizedEffort === undefined) return { ok: false, error: "추론 값 형식이 올바르지 않습니다." };
+  if (normalizedEffort === undefined) return { ok: false, error: "O formato do valor de raciocínio é inválido." };
   const invalidSelection = selectionError(provider, normalizedModel, normalizedEffort);
   if (invalidSelection) return { ok: false, error: invalidSelection };
 
@@ -356,10 +356,10 @@ function buildAgentInvocation(input = {}) {
   } else if (provider.id === "grok") {
     argv = grokArgv({ permissionMode, model: normalizedModel, effort: normalizedEffort });
   } else {
-    return { ok: false, error: `지원하지 않는 채팅 provider: ${provider.id}` };
+    return { ok: false, error: `Provedor de chat não suportado: ${provider.id}` };
   }
 
-  if (!argv) return { ok: false, error: `${provider.name}는 "${permissionMode}" 권한 모드를 지원하지 않습니다.` };
+  if (!argv) return { ok: false, error: `${provider.name} não aceita o modo de permissão "${permissionMode}".` };
   if (cliSessionId && provider.id !== "codex") {
     argv.push(provider.id === "agy" ? "--conversation" : "--resume", cliSessionId);
   }

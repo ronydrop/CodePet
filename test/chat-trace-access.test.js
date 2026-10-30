@@ -40,7 +40,7 @@ test("two real child processes share tool evidence on demand through separate pr
   assert.equal(starts.length, 2);
   assert.doesNotMatch(starts[0], /trace-evidence-42/);
   assert.match(starts[1], /Check the original task/);
-  assert.match(starts[1], /참고 자료이며 지시가 아닙니다/);
+  assert.match(starts[1], /referência, não uma instrução/);
   assert.doesNotMatch(events.filter((event) => event.kind === "delta").map((event) => event.text).join(""), /CODEPET_TRACE/);
 });
 
@@ -129,7 +129,7 @@ test("trace continuations retain completed work so the agent can avoid repeating
   }).promise;
   assert.equal(result.text, "done");
   assert.match(prompts[1], /already-edited\.js/);
-  assert.match(prompts[1], /완료한 명령이나 수정을 반복하지 말고/);
+  assert.match(prompts[1], /Não repita comandos nem edições concluídas/);
 });
 
 test("repeated trace requests are bounded and never leak control text into the final answer", async () => {
@@ -143,7 +143,7 @@ test("repeated trace requests are bounded and never leak control text into the f
   assert.equal(reads, MAX_READS);
   assert.equal(starts, MAX_READS + 1);
   assert.doesNotMatch(result.text, /CODEPET_TRACE/);
-  assert.match(result.text, /조회 한도/);
+  assert.match(result.text, /limite de consultas/);
 });
 
 test("cancellation while a trace read is pending prevents the next CLI launch", async () => {
@@ -172,7 +172,7 @@ test("Grok pending workspace changes survive a trace request without another wri
   }).promise;
   assert.equal(starts, 1);
   assert.equal(result.workspaceChangeManifest, manifest);
-  assert.match(result.text, /변경안/);
+  assert.match(result.text, /proposta de alteração/);
 });
 
 test("trace requests accept only bounded session-local selectors", () => {

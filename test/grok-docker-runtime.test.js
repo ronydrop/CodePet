@@ -187,7 +187,7 @@ test("Linux 원격 Docker context는 인증이나 workspace를 보내기 전에 
 
   const result = await runtime.probe();
   assert.equal(result.available, false);
-  assert.match(result.reason, /원격 Docker context/);
+  assert.match(result.reason, /contexto Docker remoto/);
   assert.deepEqual(calls, []);
 });
 
@@ -213,7 +213,7 @@ test("DOCKER_CONTEXT는 DOCKER_HOST보다 우선하여 원격 endpoint를 검증
 
   const result = await runtime.probe();
   assert.equal(result.available, false);
-  assert.match(result.reason, /원격 Docker context/);
+  assert.match(result.reason, /contexto Docker remoto/);
   assert.deepEqual(calls, [[
     "context",
     "inspect",
@@ -238,7 +238,7 @@ test("검증하지 않은 macOS Docker 경로는 workspace 권한으로 승격�
 
   const result = await runtime.probe();
   assert.equal(result.available, false);
-  assert.match(result.reason, /Windows와 Linux/);
+  assert.match(result.reason, /Windows e no Linux/);
 });
 
 test("Linux 실행 준비는 별도 로그인 스크립트 없이 호스트 인증을 동기화한다", async () => {
@@ -258,7 +258,7 @@ test("Linux 실행 준비는 별도 로그인 스크립트 없이 호스트 인�
   assert.deepEqual(steps, ["setup", "sync-host-auth", "probe-container-auth"]);
 });
 
-test("읽기 컨테이너 argv는 프로젝트 하나와 인증 볼륨만 마운트하고 위험 옵션을 배제한다", () => {
+test("읽기 컨테이너 argv는 Projeto 하나와 인증 볼륨만 마운트하고 위험 옵션을 배제한다", () => {
   const containerName = createContainerName("run-1", () => "12345678-1234-1234-1234-123456789abc");
   const args = buildReadContainerArgs({
     workspace: WORKSPACE,
@@ -282,9 +282,9 @@ test("읽기 컨테이너 argv는 프로젝트 하나와 인증 볼륨만 마운
   assert.doesNotMatch(args.join(" "), /docker\.sock|\/mnt\/host|C:\\Users\\u/i);
 });
 
-test("드라이브 루트와 사용자 홈 전체는 프로젝트 마운트로 거부한다", () => {
-  assert.throws(() => validateWorkspaceMount(path.parse(WORKSPACE).root, HOME), /드라이브 전체/);
-  assert.throws(() => validateWorkspaceMount(HOME, HOME), /사용자 홈 전체/);
+test("드라이브 루트와 사용자 홈 전체는 Projeto 마운트로 거부한다", () => {
+  assert.throws(() => validateWorkspaceMount(path.parse(WORKSPACE).root, HOME), /drive inteiro/);
+  assert.throws(() => validateWorkspaceMount(HOME, HOME), /pasta pessoal inteira/);
 });
 
 test("같은 계정의 컨테이너 토큰은 보존하고 계정이 바뀔 때만 stdin으로 동기화한다", async () => {

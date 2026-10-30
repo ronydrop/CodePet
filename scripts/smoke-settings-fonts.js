@@ -18,7 +18,7 @@ async function main() {
   if (!fonts.length) fonts.push("Arial");
   const originalFont = fonts.at(-1);
   const state = { appearance: { fontFamily: originalFont, fontSize: 14, workMode: false },
-    pets: [{ key: "default", label: "기본 펫 (내장)" }], petKey: "default",
+    pets: [{ key: "default", label: "Pet padrão (incluso)" }], petKey: "default",
     activityBubbleMode: "full", autoStart: false, providers: [], usage: [] };
   let releaseFonts, saved;
   ipcMain.handle("settings:get", () => ({ ok: true, data: state }));

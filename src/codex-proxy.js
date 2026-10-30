@@ -105,7 +105,7 @@ function enableProxyInConfig(port, configPath = defaultConfigPath()) {
   const result = injectBaseUrl(content, port);
   if (result.keptUserBaseUrl) {
     throw new Error(
-      "config.toml에 사용자가 설정한 openai_base_url이 이미 있습니다. 프록시 모드를 켜려면 그 줄을 먼저 정리해 주세요."
+      "O config.toml já tem um openai_base_url definido por você. Para ligar o modo proxy, remova essa linha antes."
     );
   }
   fs.mkdirSync(path.dirname(configPath), { recursive: true });
@@ -280,7 +280,7 @@ class CodexProxy {
         if (error.code !== "EADDRINUSE") throw error;
       }
     }
-    throw new Error("Codex 프록시 포트를 확보하지 못했습니다.");
+    throw new Error("Não foi possível reservar a porta do proxy do Codex.");
   }
 
   stop() {
@@ -318,7 +318,7 @@ class CodexProxy {
       request.on("data", (chunk) => {
         total += chunk.length;
         if (total > MAX_BUFFERED_BODY_BYTES) {
-          reject(new Error("요청 본문이 프록시 버퍼 한도를 넘었습니다."));
+          reject(new Error("O corpo do pedido passou do limite do buffer do proxy."));
           request.destroy();
           return;
         }
@@ -701,7 +701,7 @@ class CodexProxy {
 
     response.writeHead(503, { "content-type": "application/json" });
     response.end(JSON.stringify({
-      error: { message: "codepet proxy: 사용할 수 있는 Codex 계정이 없습니다. (전부 한도 초과 또는 로그인 만료)" },
+      error: { message: "codepet proxy: não há conta do Codex disponível (todas estouraram o limite ou o login expirou)." },
     }));
   }
 }

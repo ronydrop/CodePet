@@ -35,10 +35,10 @@ class CodexChatAccounts {
 
   prepare(key) {
     const profile = this.switcher.getProfile(key);
-    if (!profile?.hasAuth) throw new Error("저장된 Codex 계정이 없습니다. 설정의 계정에서 로그인해 주세요.");
+    if (!profile?.hasAuth) throw new Error("Não há conta do Codex salva. Entre em Configurações, na seção Contas.");
     const home = profile.homePath;
     const source = this.switcher.codexHome;
-    if (!home || path.resolve(home) === path.resolve(source)) throw new Error("별도 Codex 계정 경로가 필요합니다.");
+    if (!home || path.resolve(home) === path.resolve(source)) throw new Error("É preciso um caminho separado para a conta do Codex.");
     const manifestPath = path.join(home, ".codepet-chat-inheritance.json");
     let hashes = {};
     try { hashes = JSON.parse(readOptional(manifestPath) || "{}"); } catch {}
@@ -59,7 +59,7 @@ class CodexChatAccounts {
     }
     const config = readOptional(path.join(home, "config.toml")) || "";
     if (stripCodePetProxyLines(config) !== config) {
-      throw new Error("이 계정의 개별 config.toml에 CodePet 전역 계정 프록시가 남아 있습니다.");
+      throw new Error("O config.toml desta conta ainda contém o proxy global de contas do CodePet.");
     }
     // Keep shared instructions and skills available without duplicating their files.
     for (const name of ["skills", "rules"]) {
@@ -84,7 +84,7 @@ class CodexChatAccounts {
 
   async prepareSandbox(key, record, cwd) {
     const profile = this.switcher.getProfile(key);
-    if (!profile?.hasAuth) throw new Error("저장된 Codex 계정이 없습니다.");
+    if (!profile?.hasAuth) throw new Error("Não há conta do Codex salva.");
     await this.windowsSandbox.ensure(profile.homePath, this.switcher.codexHome, record, cwd);
   }
 
@@ -96,7 +96,7 @@ class CodexChatAccounts {
       let catalog = [];
       let reason = "";
       try {
-        if (!base?.commandPath || base.status !== "cli") throw new Error("Codex CLI를 먼저 설치해 주세요.");
+        if (!base?.commandPath || base.status !== "cli") throw new Error("Instale a CLI do Codex antes.");
         const { env } = this.prepare(key);
         catalog = normalizeCatalog(await this.probe(base.commandPath, base.needsShell, 8000, { env, argv: FILE_AUTH_ARGS }));
         if (!catalog.length) reason = CATALOG_ERROR;
@@ -115,10 +115,10 @@ class CodexChatAccounts {
 
   record(key, base) {
     if (!this.list().some((profile) => profile.key === key)) {
-      return { ...base, modelOptions: [], models: [], catalogStatus: "unavailable", reason: "저장된 Codex 계정이 삭제되었습니다. 참가자를 다시 추가해 주세요." };
+      return { ...base, modelOptions: [], models: [], catalogStatus: "unavailable", reason: "A conta salva do Codex foi excluída. Adicione o participante de novo." };
     }
     return this.cache.get(key)?.record || {
-      ...base, modelOptions: [], models: [], catalogStatus: "unavailable", reason: "이 계정의 모델 목록을 다시 확인해 주세요.",
+      ...base, modelOptions: [], models: [], catalogStatus: "unavailable", reason: "Confira de novo a lista de modelos desta conta.",
     };
   }
 }

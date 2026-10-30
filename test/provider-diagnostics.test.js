@@ -47,8 +47,8 @@ test("설치·로그인 완료 상태를 installed/loggedIn true로 매핑한다
   assert.equal(isHealthy(diagnostic), true);
 });
 
-test("로그인된 CLI의 모델 조회 실패를 준비됨이나 미설치로 표시하지 않는다", () => {
-  const diagnostic = toDiagnostic(makeRecord({ catalogStatus: "unavailable", catalogReason: "모델 목록 조회 실패", models: [], modelOptions: [] }));
+test("로그인된 CLI의 Falha ao consultar o modelo를 준비됨이나 미설치로 표시하지 않는다", () => {
+  const diagnostic = toDiagnostic(makeRecord({ catalogStatus: "unavailable", catalogReason: "모델 목록 Falha na consulta", models: [], modelOptions: [] }));
   assert.equal(diagnostic.installed, true);
   assert.equal(diagnostic.loggedIn, true);
   assert.equal(diagnostic.errorCode, ERROR_CODES.MODEL_CATALOG_UNAVAILABLE);
@@ -84,7 +84,7 @@ test("GUI만 설치된 경우는 gui-only 코드로 안내한다", () => {
 
 test("실행 확인(--version) 실패는 installed null(탐지 실패)로 남긴다", () => {
   const diagnostic = toDiagnostic(
-    makeRecord({ status: "error", version: null, reason: "실행 확인 실패", authStatus: "unavailable" })
+    makeRecord({ status: "error", version: null, reason: "실행 Falha na verificação", authStatus: "unavailable" })
   );
   assert.equal(diagnostic.installed, null);
   assert.equal(diagnostic.loggedIn, null);
@@ -93,12 +93,12 @@ test("실행 확인(--version) 실패는 installed null(탐지 실패)로 남긴
 
 test("미로그인은 loggedIn false + not-logged-in으로 구분한다", () => {
   const diagnostic = toDiagnostic(
-    makeRecord({ authStatus: "unauthenticated", authReason: "Claude 로그인이 필요합니다." })
+    makeRecord({ authStatus: "unauthenticated", authReason: "Claude É preciso entrar." })
   );
   assert.equal(diagnostic.installed, true);
   assert.equal(diagnostic.loggedIn, false);
   assert.equal(diagnostic.errorCode, ERROR_CODES.NOT_LOGGED_IN);
-  assert.equal(diagnostic.message, "Claude 로그인이 필요합니다.");
+  assert.equal(diagnostic.message, "Claude É preciso entrar.");
 });
 
 test("로그인 상태 확인 미지원 CLI는 loggedIn null + auth-status-unknown", () => {
@@ -107,7 +107,7 @@ test("로그인 상태 확인 미지원 CLI는 loggedIn null + auth-status-unkno
       id: "agy",
       name: "Antigravity",
       authStatus: "unknown",
-      authReason: "이 CLI는 비대화형 로그인 상태 확인을 지원하지 않습니다.",
+      authReason: "Esta CLI não informa o login sem interação.",
     })
   );
   assert.equal(diagnostic.installed, true);

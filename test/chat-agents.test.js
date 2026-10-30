@@ -24,7 +24,7 @@ test("Claude 기본 설정에 모델이나 추론을 임의 지정하지 않는�
   assert.equal(agent.effort, "default");
 });
 
-test("Codex 카탈로그의 기본 표시로 사용자 CLI 설정을 덮어쓰지 않는다", () => {
+test("Codex 카탈로그의 기본 표시로 사용자 Configuração da CLI을 덮어쓰지 않는다", () => {
   const agent = roomAgentFromCapability(record("codex", [
     { id: "default", efforts: ["low", "medium", "high"] },
     { id: "gpt-5.6-sol", isDefault: true, efforts: ["low", "medium", "high"] },
@@ -51,7 +51,7 @@ test("실행 어댑터가 아직 없는 provider는 채팅에서 사용 가능�
   pending.permissions = { chat: { supported: false, enforcement: "sandbox" } };
   const agent = roomAgentFromCapability(pending, {});
   assert.equal(agent.available, false);
-  assert.match(agent.reason, /통합/);
+  assert.match(agent.reason, /integração/);
 });
 
 test("grok is unavailable outside chat permission mode", () => {

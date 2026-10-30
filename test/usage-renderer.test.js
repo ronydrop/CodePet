@@ -29,10 +29,10 @@ function render(gauges) {
 }
 test("quota popup shows remaining percentages and remaining-sized progress bars", () => {
   const nodes = render([0, 23, 90, 100, 120, -10, 87.6].map((usedPercent) => ({ label: "limit", usedPercent })));
-  assert.deepEqual(nodes.filter((n) => n.tag === "strong").map((n) => n.textContent), ["100% 남음", "77% 남음", "10% 남음", "0% 남음", "0% 남음", "100% 남음", "12% 남음"]);
+  assert.deepEqual(nodes.filter((n) => n.tag === "strong").map((n) => n.textContent), ["100% restante", "77% restante", "10% restante", "0% restante", "0% restante", "100% restante", "12% restante"]);
   assert.deepEqual(nodes.filter((n) => n.tag === "progress").map((n) => n.value), [100, 77, 10, 0, 0, 100, 12]);
   assert.deepEqual(nodes.filter((n) => n.className?.startsWith("gauge ")).map((n) => n.className.trim()), ["gauge", "gauge", "gauge critical", "gauge critical", "gauge critical", "gauge", "gauge warning"]);
-  assert.ok(nodes.filter((n) => n.tag === "progress").every((n) => n.attributes["aria-label"].includes("남은 한도")));
+  assert.ok(nodes.filter((n) => n.tag === "progress").every((n) => n.attributes["aria-label"].includes("Limite restante")));
 });
 test("unknown quota is not converted to a full balance", () => {
   const nodes = render([null, undefined, NaN, Infinity, "23"].map((usedPercent) => ({ label: "unknown", usedPercent })));

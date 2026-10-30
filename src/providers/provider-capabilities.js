@@ -143,7 +143,7 @@ const PROVIDER_DEFS = Object.freeze([
     color: "#d97757",
     aliases: Object.freeze(["claude"]),
     command: "claude",
-    installHint: "Claude Code CLI가 필요합니다. https://claude.com/claude-code 참고",
+    installHint: "É preciso a CLI do Claude Code. Veja https://claude.com/claude-code",
     installUrl: "https://claude.com/claude-code",
     authProbeArgs: Object.freeze(["auth", "status"]),
     loginCommand: "claude auth login",
@@ -164,7 +164,7 @@ const PROVIDER_DEFS = Object.freeze([
     color: "#10a37f",
     aliases: Object.freeze(["codex"]),
     command: "codex",
-    installHint: "Codex CLI가 필요합니다. npm i -g @openai/codex 참고",
+    installHint: "É preciso a CLI do Codex. Veja npm i -g @openai/codex",
     installUrl: "https://developers.openai.com/codex/cli",
     authProbeArgs: Object.freeze(["login", "status"]),
     loginCommand: "codex login",
@@ -186,10 +186,10 @@ const PROVIDER_DEFS = Object.freeze([
     color: "#4285f4",
     aliases: Object.freeze(["agy", "antigravity"]),
     command: "agy",
-    installHint: "agy CLI가 설치되어 있지 않습니다. https://antigravity.google/docs/cli/install 참고",
+    installHint: "A CLI agy não está instalada. Veja https://antigravity.google/docs/cli/install",
     installUrl: "https://antigravity.google/docs/cli/install",
     guiOnlyHint:
-      "Antigravity IDE는 설치되어 있지만 agy CLI가 없습니다. https://antigravity.google/docs/cli/install 참고",
+      "O Antigravity IDE está instalado, mas a CLI agy não. Veja https://antigravity.google/docs/cli/install",
     models: Object.freeze([]),
     efforts: Object.freeze([]),
     allowCustomModel: false,
@@ -208,7 +208,7 @@ const PROVIDER_DEFS = Object.freeze([
     color: "#111111",
     aliases: Object.freeze(["grok"]),
     command: "grok",
-    installHint: "Grok Build CLI가 필요합니다. https://x.ai/cli 참고",
+    installHint: "É preciso a CLI do Grok Build. Veja https://x.ai/cli",
     installUrl: "https://x.ai/cli",
     authProbeArgs: Object.freeze(["models"]),
     loginCommand: "grok login",
@@ -376,7 +376,7 @@ function createCapabilityService(options = {}) {
     if (!def.authProbeArgs) {
       return {
         authStatus: "unknown",
-        authReason: "이 CLI는 비대화형 로그인 상태 확인을 지원하지 않습니다.",
+        authReason: "Esta CLI não informa o login sem interação.",
       };
     }
     const result = await runCommand(commandPath, [...def.authProbeArgs], {
@@ -389,20 +389,20 @@ function createCapabilityService(options = {}) {
       if (authStatus === "unauthenticated") {
         return {
           authStatus,
-          authReason: `${def.name} 로그인이 필요합니다.`,
+          authReason: `${def.name} precisa de login.`,
         };
       }
       return {
         authStatus: "unknown",
         authReason: result.ok
-          ? "Grok CLI의 로그인 상태 응답을 확인하지 못했습니다."
-          : "Grok CLI 로그인 상태 확인에 실패했습니다.",
+          ? "Não foi possível ler a resposta de login da CLI do Grok."
+          : "A verificação de login da CLI do Grok falhou.",
       };
     }
     if (!result.ok) {
       return {
         authStatus: "unauthenticated",
-        authReason: `${def.name} 로그인이 필요합니다.`,
+        authReason: `${def.name} precisa de login.`,
       };
     }
     if (def.id === "claude") {
@@ -411,7 +411,7 @@ function createCapabilityService(options = {}) {
         if (parsed.loggedIn === false) {
           return {
             authStatus: "unauthenticated",
-            authReason: `${def.name} 로그인이 필요합니다.`,
+            authReason: `${def.name} precisa de login.`,
           };
         }
       } catch {}
@@ -462,7 +462,7 @@ function createCapabilityService(options = {}) {
       permissions: { ...def.permissions },
       guiInstalled: false,
       authStatus: "unavailable",
-      authReason: "CLI를 먼저 설치해야 합니다.",
+      authReason: "Instale a CLI antes.",
       installUrl: def.installUrl,
       loginCommand: def.loginCommand || null,
     };
@@ -479,11 +479,11 @@ function createCapabilityService(options = {}) {
         : {
             supported: false,
             enforcement: "unavailable",
-            reason: docker?.reason || "Docker 격리 실행기를 사용할 수 없습니다.",
+            reason: docker?.reason || "O executor isolado do Docker não está disponível.",
           };
       record.permissions["workspace-write"] = docker?.available
         ? { supported: true, enforcement: "container-copy-approval" }
-        : { supported: false, enforcement: "unavailable", reason: docker?.reason || "Docker 격리 실행기를 사용할 수 없습니다." };
+        : { supported: false, enforcement: "unavailable", reason: docker?.reason || "O executor isolado do Docker não está disponível." };
     }
 
     record.guiInstalled = guiEvidencePaths(def.id, platform, env).some((entry) => existsSafe(entry));
@@ -513,7 +513,7 @@ function createCapabilityService(options = {}) {
     const version = cachedVersion || await probeVersion(commandPath, record.needsShell);
     if (!version) {
       record.status = "error";
-      record.reason = `${def.name} CLI를 찾았지만 실행 확인(--version)에 실패했습니다.`;
+      record.reason = `A CLI ${def.name} foi encontrada, mas a verificação (--version) falhou.`;
       return record;
     }
     record.version = version;
@@ -526,7 +526,7 @@ function createCapabilityService(options = {}) {
       catalog = normalizeCatalog(Array.isArray(result) ? result : result?.models);
       if (def.id === "agy" && result?.authenticationRequired) {
         record.authStatus = "unauthenticated";
-        record.authReason = "AGY CLI 로그인이 필요합니다. 터미널에서 agy를 실행해 로그인해 주세요.";
+        record.authReason = "É preciso entrar na CLI do AGY. Execute agy no terminal e faça login.";
         record.catalogReason = record.authReason;
       }
     }

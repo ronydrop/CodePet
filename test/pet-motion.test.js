@@ -30,7 +30,7 @@ for (const paused of [true, false]) {
     watcher.accept(parseClaudeRow({ sessionId: "motion", type: "assistant", message: {
       content: [{ type: "tool_use", name: "Bash", input: { command: "npm test" } }],
     } }), Date.now());
-    assert.equal(h.bubbles.at(-1).title, "Claude 명령 실행 중");
+    assert.equal(h.bubbles.at(-1).title, "Claude Executando comando");
     assert.equal(h.context.runtime.currentState, "running");
     if (paused) {
       h.context.updateMovementTick();

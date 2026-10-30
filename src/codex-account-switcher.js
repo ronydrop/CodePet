@@ -108,7 +108,7 @@ class CodexAccountSwitcher {
     const home = path.resolve(this.homeDir);
     const homePrefix = home.endsWith(path.sep) ? home : `${home}${path.sep}`;
     if (!resolved.toLowerCase().startsWith(homePrefix.toLowerCase())) {
-      throw new Error(`홈 디렉터리 밖 경로는 삭제하지 않습니다: ${resolved}`);
+      throw new Error(`Caminhos fora da pasta pessoal não são apagados: ${resolved}`);
     }
 
     fs.rmSync(resolved, { recursive: true, force: true });
@@ -227,7 +227,7 @@ class CodexAccountSwitcher {
         planType: null,
         organization: null,
         authMode: "unknown",
-        label: "로그인 정보 없음",
+        label: "Sem login",
         error: error.message || String(error),
       };
     }
@@ -238,7 +238,7 @@ class CodexAccountSwitcher {
   }
 
   formatProfileLabel(displayId, planType) {
-    const id = displayId || "Codex 계정";
+    const id = displayId || "Conta do Codex";
     return planType ? `${id} (${planType})` : id;
   }
 
@@ -366,6 +366,19 @@ class CodexAccountSwitcher {
     return this.uniqueAvailableProfileName(baseName);
   }
 
+  importAuthFile(authPath) {
+    if (!authPath || !fs.existsSync(authPath)) return false;
+    const summary = this.readAuthSummaryFromFile(authPath);
+    if (!summary.hasAuth) return false;
+    if (this.findMatchingProfile(summary)) return false;
+    const profileKey = this.uniqueAvailableProfileName(this.profileNameForSummary(summary));
+    this.ensureDirs();
+    this.copyFileAtomic(authPath, this.profileAuthPath(profileKey));
+    const current = this.readCurrentAuthSummary();
+    if (this.sameIdentity(current, summary)) this.writeActiveProfileKey(profileKey);
+    return true;
+  }
+
   // pending 폴더에 auth.json이 생기면 표시용 이메일/플랜 기반 이름으로 확정합니다.
   normalizeCompletedPendingProfiles() {
     let dirs = [];
@@ -470,7 +483,7 @@ class CodexAccountSwitcher {
   saveCurrentAccount() {
     const summary = this.readCurrentAuthSummary();
     if (!summary.hasAuth || !fs.existsSync(this.targetAuthPath)) {
-      throw new Error("현재 ~/.codex/auth.json에 로그인 정보가 없습니다.");
+      throw new Error("Não há login em ~/.codex/auth.json.");
     }
 
     const profileKey = this.ensureUniqueProfileName(this.profileNameForSummary(summary), summary);
@@ -519,7 +532,7 @@ class CodexAccountSwitcher {
       id: "new-login",
       homePath,
       pending: true,
-      label: "새 Codex 로그인",
+      label: "Novo login do Codex",
     };
   }
 
@@ -530,8 +543,8 @@ class CodexAccountSwitcher {
   // 저장소 안의 auth 사본만 지웁니다. live ~/.codex/auth.json은 절대 삭제하지 않습니다.
   deleteProfile(profileKey) {
     const profile = this.getProfile(profileKey);
-    if (!profile) throw new Error("저장된 Codex 계정을 찾지 못했습니다.");
-    if (profile.active) throw new Error("현재 사용 중인 계정은 삭제할 수 없습니다.");
+    if (!profile) throw new Error("Não encontrei a conta salva do Codex.");
+    if (profile.active) throw new Error("A conta em uso não pode ser excluída.");
     this.removePathIfInsideHome(profile.profilePath);
     return profile;
   }
@@ -540,7 +553,7 @@ class CodexAccountSwitcher {
   switchToProfile(profileKey) {
     const profile = this.getProfile(profileKey);
     if (!profile) {
-      throw new Error("저장된 Codex 계정을 찾지 못했습니다.");
+      throw new Error("Não encontrei a conta salva do Codex.");
     }
 
     // 전환 전 현재 계정도 저장소에 갱신합니다. 그래야 되돌아갈 계정이 사라지지 않습니다.
@@ -548,7 +561,7 @@ class CodexAccountSwitcher {
 
     const source = this.profileAuthPath(profile.key);
     if (!fs.existsSync(source)) {
-      throw new Error(`선택한 프로필에 auth.json이 없습니다: ${profile.key}`);
+      throw new Error(`O perfil escolhido não tem auth.json: ${profile.key}`);
     }
 
     const backupId = this.createBackup(new Date());
@@ -732,7 +745,7 @@ class CodexAccountSwitcher {
     if (Array.isArray(additional)) {
       additional.forEach((item, index) => {
         if (!item || typeof item !== "object") return;
-        const limitName = String(item.limit_name ?? item.limitName ?? "추가 사용량").trim() || "추가 사용량";
+        const limitName = String(item.limit_name ?? item.limitName ?? "Uso extra").trim() || "Uso extra";
         add(this.normalizeRateLimitWindows(item.rate_limit ?? item.rateLimit, {
           source: `additional:${index}:${limitName}`,
           scope: limitName,
@@ -741,7 +754,7 @@ class CodexAccountSwitcher {
     }
     add(this.normalizeRateLimitWindows(payload.code_review_rate_limit ?? payload.codeReviewRateLimit, {
       source: "code-review",
-      scope: "코드 리뷰",
+      scope: "Revisão de código",
     }));
     return windows;
   }
@@ -749,12 +762,12 @@ class CodexAccountSwitcher {
   // 더블클릭 사용량 조회는 live ~/.codex/auth.json 기준으로 매번 직접 조회합니다.
   async fetchCurrentUsage() {
     if (typeof fetch !== "function") {
-      throw new Error("이 Electron 런타임에서 fetch를 사용할 수 없습니다.");
+      throw new Error("Este runtime do Electron não oferece fetch.");
     }
 
     const current = this.readCurrentAuthSummary();
     if (!current.hasAuth || !current.accessToken) {
-      throw new Error("현재 Codex 로그인 정보가 없습니다.");
+      throw new Error("Não há login atual do Codex.");
     }
 
     const headers = {
@@ -781,7 +794,7 @@ class CodexAccountSwitcher {
     }
 
     if (!response.ok) {
-      throw new Error(`사용량 API가 HTTP ${response.status}를 반환했습니다.`);
+      throw new Error(`A API de uso respondeu HTTP ${response.status}.`);
     }
 
     const payload = await response.json();

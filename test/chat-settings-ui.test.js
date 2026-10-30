@@ -15,7 +15,7 @@ test("채팅 제목 표시줄의 설정 버튼이 안전한 preload API에 연�
   const preload = source("src/chat-preload.js");
   const renderer = source("src/chat.js");
 
-  assert.match(html, /id="btn-settings"[^>]*aria-label="설정 열기"[^>]*title="설정"/);
+  assert.match(html, /id="btn-settings"[^>]*aria-label="Abrir configurações"[^>]*title="Configurações"/);
   assert.match(css, /\.titlebar-btn\.btn-settings\s*\{[^}]*width:\s*40px[^}]*border-right:/s);
   assert.match(preload, /openSettings: \(\) => ipcRenderer\.send\("chat:open-settings"\)/);
   assert.match(

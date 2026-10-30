@@ -12,7 +12,7 @@ const css = source("src/chat.css");
 const renderer = source("src/chat.js");
 const preload = source("src/chat-preload.js");
 
-test("입력창 위 발언 큐는 현재 발언자와 취소 가능한 대기 턴을 제공한다", () => {
+test("입력창 위 Fila de falas는 현재 발언자와 취소 가능한 대기 턴을 제공한다", () => {
   assert.match(html, /id="turn-queue-bar"/);
   assert.match(html, /id="turn-current"/);
   assert.match(html, /id="turn-queue-list"/);

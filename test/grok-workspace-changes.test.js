@@ -69,7 +69,7 @@ test("승인 적용은 수정·생성·삭제를 한 번만 반영하고 기존 
   if (process.platform !== "win32") {
     assert.equal(fs.statSync(path.join(root, "modify.txt")).mode & 0o777, 0o640);
   }
-  assert.throws(() => store.apply(staged.id, "session-a"), /만료|처리/);
+  assert.throws(() => store.apply(staged.id, "session-a"), /expirou|tratada/);
 });
 
 test("취소와 만료는 멱등적으로 폐기하고 다른 세션의 승인을 거부한다", (t) => {
@@ -81,7 +81,7 @@ test("취소와 만료는 멱등적으로 폐기하고 다른 세션의 승인�
     workspace: root,
     manifest: manifest(entry("a.txt", null, "x")),
   });
-  assert.throws(() => store.apply(first.id, "session-b"), /만료|처리/);
+  assert.throws(() => store.apply(first.id, "session-b"), /expirou|tratada/);
   assert.deepEqual(store.cancel(first.id, "session-a"), { canceled: true, alreadyHandled: false });
   assert.deepEqual(store.cancel(first.id, "session-a"), { canceled: true, alreadyHandled: true });
 
@@ -91,7 +91,7 @@ test("취소와 만료는 멱등적으로 폐기하고 다른 세션의 승인�
     manifest: manifest(entry("b.txt", null, "y")),
   });
   now += CHANGE_TTL_MS + 1;
-  assert.throws(() => store.apply(expired.id, "session-a"), /만료|처리/);
+  assert.throws(() => store.apply(expired.id, "session-a"), /expirou|tratada/);
 });
 
 test("경로 탈출·Windows 특수 경로·보호 디렉터리·중복 및 형식 변경을 거부한다", () => {
@@ -111,15 +111,15 @@ test("경로 탈출·Windows 특수 경로·보호 디렉터리·중복 및 형�
   assert.throws(() => validateManifest(manifest(
     entry("A.txt", null, "a"),
     entry("a.txt", null, "b")
-  )), /중복/);
+  )), /duas vezes/);
   assert.throws(() => validateManifest(manifest(
     entry("file", null, "a"),
     entry("file/child", null, "b")
-  )), /하위 경로/);
+  )), /caminho dentro dele/);
   assert.throws(() => validateManifest(manifest({
     ...entry("mode.sh", null, "x"),
     mode: 0o755,
-  })), /실행 권한|형식/);
+  })), /permissão de execução/);
 });
 
 test("빈 새 파일도 적용하지만 기존 빈 파일을 새 파일로 위장하면 충돌한다", (t) => {
@@ -137,12 +137,12 @@ test("빈 새 파일도 적용하지만 기존 빈 파일을 새 파일로 위�
     sessionId: "session-a",
     workspace: root,
     manifest: manifest(entry("empty.txt", null, "replacement")),
-  }), /충돌/);
+  }), /Conflito/);
 });
 
 test("변경 내용 합계 상한을 넘으면 스테이징 전에 거부한다", () => {
   const tooLarge = Buffer.alloc(MAX_CHANGE_BYTES + 1, 1);
-  assert.throws(() => validateManifest(manifest(entry("large.bin", null, tooLarge))), /크기 제한/);
+  assert.throws(() => validateManifest(manifest(entry("large.bin", null, tooLarge))), /limite de tamanho/);
 });
 
 test("워크스페이스 내부 정션을 통한 외부 파일 적용을 거부한다", (t) => {
@@ -156,7 +156,7 @@ test("워크스페이스 내부 정션을 통한 외부 파일 적용을 거부�
     sessionId: "session-a",
     workspace: root,
     manifest: manifest(entry("junction/secret.txt", "outside", "changed")),
-  }), /링크|정션|재분석/);
+  }), /junções, pontos de reanálise/);
   assert.equal(fs.readFileSync(path.join(outside, "secret.txt"), "utf8"), "outside");
 });
 

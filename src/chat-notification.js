@@ -1,14 +1,22 @@
 // 채팅 실행기는 watcher rollout과 독립적이므로, 말풍선 표현도 작은 순수 함수로 분리합니다.
 // action은 외부 codex:// 링크가 아니라 CodePet의 저장된 대화방을 여는 내부 IPC 경로입니다.
 const CHAT_NOTIFICATION_ACTION = "chat-session:open";
+const PROVIDERS = new Set(["claude", "codex", "agy", "grok"]);
+
+function providerFromAgent(agentId) {
+  const id = typeof agentId === "string" ? agentId.trim().toLowerCase() : "";
+  if (PROVIDERS.has(id)) return id;
+  const head = id.split("_")[0];
+  return PROVIDERS.has(head) ? head : null;
+}
 
 const KIND_LABELS = Object.freeze({
-  working: { title: "작업 시작", statusText: "CodePet이 작업을 시작했습니다.", busy: true },
-  progress: { title: "작업 중", statusText: "CodePet이 작업을 진행하고 있습니다.", busy: true },
-  waiting: { title: "입력 대기", statusText: "CodePet이 사용자 확인을 기다리고 있습니다.", busy: true },
-  completed: { title: "작업 완료", statusText: "CodePet 작업이 완료되었습니다.", busy: false },
-  failed: { title: "작업 실패", statusText: "CodePet 작업 중 문제가 발생했습니다.", busy: false },
-  cancelled: { title: "작업 취소", statusText: "CodePet 작업이 취소되었습니다.", busy: false },
+  working: { title: "Tarefa iniciada", statusText: "O CodePet começou a tarefa.", busy: true },
+  progress: { title: "Trabalhando", statusText: "O CodePet está avançando na tarefa.", busy: true },
+  waiting: { title: "Aguardando entrada", statusText: "O CodePet está esperando a sua confirmação.", busy: true },
+  completed: { title: "Tarefa concluída", statusText: "A tarefa do CodePet foi concluída.", busy: false },
+  failed: { title: "Tarefa falhou", statusText: "Houve um problema na tarefa do CodePet.", busy: false },
+  cancelled: { title: "Tarefa cancelada", statusText: "A tarefa do CodePet foi cancelada.", busy: false },
 });
 
 // 한 대화방에는 여러 agent run이 동시에 존재할 수 있으므로 방 id만으로는 부족합니다.
@@ -32,8 +40,10 @@ function buildChatNotificationBubble(notification) {
     ? notification.text.trim()
     : detail.statusText;
 
+  const provider = providerFromAgent(notification.agentId);
   return {
     kind: "activity",
+    ...(provider ? { provider } : {}),
     title: `${agentName} · ${detail.title}`,
     busy: detail.busy,
     text,
@@ -42,7 +52,7 @@ function buildChatNotificationBubble(notification) {
       id: CHAT_NOTIFICATION_ACTION,
       payload: { sessionId },
     },
-    clickHint: "클릭해서 CodePet 대화 열기",
+    clickHint: "Clique para abrir a conversa do CodePet",
     terminal: !detail.busy,
   };
 }

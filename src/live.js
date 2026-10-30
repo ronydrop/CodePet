@@ -6,7 +6,7 @@
   let catalog = null, current = null, loading = false, ending = false, settingsBusy = false, selection = {};
   try { selection = JSON.parse(localStorage.getItem('codepet.live.selection') || '{}'); } catch {}
   if (!selection || typeof selection !== 'object' || Array.isArray(selection)) selection = {};
-  const permissions = { ask: '명령과 작업에 대해 승인을 요청합니다.', auto: '일반 작업은 자동으로 진행하고 추가 권한이 필요하면 승인을 요청합니다.', full: '컴퓨터의 파일과 인터넷에 제한 없이 접근합니다.' };
+  const permissions = { ask: 'Pede aprovação para comandos e tarefas.', auto: 'Tarefas comuns seguem sozinhas. Se precisar de mais permissão, uma aprovação é pedida.', full: 'Acessa arquivos do computador e a internet sem restrição.' };
   if (!Object.hasOwn(permissions, selection.permission)) selection.permission = 'ask';
   let approvalQueue = [], workspace = '', activeThread = null, historyRequest = 0;
   if (window.innerWidth <= 600) host.dataset.sidebar = 'closed';
@@ -26,7 +26,7 @@
   }
   const valueOf = async promise => {
     const result = await promise;
-    if (!result?.ok) throw new Error(result?.error || '요청을 처리하지 못했습니다.');
+    if (!result?.ok) throw new Error(result?.error || 'Não foi possível tratar o pedido.');
     return result.data;
   };
   function setError(message = '') { $('error').textContent = message; $('error').hidden = !message; }
@@ -37,11 +37,11 @@
   function update() {
     const connected = !!current?.connected;
     $('call').disabled = !current && (loading || ending || !catalog);
-    $('call').setAttribute('aria-label', current ? '음성 대화 종료' : '음성 대화 시작');
+    $('call').setAttribute('aria-label', current ? 'Encerrar conversa de voz' : 'Começar conversa de voz');
     $('call').querySelector('use').setAttribute('href', current ? '#i-close' : '#i-play');
     $('mute').disabled = !connected;
     $('mute').setAttribute('aria-pressed', String(!!current?.muted));
-    $('mute').setAttribute('aria-label', current?.muted ? '마이크 켜기' : '마이크 끄기');
+    $('mute').setAttribute('aria-label', current?.muted ? 'Ligar microfone' : 'Desligar microfone');
     $('mute').querySelector('use').setAttribute('href', current?.muted ? '#i-mute' : '#i-mic');
     $('message').disabled = !connected;
     $('send').disabled = !connected || !!current?.sending || !$('message').value.trim();
@@ -49,7 +49,7 @@
     $('reload-catalog').disabled = !!current || loading || ending;
     $('model').disabled = !catalog || loading;
     $('voice').disabled = !catalog || loading;
-    $('voice-summary').textContent = selection.voice || '음성 설정';
+    $('voice-summary').textContent = selection.voice || 'Configurações de voz';
   }
   function appearance(data) {
     host.dataset.mode = data?.workMode ? 'office' : 'character';
@@ -64,7 +64,7 @@
   }
   async function loadCatalog(refresh = false) {
     if (loading || current || ending) return;
-    loading = true; setError(); status('연결 정보를 확인하는 중…', 'idle'); update();
+    loading = true; setError(); status('Conferindo a conexão…', 'idle'); update();
     try {
       catalog = await valueOf(liveApi.catalog(refresh));
       showWorkspace(catalog.workspace);
@@ -74,11 +74,11 @@
       $('voice').replaceChildren(...catalog.voices.map(voice => new Option(voice.label, voice.id)));
       $('model').value = selection.model; $('voice').value = selection.voice;
       $('account-label').textContent = catalog.accountLabel;
-      $('realtime-model').textContent = catalog.realtimeModel || '서버 기본값';
+      $('realtime-model').textContent = catalog.realtimeModel || 'Padrão do servidor';
       appearance(catalog.appearance);
       await refreshHistory();
-      status('음성 대화를 시작해 보세요', 'idle');
-    } catch (error) { catalog = null; setError(error.message); status('연결 정보를 불러오지 못했어요', 'idle'); }
+      status('Comece a conversa de voz', 'idle');
+    } catch (error) { catalog = null; setError(error.message); status('Não foi possível carregar a conexão', 'idle'); }
     finally { loading = false; update(); }
   }
   function cleanup(session) {
@@ -89,7 +89,7 @@
     $('remote-audio').pause(); $('remote-audio').srcObject = null;
     host.style.removeProperty('--audio-scale');
   }
-  async function end(message = '음성 대화가 종료됐어요') {
+  async function end(message = 'A conversa de voz terminou') {
     const previous = current; current = null;
     approvalQueue = []; showApproval();
     if (previous) cleanup(previous);
@@ -102,9 +102,9 @@
   }
   async function fail(session, error) {
     if (current !== session) return;
-    const message = error?.name === 'NotAllowedError' ? '마이크 사용이 허용되지 않았습니다. 운영체제의 마이크 권한을 확인해 주세요.'
-      : error?.name === 'NotFoundError' ? '사용 가능한 마이크가 없습니다.' : error.message || '음성 연결에 실패했습니다.';
-    setError(message); await end('다시 연결해 주세요');
+    const message = error?.name === 'NotAllowedError' ? 'O microfone não foi permitido. Confira a permissão do sistema.'
+      : error?.name === 'NotFoundError' ? 'Não há microfone disponível.' : error.message || 'A conexão de voz falhou.';
+    setError(message); await end('Conecte de novo');
   }
   function analyser(session, stream) {
     const source = session.context.createMediaStreamSource(stream);
@@ -124,7 +124,7 @@
     if (current !== session) return;
     const input = session.muted ? 0 : level(session.input), output = level(session.output);
     host.style.setProperty('--audio-scale', String(1 + Math.max(input, output) * .16));
-    if (session.connected) status(output > .06 ? '말하고 있어요' : session.muted ? '마이크가 꺼져 있어요' : '듣고 있어요', output > .06 ? 'speaking' : 'listening');
+    if (session.connected) status(output > .06 ? 'Falando' : session.muted ? 'O microfone está desligado' : 'Ouvindo', output > .06 ? 'speaking' : 'listening');
     session.frame = requestAnimationFrame(() => animate(session));
   }
   function metadata(data) {
@@ -141,32 +141,32 @@
     if (current || !catalog || loading || ending) return;
     setError();
     $('caption-user').textContent = ''; $('caption-assistant').textContent = '';
-    $('language').textContent = '말하는 언어에 맞춤';
-    $('realtime-model').textContent = '서버 기본값';
+    $('language').textContent = 'Acompanha o idioma da fala';
+    $('realtime-model').textContent = 'Padrão do servidor';
     const session = { key: crypto.randomUUID(), muted: false, connected: false, captionsDone: {} };
-    current = session; status('마이크와 연결을 준비하는 중…', 'connecting'); update();
-    session.timeout = setTimeout(() => fail(session, new Error('음성 연결 시간이 초과되었습니다. 다시 시도해 주세요.')), 45000);
+    current = session; status('Preparando o microfone e a conexão…', 'connecting'); update();
+    session.timeout = setTimeout(() => fail(session, new Error('A conexão de voz expirou. Tente de novo.')), 45000);
     try {
       session.context = new AudioContext(); await session.context.resume();
       if (current !== session) return;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
       if (current !== session) { stream.getTracks().forEach(track => track.stop()); return; }
       session.stream = stream; session.input = analyser(session, stream);
-      stream.getAudioTracks().forEach(track => track.addEventListener('ended', () => fail(session, new Error('마이크 연결이 종료되었습니다.'))));
+      stream.getAudioTracks().forEach(track => track.addEventListener('ended', () => fail(session, new Error('A conexão do microfone terminou.'))));
       const pc = new RTCPeerConnection(); session.pc = pc;
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
       pc.ontrack = async event => {
         if (current !== session) return;
         const remote = event.streams[0] || new MediaStream([event.track]);
         $('remote-audio').srcObject = remote; session.output = analyser(session, remote);
-        try { await $('remote-audio').play(); } catch (error) { void fail(session, new Error('스피커 재생을 시작하지 못했습니다. 다시 연결해 주세요.')); }
+        try { await $('remote-audio').play(); } catch (error) { void fail(session, new Error('Não foi possível iniciar o alto-falante. Conecte de novo.')); }
       };
       pc.onconnectionstatechange = () => {
         if (current !== session) return;
         clearTimeout(session.disconnectTimeout);
         if (pc.connectionState === 'connected') { clearTimeout(session.timeout); session.connected = true; update(); }
-        else if (pc.connectionState === 'failed' || pc.connectionState === 'closed') void fail(session, new Error('음성 연결이 끊겼습니다.'));
-        else if (pc.connectionState === 'disconnected') session.disconnectTimeout = setTimeout(() => fail(session, new Error('음성 연결이 끊겼습니다.')), 10000);
+        else if (pc.connectionState === 'failed' || pc.connectionState === 'closed') void fail(session, new Error('A conexão de voz caiu.'));
+        else if (pc.connectionState === 'disconnected') session.disconnectTimeout = setTimeout(() => fail(session, new Error('A conexão de voz caiu.')), 10000);
       };
       const channel = pc.createDataChannel('oai-events');
       channel.onmessage = event => {
@@ -174,7 +174,7 @@
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'session.created' || data.type === 'session.updated') metadata(data);
-          if (data.type === 'error') void fail(session, new Error('음성 서버가 연결 오류를 반환했습니다.'));
+          if (data.type === 'error') void fail(session, new Error('O servidor de voz devolveu um erro de conexão.'));
         } catch {}
       };
       await pc.setLocalDescription(await pc.createOffer());
@@ -193,7 +193,7 @@
     } catch (error) { await fail(session, error); }
   }
   liveApi.onEvent(async event => {
-    if (event.type === 'suspended') { await end('다시 연결해 주세요'); return; }
+    if (event.type === 'suspended') { await end('Conecte de novo'); return; }
     const session = current;
     if (!session || event.key !== session.key) return;
     try {
@@ -212,7 +212,7 @@
     } catch (error) { await fail(session, error); }
   });
   liveApi.onAppearance(appearance);
-  liveApi.onMaximized(maximized => $('maximize').setAttribute('aria-label', maximized ? '이전 크기로' : '최대화'));
+  liveApi.onMaximized(maximized => $('maximize').setAttribute('aria-label', maximized ? 'Restaurar' : 'Maximizar'));
   for (const action of ['minimize','maximize','close']) $(action).addEventListener('click', () => liveApi.window(action));
   $('call').addEventListener('click', () => current ? end() : start());
   $('mute').addEventListener('click', () => {
@@ -238,7 +238,7 @@
     if (last?.dataset.role === message.role && last.dataset.text === message.text) return;
     const p = document.createElement('p'), strong = document.createElement('strong');
     p.dataset.role = message.role; p.dataset.text = message.text;
-    strong.textContent = message.role === 'user' ? '나' : 'Live';
+    strong.textContent = message.role === 'user' ? 'Eu' : 'Live';
     p.append(strong, document.createElement('br'), document.createTextNode(message.text));
     $('history-messages').append(p); $('history-messages').hidden = false;
     $('history-messages').scrollTop = $('history-messages').scrollHeight;
@@ -251,7 +251,7 @@
     $('caption-user').textContent = ''; $('caption-assistant').textContent = '';
     $('history-messages').replaceChildren(); $('history-messages').hidden = true;
     for (const message of result.messages || []) appendHistoryMessage(message);
-    status(id ? '선택한 대화를 이어갈 수 있어요' : '새 대화를 시작해 보세요', 'idle');
+    status(id ? 'Dá para continuar a conversa escolhida' : 'Comece uma conversa nova', 'idle');
     if (window.innerWidth <= 600) sidebar(false);
     await refreshHistory();
   }
@@ -269,7 +269,7 @@
         button.addEventListener('click', () => { void selectHistory(item.id).catch(error => setError(error.message)); });
         const remove = document.createElement('button');
         remove.type = 'button'; remove.className = 'history-delete'; remove.textContent = '×';
-        remove.setAttribute('aria-label', `${item.title} 삭제`); remove.title = '대화 삭제';
+        remove.setAttribute('aria-label', `Excluir ${item.title}`); remove.title = 'Excluir conversa';
         remove.addEventListener('click', async () => {
           remove.disabled = true;
           try {

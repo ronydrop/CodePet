@@ -9,17 +9,17 @@ const { LiveHistory, validId } = require('./live-history');
 const selectionId = value => typeof value === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(value);
 const sessionKey = value => typeof value === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(value);
 const MODES = { ask: ['workspace-write', 'untrusted'], auto: ['workspace-write', 'on-request'], full: ['danger-full-access', 'never'] };
-function publicError(error) { return redactSensitiveText(String(error?.message || error || '음성 연결에 실패했습니다.')).slice(0, 1200); }
+function publicError(error) { return redactSensitiveText(String(error?.message || error || 'A conexão de voz falhou.')).slice(0, 1200); }
 function approvalDetail(params) {
   // This local approval preview must show the exact command and access scope.
   // Error/log redaction would hide home paths; truncation could hide the action being approved.
   const fields = [
-    ['명령', params.command], ['작업 폴더', params.cwd], ['접근 허용 경로', params.grantRoot],
-    ['요청 권한', params.permissions], ['네트워크 요청', params.networkApprovalContext], ['사유', params.reason],
+    ['Comando', params.command], ['Pasta de trabalho', params.cwd], ['Caminhos permitidos', params.grantRoot],
+    ['Permissão pedida', params.permissions], ['Pedido de rede', params.networkApprovalContext], ['Motivo', params.reason],
   ];
   return fields.filter(([, value]) => value !== undefined && value !== null && value !== '')
     .map(([label, value]) => `${label}:\n${typeof value === 'string' ? value : JSON.stringify(value, null, 2)}`)
-    .join('\n\n') || '작업 실행 권한을 요청했습니다.';
+    .join('\n\n') || 'Pediu permissão para executar a tarefa.';
 }
 function catalogFrom(models, voices, config = {}) {
   const modelOptions = models.filter(item => !item.hidden && selectionId(item.model)).map(item => ({
@@ -28,7 +28,7 @@ function catalogFrom(models, voices, config = {}) {
   const list = voices?.voices || {};
   const version = list.v3?.length ? 'v3' : list.v1?.length ? 'v1' : '';
   const voiceOptions = [...new Set((list[version] || []).filter(selectionId))].map(id => ({ id, label: id }));
-  if (!modelOptions.length || !voiceOptions.length) throw new Error('Codex에서 사용 가능한 모델 또는 음성 목록을 받지 못했습니다.');
+  if (!modelOptions.length || !voiceOptions.length) throw new Error('O Codex não enviou a lista de modelos ou de vozes disponíveis.');
   return {
     models: modelOptions, voices: voiceOptions, version,
     defaultModel: modelOptions.some(m => m.id === config.model) ? config.model : (modelOptions.find(m => m.isDefault) || modelOptions[0]).id,
@@ -60,9 +60,9 @@ class LiveService extends EventEmitter {
   }
   async prepare(force = false) {
     const account = this.getAccount();
-    if (!account?.hasAuth) throw new Error('Codex에 로그인한 뒤 다시 열어 주세요.');
+    if (!account?.hasAuth) throw new Error('Entre no Codex e abra de novo.');
     const identity = account.accountId || account.key || account.email || 'current';
-    if (force && (this.call || this.pendingStart)) throw new Error('음성 대화를 종료한 뒤 목록을 새로고침해 주세요.');
+    if (force && (this.call || this.pendingStart)) throw new Error('Encerre a conversa de voz antes de atualizar a lista.');
     if (!force && this.rpc && this.identity === identity && !this.rpc.closed && this.catalog) return this.catalog;
     if (this.preparing && this.preparingIdentity === identity) return this.preparing;
     this.resetConnection();
@@ -79,7 +79,7 @@ class LiveService extends EventEmitter {
     let command, rpc;
     try {
       command = await this.resolveCommand();
-      if (epoch !== this.epoch) throw new Error('연결이 취소되었습니다.');
+      if (epoch !== this.epoch) throw new Error('A conexão foi cancelada.');
       rpc = this.makeRpc({ ...command, env: prepared.env, argv: prepared.argv, cwd: prepared.home });
     } catch (error) { prepared.finish(); throw error; }
     this.rpc = rpc; this.prepared = prepared; this.identity = identity;
@@ -111,7 +111,7 @@ class LiveService extends EventEmitter {
     try {
       await rpc.initialize();
       const auth = await rpc.request('account/read', { refreshToken: false });
-      if (auth.account?.type !== 'chatgpt') throw new Error('Live에는 ChatGPT로 로그인한 Codex 계정이 필요합니다.');
+      if (auth.account?.type !== 'chatgpt') throw new Error('O Live precisa de uma conta Codex conectada com ChatGPT.');
       const [voiceResult, configResult] = await Promise.all([
         rpc.request('thread/realtime/listVoices'), rpc.request('config/read', { includeLayers: false }),
       ]);
@@ -119,17 +119,17 @@ class LiveService extends EventEmitter {
       do {
         const page = await rpc.request('model/list', { includeHidden: false, limit: 100, ...(cursor ? { cursor } : {}) });
         models.push(...(page.data || [])); cursor = page.nextCursor || null;
-        if (cursor && seen.has(cursor)) throw new Error('Codex 모델 목록 페이지가 반복되었습니다.');
+        if (cursor && seen.has(cursor)) throw new Error('A página da lista de modelos do Codex se repetiu.');
         seen.add(cursor);
       } while (cursor);
-      if (epoch !== this.epoch || this.rpc !== rpc) throw new Error('연결이 취소되었습니다.');
+      if (epoch !== this.epoch || this.rpc !== rpc) throw new Error('A conexão foi cancelada.');
       this.catalog = { ...catalogFrom(models, voiceResult, configResult.config), accountLabel: account.label || account.email || 'Codex' };
       return this.catalog;
     } catch (error) { if (this.rpc === rpc) this.resetConnection(); throw error; }
   }
   async start(input) {
-    if (!sessionKey(input?.key) || typeof input.sdp !== 'string' || !input.sdp.startsWith('v=0') || input.sdp.length > 100000) throw new Error('음성 연결 요청이 올바르지 않습니다.');
-    if (this.call || this.pendingStart) throw new Error('이미 음성 대화가 진행 중입니다.');
+    if (!sessionKey(input?.key) || typeof input.sdp !== 'string' || !input.sdp.startsWith('v=0') || input.sdp.length > 100000) throw new Error('O pedido de conexão de voz é inválido.');
+    if (this.call || this.pendingStart) throw new Error('Já existe uma conversa de voz em andamento.');
     const pending = { key: input.key, cancelled: false };
     this.pendingStart = pending;
     pending.promise = this.startCall(input, pending);
@@ -138,13 +138,13 @@ class LiveService extends EventEmitter {
   }
   async startCall(input, pending) {
     await this.stopping;
-    if (pending.cancelled) throw new Error('연결이 취소되었습니다.');
+    if (pending.cancelled) throw new Error('A conexão foi cancelada.');
     const catalog = await this.prepare();
-    if (pending.cancelled) throw new Error('연결이 취소되었습니다.');
-    if (!catalog.models.some(m => m.id === input.model) || !catalog.voices.some(v => v.id === input.voice)) throw new Error('모델 또는 음성을 다시 선택해 주세요.');
-    if (input.permission !== undefined && !Object.hasOwn(MODES, input.permission)) throw new Error('권한 단계를 다시 선택해 주세요.');
+    if (pending.cancelled) throw new Error('A conexão foi cancelada.');
+    if (!catalog.models.some(m => m.id === input.model) || !catalog.voices.some(v => v.id === input.voice)) throw new Error('Selecione o modelo ou a voz de novo.');
+    if (input.permission !== undefined && !Object.hasOwn(MODES, input.permission)) throw new Error('Selecione o nível de permissão de novo.');
     const cwd = input.workspace || path.join(this.root, 'conversation');
-    if (input.workspace && (!path.isAbsolute(cwd) || !fs.statSync(cwd).isDirectory())) throw new Error('작업 폴더를 확인할 수 없습니다.');
+    if (input.workspace && (!path.isAbsolute(cwd) || !fs.statSync(cwd).isDirectory())) throw new Error('Não foi possível confirmar a pasta de trabalho.');
     if (!input.workspace) fs.mkdirSync(cwd, { recursive: true });
     if (this.threadWorkspace !== cwd) this.thread = null;
     const call = { key: input.key, threadId: null };
@@ -163,7 +163,7 @@ class LiveService extends EventEmitter {
       let record = this.history.read(this.thread);
       if (!record) { record = { id: this.thread, cwd, createdAt: Date.now(), updatedAt: Date.now(), messages: [] }; this.history.write(record); }
       call.record = record;
-      if (this.call !== call || pending.cancelled) throw new Error('연결이 취소되었습니다.');
+      if (this.call !== call || pending.cancelled) throw new Error('A conexão foi cancelada.');
       await rpc.request('thread/realtime/start', {
         threadId: call.threadId, realtimeSessionId: call.key, voiceSessionId: call.key,
         version: catalog.version, outputModality: 'audio', voice: input.voice,
@@ -171,7 +171,7 @@ class LiveService extends EventEmitter {
         prompt: 'You are the voice interface for this conversation. Respond in the language the user is speaking unless they ask for another language. Keep responses natural and conversational.' +
           (record.messages.length ? '\nEarlier conversation, for context:\n' + record.messages.map(m => `${m.role}: ${m.text}`).join('\n').slice(-16000) : ''),
       });
-      if (this.call !== call || pending.cancelled) throw new Error('연결이 취소되었습니다.');
+      if (this.call !== call || pending.cancelled) throw new Error('A conexão foi cancelada.');
       return { key: call.key, model: response.model || input.model, threadId: this.thread };
     } catch (error) {
       if (this.call === call) { this.clearApprovals(); this.call = null; }
@@ -199,7 +199,7 @@ class LiveService extends EventEmitter {
     if (messages.at(-1)?.role === role && messages.at(-1)?.text === text) return;
     messages.push({ role, text, at: Date.now() });
     call.record.updatedAt = Date.now();
-    try { this.history.write(call.record); } catch (error) { this.emit('event', { key: call.key, type: 'notice', message: '대화 기록을 저장하지 못했습니다: ' + publicError(error) }); }
+    try { this.history.write(call.record); } catch (error) { this.emit('event', { key: call.key, type: 'notice', message: 'Não foi possível salvar o histórico: ' + publicError(error) }); }
   }
   async listHistory() {
     await this.prepare();
@@ -213,23 +213,23 @@ class LiveService extends EventEmitter {
         }
       }
       cursor = native.nextCursor || null;
-      if (cursor && seen.has(cursor)) throw new Error('대화 목록을 불러오지 못했습니다.');
+      if (cursor && seen.has(cursor)) throw new Error('Não foi possível carregar a lista de conversas.');
       seen.add(cursor);
     } while (cursor);
     return records.filter(record => !record.deletedAt).sort((a, b) => b.updatedAt - a.updatedAt).map(record => ({ id: record.id, cwd: record.cwd, updatedAt: record.updatedAt,
-      title: record.messages.find(m => m.role === 'user')?.text.slice(0, 80) || '새 대화' }));
+      title: record.messages.find(m => m.role === 'user')?.text.slice(0, 80) || 'Nova conversa' }));
   }
   async selectHistory(id) {
-    if (this.call || this.pendingStart) throw new Error('음성 대화를 종료한 뒤 선택해 주세요.');
+    if (this.call || this.pendingStart) throw new Error('Encerre a conversa de voz antes de escolher.');
     await this.prepare();
     if (id === null) { this.thread = null; this.threadWorkspace = null; return { messages: [] }; }
-    if (!validId(id)) throw new Error('대화 ID가 올바르지 않습니다.');
+    if (!validId(id)) throw new Error('O ID da conversa é inválido.');
     let record = this.history.read(id);
-    if (record?.deletedAt) throw new Error('삭제된 대화입니다.');
+    if (record?.deletedAt) throw new Error('Esta conversa foi excluída.');
     if (!record) {
       const result = await this.rpc.request('thread/read', { threadId: id, includeTurns: true });
       const thread = result.thread;
-      if (!thread || thread.id !== id) throw new Error('대화 기록을 찾을 수 없습니다.');
+      if (!thread || thread.id !== id) throw new Error('O histórico da conversa não foi encontrado.');
       const messages = [];
       for (const turn of thread.turns || []) for (const item of turn.items || []) {
         const text = item.type === 'userMessage' ? (item.content || []).filter(part => part.type === 'text').map(part => part.text).join('\n') : item.type === 'agentMessage' ? item.text : '';
@@ -238,18 +238,18 @@ class LiveService extends EventEmitter {
       record = { id, cwd: thread.cwd, createdAt: thread.createdAt * 1000, updatedAt: thread.updatedAt * 1000, messages };
       this.history.write(record);
     }
-    if (!record) throw new Error('대화 기록을 찾을 수 없습니다.');
-    if (!path.isAbsolute(record.cwd) || !fs.statSync(record.cwd).isDirectory()) throw new Error('이 대화의 작업 폴더를 찾을 수 없습니다.');
+    if (!record) throw new Error('O histórico da conversa não foi encontrado.');
+    if (!path.isAbsolute(record.cwd) || !fs.statSync(record.cwd).isDirectory()) throw new Error('A pasta de trabalho desta conversa não foi encontrada.');
     this.thread = id; this.threadWorkspace = record.cwd;
     return { id, cwd: record.cwd, messages: record.messages };
   }
   async setWorkspace(cwd) {
     await this.prepare();
-    if (this.pendingStart) throw new Error('연결이 완료된 뒤 작업 폴더를 변경해 주세요.');
-    if (!path.isAbsolute(cwd) || !fs.statSync(cwd).isDirectory()) throw new Error('작업 폴더를 확인할 수 없습니다.');
+    if (this.pendingStart) throw new Error('Espere a conexão terminar para mudar a pasta de trabalho.');
+    if (!path.isAbsolute(cwd) || !fs.statSync(cwd).isDirectory()) throw new Error('Não foi possível confirmar a pasta de trabalho.');
     if (this.thread) {
       const record = this.history.read(this.thread);
-      if (!record) throw new Error('대화 기록을 찾을 수 없습니다.');
+      if (!record) throw new Error('O histórico da conversa não foi encontrado.');
       record.cwd = cwd;
       this.history.write(record);
       if (this.call?.record?.id === record.id) this.call.record.cwd = cwd;
@@ -258,10 +258,10 @@ class LiveService extends EventEmitter {
   }
   async deleteHistory(id) {
     await this.prepare();
-    if (!validId(id)) throw new Error('대화 ID가 올바르지 않습니다.');
-    if (this.pendingStart) throw new Error('연결이 완료된 뒤 대화를 삭제해 주세요.');
+    if (!validId(id)) throw new Error('O ID da conversa é inválido.');
+    if (this.pendingStart) throw new Error('Espere a conexão terminar para excluir a conversa.');
     const record = this.history.read(id);
-    if (record?.deletedAt) throw new Error('삭제된 대화입니다.');
+    if (record?.deletedAt) throw new Error('Esta conversa foi excluída.');
     const call = this.call;
     if (call?.threadId === id) {
       await this.stop(call.key);
@@ -276,15 +276,15 @@ class LiveService extends EventEmitter {
   }
   async text({ key, text }) {
     const call = this.call;
-    if (!call || call.key !== key || !call.threadId) throw new Error('음성 연결이 종료되었습니다.');
-    if (typeof text !== 'string' || !text.trim() || text.length > 8000) throw new Error('메시지는 1~8,000자까지 입력할 수 있습니다.');
+    if (!call || call.key !== key || !call.threadId) throw new Error('A conexão de voz foi encerrada.');
+    if (typeof text !== 'string' || !text.trim() || text.length > 8000) throw new Error('A mensagem precisa ter de 1 a 8.000 caracteres.');
     await this.rpc.request('thread/realtime/appendText', { threadId: call.threadId, text: text.trim() });
     if (this.call === call) this.saveMessage(call, 'user', text.trim());
   }
   respondApproval({ key, id, approve }) {
     const pending = this.approvals.get(String(id));
-    if (!this.call || this.call.key !== key || !pending || typeof approve !== 'boolean') throw new Error('만료된 권한 요청입니다.');
-    if (approve && Array.isArray(pending.message.params?.availableDecisions) && !pending.message.params.availableDecisions.includes('accept')) throw new Error('이 요청은 여기서 승인할 수 없습니다.');
+    if (!this.call || this.call.key !== key || !pending || typeof approve !== 'boolean') throw new Error('Este pedido de permissão expirou.');
+    if (approve && Array.isArray(pending.message.params?.availableDecisions) && !pending.message.params.availableDecisions.includes('accept')) throw new Error('Este pedido não pode ser aprovado aqui.');
     this.approvals.delete(String(id));
     const { rpc, message } = pending;
     const result = message.method === 'item/permissions/requestApproval'

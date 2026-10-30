@@ -78,9 +78,9 @@ function createClaudeKeychainStore(configDir) {
   return {
     kind: "keychain",
     remove() {
-      if (!configDir) throw new Error("개별 계정의 자격 증명만 삭제할 수 있습니다.");
+      if (!configDir) throw new Error("Só é possível excluir a credencial de uma conta individual.");
       const result = spawnSync("security", ["delete-generic-password", "-s", service], { encoding: "utf8", timeout: 10000 });
-      if (result.status !== 0 && result.status !== 44) throw new Error("Keychain에서 개별 Claude 계정을 삭제하지 못했습니다.");
+      if (result.status !== 0 && result.status !== 44) throw new Error("Não foi possível excluir a conta individual do Claude no Keychain.");
       cached = null;
     },
     read(fresh = false) {
@@ -103,13 +103,13 @@ function createClaudeKeychainStore(configDir) {
       );
       if (result.status !== 0) {
         throw new Error(
-          "Keychain에 Claude 자격 증명을 저장하지 못했습니다."
+          "Não foi possível salvar a credencial do Claude no Keychain."
         );
       }
       // 저장했으니 캐시를 비우고, 결과를 바로 다시 읽어 원문과 다르면 실패로 처리합니다. (회귀 방지)
       cached = null;
       if (JSON.stringify(readFromKeychain()) !== payload) {
-        throw new Error("Keychain에 저장된 Claude 자격 증명이 원문과 일치하지 않습니다.");
+        throw new Error("A credencial do Claude no Keychain não confere com o original.");
       }
     },
   };

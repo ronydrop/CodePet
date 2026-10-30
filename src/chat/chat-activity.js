@@ -19,7 +19,7 @@ class ChatActivity {
     if (!this.runs.has(key)) return;
     if (["delta", "final"].includes(kind)) this.runs.set(key, "running");
     else if (kind === "error") this.runs.set(key, "failed");
-    else if (kind === "status") this.runs.set(key, /생각|확인|검색|읽기/.test(label || "") ? "review" : "running");
+    else if (kind === "status") this.runs.set(key, /생각|확인|검색|읽기|pensand|confer|verific|pesquis|leitur|lendo/i.test(label || "") ? "review" : "running");
     this.publish();
   }
 

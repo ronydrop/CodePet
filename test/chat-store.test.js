@@ -108,13 +108,13 @@ test("메시지 추가가 미리보기/자동 제목/updatedAt을 갱신한다",
   const meta = store.createSession({});
   store.appendEvent(meta.id, {
     kind: "message",
-    message: { id: "m1", ts: 1, authorType: "user", author: "user", text: "안녕하세요 오늘 코드 리뷰 부탁해요" },
+    message: { id: "m1", ts: 1, authorType: "user", author: "user", text: "안녕하세요 오늘 Revisão de código 부탁해요" },
   });
   const session = store.getSession(meta.id);
   assert.equal(session.messages.length, 1);
   assert.ok(session.meta.title.startsWith("안녕하세요"));
   assert.equal(session.meta.autoTitle, false);
-  assert.ok(session.meta.preview.includes("코드 리뷰"));
+  assert.ok(session.meta.preview.includes("Revisão de código"));
   assert.ok(session.meta.updatedAt > meta.updatedAt);
 });
 
@@ -268,7 +268,7 @@ test("running 상태 세션은 재시작 시 interrupted로 표시된다", () =>
   assert.equal(session.meta.status, "interrupted");
   const last = session.messages.at(-1);
   assert.equal(last.authorType, "system");
-  assert.ok(last.text.includes("중단"));
+  assert.ok(last.text.includes("interromp"));
 });
 
 test("세션 메타 patch가 워크스페이스/권한/에이전트 설정을 저장한다", () => {

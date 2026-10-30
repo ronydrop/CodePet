@@ -175,7 +175,7 @@ test("stderr 꼬리는 제한 길이 안에서 마지막 부분과 잘림 표시
   const diagnostics = buildRunDiagnostics({ stderr });
 
   assert.ok(diagnostics.stderrTail.length <= 2048);
-  assert.ok(diagnostics.stderrTail.startsWith("…(잘림)"));
+  assert.ok(diagnostics.stderrTail.startsWith("…(cortado)"));
   assert.ok(diagnostics.stderrTail.endsWith(preservedTail));
 });
 
@@ -185,7 +185,7 @@ test("마지막 오류는 500자를 넘지 않고 잘림 표시를 남긴다", (
   });
 
   assert.ok(diagnostics.lastError.length <= 500);
-  assert.ok(diagnostics.lastError.endsWith("…(잘림)"));
+  assert.ok(diagnostics.lastError.endsWith("…(cortado)"));
 });
 
 test("승인 상태 입력을 Boolean 값으로 강제한다", () => {

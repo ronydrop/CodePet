@@ -136,7 +136,7 @@ test("AGY 한도는 남은 비율을 사용률로 바꾸고 잘못된 bucket은 
     normalizeAgyQuota({
       groups: [
         {
-          displayName: "모델",
+          displayName: "Modelo",
           buckets: [
             { displayName: "주간", remainingFraction: 0.25, resetTime: "soon" },
             { displayName: "누락" },
@@ -146,7 +146,7 @@ test("AGY 한도는 남은 비율을 사용률로 바꾸고 잘못된 bucket은 
         },
       ],
     }),
-    [{ label: "모델 · 주간", usedPercent: 75, resetText: "soon" }]
+    [{ label: "Modelo · 주간", usedPercent: 75, resetText: "soon" }]
   );
 });
 
@@ -157,7 +157,7 @@ test("Claude 한도는 전체 및 모델별 창을 표시하고 범위를 보정
     seven_day_sonnet: { utilization: 25, resets_at: "c" },
     seven_day_opus: { utilization: null },
   });
-  assert.deepEqual(gauges.map((item) => item.label), ["5시간", "7일", "7일 · Sonnet"]);
+  assert.deepEqual(gauges.map((item) => item.label), ["5 horas", "7 dias", "7 dias · Sonnet"]);
   assert.deepEqual(gauges.map((item) => item.usedPercent), [50, 100, 25]);
 });
 
@@ -177,7 +177,7 @@ test("AGY 응답에서 계정, 플랜, 한도만 정규화한다", async (t) => 
     }
     if (String(url).includes("userinfo")) return jsonResponse({ email: "agy@example.com" });
     return jsonResponse({
-      groups: [{ displayName: "모델", buckets: [{ displayName: "5시간", remainingFraction: 0.8 }] }],
+      groups: [{ displayName: "Modelo", buckets: [{ displayName: "5 horas", remainingFraction: 0.8 }] }],
     });
   };
 
@@ -191,7 +191,7 @@ test("AGY 응답에서 계정, 플랜, 한도만 정규화한다", async (t) => 
   assert.equal(tierLabel({ currentTier: { name: "free-tier" } }), "free-tier");
 });
 
-test("Grok billing 로그에서 구독 플랜과 주간 한도를 읽는다", (t) => {
+test("Grok billing 로그에서 구독 플랜과 Limite semanal를 읽는다", (t) => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "codepet-grok-usage-"));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   const logDir = path.join(home, ".grok", "logs");
@@ -216,7 +216,7 @@ test("Grok billing 로그에서 구독 플랜과 주간 한도를 읽는다", (t
   assert.deepEqual(normalizeGrokUsage(entry), {
     provider: "grok",
     plan: "SuperGrok Plus",
-    gauges: [{ label: "주간 한도", usedPercent: 5, resetText: "2026-08-14T00:00:00Z" }],
+    gauges: [{ label: "Limite semanal", usedPercent: 5, resetText: "2026-08-14T00:00:00Z" }],
   });
   assert.deepEqual(readGrokUsage({ home, env: {}, now }), normalizeGrokUsage(entry));
 });
@@ -233,7 +233,7 @@ test("Grok billing 로그가 오래됐으면 현재 한도로 표시하지 않�
   }));
   assert.throws(
     () => readGrokUsage({ home, env: {}, now: Date.parse("2026-08-08T00:00:00Z") }),
-    /오래되어/
+    /está velha/
   );
 });
 

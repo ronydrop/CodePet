@@ -22,7 +22,7 @@ test("Windows 글꼴 조회는 PowerShell 출력을 명시적으로 UTF-8로 고
   assert.match(buildFontRegistryScript(), /PresentationCore.*SystemFontFamilies/s);
 });
 
-test("글꼴 이름은 타입 꼬리표, 세로쓰기 별칭, 중복을 제거한다", () => {
+test("Nome da fonte은 타입 꼬리표, 세로쓰기 별칭, 중복을 제거한다", () => {
   assert.deepEqual(
     normalizeFontNames(["맑은 고딕 (TrueType)", "@맑은 고딕", "맑은 고딕", "Arial (OpenType)"]),
     ["맑은 고딕", "Arial"].sort((a, b) => a.localeCompare(b, "ko"))

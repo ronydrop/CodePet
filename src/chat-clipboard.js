@@ -39,11 +39,11 @@
 
     for (const [index, file] of Array.from(files || []).slice(0, MAX_PASTED_IMAGES).entries()) {
       const mime = String(file?.type || "").toLowerCase();
-      const fallbackName = `붙여넣은-이미지-${timestamp}-${index + 1}.${imageExtension(mime)}`;
+      const fallbackName = `imagem-colada-${timestamp}-${index + 1}.${imageExtension(mime)}`;
       const name = String(file?.name || "").trim() || fallbackName;
       const declaredSize = Number(file?.size);
       if (Number.isFinite(declaredSize) && declaredSize > maxFileBytes) {
-        errors.push({ name, error: `이미지가 너무 큽니다. (최대 ${Math.floor(maxFileBytes / 1024 / 1024)}MiB)` });
+        errors.push({ name, error: `A imagem é grande demais (máximo de ${Math.floor(maxFileBytes / 1024 / 1024)} MiB).` });
         continue;
       }
 
@@ -52,12 +52,12 @@
         const data = await file.arrayBuffer();
         if (!(data instanceof ArrayBuffer)) throw new Error("invalid-array-buffer");
         if (data.byteLength > maxFileBytes) {
-          errors.push({ name, error: `이미지가 너무 큽니다. (최대 ${Math.floor(maxFileBytes / 1024 / 1024)}MiB)` });
+          errors.push({ name, error: `A imagem é grande demais (máximo de ${Math.floor(maxFileBytes / 1024 / 1024)} MiB).` });
           continue;
         }
         images.push({ name, mime, data });
       } catch {
-        errors.push({ name, error: "클립보드 이미지를 읽지 못했습니다." });
+        errors.push({ name, error: "Não foi possível ler a imagem da área de transferência." });
       }
     }
 

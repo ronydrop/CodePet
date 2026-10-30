@@ -49,12 +49,12 @@ function describeRunFailure(result, { autoApprove = false, approvedRetry = false
     const approval = result.approval || {};
     const cause =
       String(approval.detail || approval.summary || "").trim().slice(0, 600) ||
-      "원인이 기록되지 않았습니다";
-    if (approvedRetry) return `승인 후 재시도에도 권한을 획득하지 못했습니다: ${cause}`;
-    if (autoApprove) return `자동 승인으로 실행했지만 권한 요청이 다시 발생했습니다: ${cause}`;
-    return `권한 요청이 처리되지 않았습니다: ${cause}`;
+      "A causa não foi registrada";
+    if (approvedRetry) return `Mesmo depois da aprovação, a permissão não foi obtida: ${cause}`;
+    if (autoApprove) return `A execução foi com aprovação automática, mas a permissão foi pedida de novo: ${cause}`;
+    return `O pedido de permissão não foi tratado: ${cause}`;
   }
-  return "실행이 실패했지만 원인이 기록되지 않았습니다. (내부 오류: run-result-unexplained)";
+  return "A execução falhou e a causa não foi registrada. (erro interno: run-result-unexplained)";
 }
 
 class ChatRoom extends EventEmitter {
@@ -187,12 +187,12 @@ class ChatRoom extends EventEmitter {
     for (const agent of targets) {
       if (!agent.available) {
         this.appendSystem(
-          agent.reason || `@${agentMention(agent)} (${agent.name})는 이 컴퓨터에서 CLI를 찾지 못했습니다.`
+          agent.reason || `A CLI de @${agentMention(agent)} (${agent.name}) não foi encontrada neste computador.`
         );
         continue;
       }
       if (agent.enabled === false) {
-        this.appendSystem(`@${agentMention(agent)} (${agent.name})는 이 세션에서 비활성화되어 있습니다.`);
+        this.appendSystem(`@${agentMention(agent)} (${agent.name}) está desativado nesta sessão.`);
         continue;
       }
       respondents.push(agent);
@@ -235,7 +235,7 @@ class ChatRoom extends EventEmitter {
       this.emit("approval-request", {
         approvalId,
         agentId: agent.id,
-        summary: approval?.summary || "도구 실행 권한이 필요합니다.",
+        summary: approval?.summary || "É preciso permissão para executar a ferramenta.",
         detail: approval?.detail || "",
         retryScope: "turn",
       });
@@ -333,7 +333,7 @@ class ChatRoom extends EventEmitter {
     this.stopAllSilently();
     this.mentionsMuted = true;
     if (interrupted) {
-      this.appendSystem("사용자가 개입해 진행 중인 응답과 대기 턴을 중지했습니다. 다음 차례는 사용자입니다.");
+      this.appendSystem("Você interrompeu a resposta em andamento e os turnos na fila. A próxima vez é sua.");
     }
     this.emitTurnState();
     return { dropped, interrupted };
@@ -523,7 +523,7 @@ class ChatRoom extends EventEmitter {
         result = await run.promise;
       } catch (error) {
         const detail = error?.message || (error == null ? "" : String(error));
-        result = { ok: false, error: detail || "에이전트 실행 중 내부 오류가 발생했습니다." };
+        result = { ok: false, error: detail || "Ocorreu um erro interno durante a execução do agente." };
       } finally {
         if (run) this.cancels.delete(run.cancel);
         if (generation === this.generation) {
@@ -537,7 +537,7 @@ class ChatRoom extends EventEmitter {
       const approved = await this.requestApproval(agent, result.approval);
       if (generation !== this.generation) return;
       if (!approved) {
-        result = { ok: false, error: "권한 요청을 거부했습니다." };
+        result = { ok: false, error: "O pedido de permissão foi recusado." };
         break;
       }
       approvedRetry = true;
@@ -581,7 +581,7 @@ class ChatRoom extends EventEmitter {
     const emoticons = this.meta.workMode ? [] : extracted.emoticons;
     if (context.discussion) {
       if (discussionSignal === "AGREE" && !text) {
-        text = "동의합니다.";
+        text = "Concordo.";
         extracted.parts.unshift({ type: "text", text });
       }
       if (discussionSignal === "PASS" && !text) return { ok: true, discussionSignal };
@@ -647,10 +647,10 @@ class ChatRoom extends EventEmitter {
       pool = pool.filter((agent) => wanted.has(agent.id));
     }
     if (pool.length < 2) {
-      return { ok: false, error: "토론에는 사용 가능한 에이전트가 두 명 이상 필요합니다." };
+      return { ok: false, error: "A discussão precisa de pelo menos dois agentes disponíveis." };
     }
     if (this.discussionRequested || this.discussionActive) {
-      return { ok: false, error: "이미 토론이 진행 중입니다." };
+      return { ok: false, error: "Já existe uma discussão em andamento." };
     }
 
     const requestedGeneration = this.generation;
@@ -662,7 +662,7 @@ class ChatRoom extends EventEmitter {
     this.discussionActive = true;
 
     this.appendSystem(
-      `자율 토론 시작 · ${pool.map((agent) => `@${agentMention(agent)}`).join(", ")}`
+      `Discussão autônoma iniciada · ${pool.map((agent) => `@${agentMention(agent)}`).join(", ")}`
     );
 
     const generation = this.generation;
@@ -690,11 +690,11 @@ class ChatRoom extends EventEmitter {
 
       if (generation === this.generation) {
         if (this.discussionInterrupted) {
-          this.appendSystem("사용자 개입으로 토론을 여기서 마쳤습니다.");
+          this.appendSystem("A discussão terminou aqui porque você interveio.");
         } else if (failed) {
-          this.appendSystem("참가자 실행이 완료되지 않아 토론을 멈췄습니다.");
+          this.appendSystem("A discussão parou porque a execução de um participante não terminou.");
         } else {
-          this.appendSystem("참가자들이 합의하거나 결론에 도달해 토론을 마쳤습니다.");
+          this.appendSystem("Os participantes chegaram a um acordo ou a uma conclusão e a discussão terminou.");
         }
       }
     } finally {
@@ -714,7 +714,7 @@ class ChatRoom extends EventEmitter {
     const hadWork = this.cancels.size > 0 || this.typingCounts.size > 0
       || this.turnQueue.length > 0 || this.deferredTurnQueue.length > 0;
     this.stopAllSilently();
-    if (hadWork) this.appendSystem("응답을 중지했습니다.");
+    if (hadWork) this.appendSystem("A resposta foi interrompida.");
   }
 
   clear() {

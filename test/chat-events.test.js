@@ -32,14 +32,14 @@ test("claude: 도구 사용은 status로 정규화", () => {
     type: "assistant",
     message: { content: [{ type: "tool_use", name: "Read", input: {} }] },
   });
-  assert.deepEqual(parseClaudeLine(line), { kind: "status", label: "도구: Read" });
+  assert.deepEqual(parseClaudeLine(line), { kind: "status", label: "Ferramenta: Read" });
 });
 
 test("claude: result 성공은 final, 실패는 error", () => {
   const success = JSON.stringify({ type: "result", subtype: "success", result: "최종 답변" });
   assert.deepEqual(parseClaudeLine(success), { kind: "final", text: "최종 답변" });
 
-  const failure = JSON.stringify({ type: "result", subtype: "error_max_turns", is_error: true, result: "한도" });
+  const failure = JSON.stringify({ type: "result", subtype: "error_max_turns", is_error: true, result: "Limite" });
   assert.equal(parseClaudeLine(failure).kind, "error");
 });
 
@@ -57,12 +57,12 @@ test("codex: 신형 item.completed agent_message는 final", () => {
   assert.deepEqual(parseCodexLine(line), { kind: "final", text: "코덱스 답변" });
 });
 
-test("codex: 명령 실행 시작은 status", () => {
+test("codex: Executar comando 시작은 status", () => {
   const line = JSON.stringify({
     type: "item.started",
     item: { type: "command_execution", command: "ls -al" },
   });
-  assert.deepEqual(parseCodexLine(line), { kind: "status", label: "실행: ls -al" });
+  assert.deepEqual(parseCodexLine(line), { kind: "status", label: "Execução: ls -al" });
 });
 
 test("codex: 스킬 컨텍스트 예산 경고는 오류로 취급하지 않는다", () => {
@@ -94,7 +94,7 @@ test("codex: 구형 msg 스키마도 처리한다", () => {
   assert.deepEqual(parseCodexLine(finalLine), { kind: "final", text: "구형 답변" });
 
   const execLine = JSON.stringify({ id: "2", msg: { type: "exec_command_begin", command: ["git", "status"] } });
-  assert.deepEqual(parseCodexLine(execLine), { kind: "status", label: "실행: git status" });
+  assert.deepEqual(parseCodexLine(execLine), { kind: "status", label: "Execução: git status" });
 
   const errorLine = JSON.stringify({ id: "3", msg: { type: "error", message: "문제 발생" } });
   assert.equal(parseCodexLine(errorLine).kind, "error");

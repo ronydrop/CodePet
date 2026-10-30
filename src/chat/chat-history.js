@@ -34,7 +34,7 @@ function readMessagePage(file, {
   filter = () => true,
 } = {}) {
   if (before !== null && (!Number.isSafeInteger(before) || before < 0)) {
-    throw new Error("대화 기록 위치가 올바르지 않습니다.");
+    throw new Error("A posição do histórico é inválida.");
   }
   const count = Number.isInteger(limit) ? Math.min(100, Math.max(1, limit)) : HISTORY_PAGE_SIZE;
   let fd;
@@ -46,7 +46,7 @@ function readMessagePage(file, {
   }
   try {
     const size = fs.fstatSync(fd).size;
-    if (before !== null && before > size) throw new Error("대화 기록 위치가 변경되었습니다. 채팅방을 다시 열어 주세요.");
+    if (before !== null && before > size) throw new Error("A posição do histórico mudou. Abra a sala de novo.");
     const messages = [];
     let cursor = null;
     let bytes = 0;

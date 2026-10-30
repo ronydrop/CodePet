@@ -35,7 +35,7 @@ test("Grok의 모델 목록과 전역 도움말로 모델별 추론 지원을 �
   assert.deepEqual(parseGrokCatalog(output, "  --effort <LEVEL> Choose reasoning effort\n")[0].efforts, []);
 });
 
-test("조회 실패와 삭제된 모델, 다른 모델의 추론을 실행 직전에 차단한다", () => {
+test("Falha na consulta와 삭제된 모델, 다른 모델의 추론을 실행 직전에 차단한다", () => {
   const provider = { id: "agy", name: "AGY", status: "cli", catalogStatus: "ready",
     modelOptions: [{ id: "future-high", efforts: [] }, { id: "configurable", efforts: ["low"] }],
     permissions: { chat: { supported: true } } };

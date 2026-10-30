@@ -10,7 +10,7 @@ const { selectCommandPath, commandNeedsShell } = require('../command-resolution'
 async function resolveCodexCommand() {
   const { stdout } = await promisify(execFile)(process.platform === 'win32' ? 'where.exe' : 'which', ['codex'], { windowsHide: true, timeout: 5000 });
   let command = selectCommandPath(stdout);
-  if (!command) throw new Error('Codex CLI를 찾지 못했습니다. 설정에서 Codex 설치 상태를 확인해 주세요.');
+  if (!command) throw new Error('A CLI do Codex não foi encontrada. Confira a instalação nas configurações.');
   if (process.platform === 'win32' && commandNeedsShell(command)) {
     // Resolve the native executable belonging to this npm shim, not another PATH installation.
     const entry = path.join(path.dirname(command), 'node_modules', '@openai', 'codex', 'package.json');
@@ -41,7 +41,7 @@ class CodexLiveRpc extends EventEmitter {
     this.child.stdout.setEncoding('utf8');
     this.child.stdout.on('data', chunk => {
       buffer += chunk;
-      if (Buffer.byteLength(buffer) > 4 * 1024 * 1024) return this.fail(new Error('Codex 응답이 허용 크기를 초과했습니다.'));
+      if (Buffer.byteLength(buffer) > 4 * 1024 * 1024) return this.fail(new Error('A resposta do Codex passou do tamanho permitido.'));
       let end;
       while ((end = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, end); buffer = buffer.slice(end + 1);
@@ -54,7 +54,7 @@ class CodexLiveRpc extends EventEmitter {
           const pending = this.pending.get(message.id);
           this.pending.delete(message.id); clearTimeout(pending.timer);
           if (message.error) {
-            const error = new Error(message.error.message || 'Codex 요청에 실패했습니다.');
+            const error = new Error(message.error.message || 'O pedido ao Codex falhou.');
             error.code = message.error.code; pending.reject(error);
           } else pending.resolve(message.result);
         }
@@ -64,19 +64,19 @@ class CodexLiveRpc extends EventEmitter {
     this.child.stderr.on('data', () => {});
     this.child.stdin.on('error', error => this.fail(error));
     this.child.on('error', error => this.fail(error));
-    this.child.on('close', () => this.fail(new Error('Codex 연결이 종료되었습니다.')));
+    this.child.on('close', () => this.fail(new Error('A conexão com o Codex foi encerrada.')));
   }
   send(message) {
-    if (this.closed) throw new Error('Codex 연결이 종료되었습니다.');
+    if (this.closed) throw new Error('A conexão com o Codex foi encerrada.');
     this.child.stdin.write(JSON.stringify(message) + '\n');
   }
   request(method, params = {}, timeout = this.timeout) {
-    if (this.closed) return Promise.reject(new Error('Codex 연결이 종료되었습니다.'));
+    if (this.closed) return Promise.reject(new Error('A conexão com o Codex foi encerrada.'));
     return new Promise((resolve, reject) => {
       const id = ++this.sequence;
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error(`Codex 응답 시간이 초과되었습니다: ${method}`));
+        reject(new Error(`O Codex não respondeu a tempo: ${method}`));
       }, timeout);
       timer.unref?.();
       this.pending.set(id, { resolve, reject, timer });
@@ -100,7 +100,7 @@ class CodexLiveRpc extends EventEmitter {
     this.emit('closed', error);
     try { killTree(this.child); this.child.stdin.end(); } catch {}
   }
-  close() { this.fail(new Error('Codex 연결을 닫았습니다.')); }
+  close() { this.fail(new Error('A conexão com o Codex foi fechada.')); }
 }
 
 module.exports = { CodexLiveRpc, resolveCodexCommand };

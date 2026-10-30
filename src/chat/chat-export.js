@@ -10,7 +10,7 @@ function escapeInlineMarkdown(value) {
 
 function formatDateTime(value) {
   const date = new Date(Number(value));
-  if (!Number.isFinite(date.getTime())) return "시간 미상";
+  if (!Number.isFinite(date.getTime())) return "Horário desconhecido";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -20,9 +20,9 @@ function formatDateTime(value) {
 }
 
 function messageAuthorLabel(message, agents = {}) {
-  if (message?.authorType === "user") return "사용자";
+  if (message?.authorType === "user") return "Usuário";
   const author = compactLine(message?.author);
-  if (!author) return "에이전트";
+  if (!author) return "Agente";
   const identity = agents[author] || message?.agentMeta || {};
   const name = compactLine(identity.name);
   const mention = compactLine(identity.mention) || author;
@@ -31,9 +31,9 @@ function messageAuthorLabel(message, agents = {}) {
 
 function attachmentLines(attachments) {
   if (!Array.isArray(attachments) || attachments.length === 0) return [];
-  const lines = ["**첨부**"];
+  const lines = ["**Anexos**"];
   for (const attachment of attachments) {
-    const name = compactLine(attachment?.name) || "이름 없는 첨부";
+    const name = compactLine(attachment?.name) || "Anexo sem nome";
     const mime = compactLine(attachment?.mime);
     const size = Number(attachment?.size);
     const details = [mime, Number.isFinite(size) && size >= 0 ? `${size} bytes` : ""]
@@ -49,7 +49,7 @@ function formatReplyBlock(replyTo, agents) {
   const excerpt = compactLine(replyTo.excerpt);
   if (!excerpt) return "";
   return [
-    `> 인용: ${escapeInlineMarkdown(messageAuthorLabel(replyTo, agents))}`,
+    `> Citação: ${escapeInlineMarkdown(messageAuthorLabel(replyTo, agents))}`,
     ">",
     `> ${escapeInlineMarkdown(excerpt)}`,
   ].join("\n");
@@ -60,8 +60,8 @@ function formatMessage(message, agents) {
   const text = String(message?.text || "").trim();
 
   if (message?.authorType === "system") {
-    const oneLine = compactLine(text) || "내용 없음";
-    return `_${escapeInlineMarkdown(`시스템 (${time}): ${oneLine}`)}_`;
+    const oneLine = compactLine(text) || "Sem conteúdo";
+    return `_${escapeInlineMarkdown(`Sistema (${time}): ${oneLine}`)}_`;
   }
 
   const blocks = [
@@ -73,19 +73,19 @@ function formatMessage(message, agents) {
 
   const attachments = attachmentLines(message?.attachments);
   if (attachments.length > 0) blocks.push(attachments.join("\n"));
-  if (!text && attachments.length === 0) blocks.push("_내용 없음._");
+  if (!text && attachments.length === 0) blocks.push("_Sem conteúdo._");
   return blocks.join("\n\n");
 }
 
 function formatSessionMarkdown(meta = {}, messages = []) {
-  const title = compactLine(meta.title) || "채팅 세션";
+  const title = compactLine(meta.title) || "Sessão de chat";
   const sessionDate = formatDateTime(meta.createdAt || meta.updatedAt);
   const sections = [
     `# ${escapeInlineMarkdown(title)}`,
-    `_세션 날짜: ${sessionDate}_`,
+    `_Data da sessão: ${sessionDate}_`,
   ];
   const entries = Array.isArray(messages) ? messages.filter(Boolean) : [];
-  if (entries.length === 0) sections.push("_메시지가 없습니다._");
+  if (entries.length === 0) sections.push("_Não há mensagens._");
   else sections.push(...entries.map((message) => formatMessage(message, meta.agents)));
   return `${sections.join("\n\n")}\n`;
 }
@@ -97,7 +97,7 @@ function safeExportFileName(title) {
     .replace(/-+/gu, "-")
     .slice(0, 100)
     .replace(/[. ]+$/gu, "");
-  if (!base) base = "채팅-세션";
+  if (!base) base = "sessao-de-chat";
   if (WINDOWS_RESERVED_NAME.test(base)) base = `_${base}`;
   return `${base}.md`;
 }

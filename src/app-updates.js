@@ -102,7 +102,7 @@ function registerUpdateIpc({ ipcMain, shell, checker, updater }) {
   });
   ipcMain.handle("settings:download-update", async () => {
     const result = await checker.check();
-    if (result.status !== "available") return { ok: false, error: "지금 다운로드할 새 버전을 확인하지 못했습니다." };
+    if (result.status !== "available") return { ok: false, error: "Não foi possível confirmar uma versão nova para baixar agora." };
     try {
       if (updater?.supported) {
         await updater.install(result);
@@ -112,8 +112,8 @@ function registerUpdateIpc({ ipcMain, shell, checker, updater }) {
       return { ok: true };
     } catch {
       return { ok: false, error: updater?.supported
-        ? "업데이트를 적용하지 못했습니다. 기존 버전은 유지됩니다. 저장 공간과 폴더 쓰기 권한, 네트워크를 확인하고 다시 시도해 주세요."
-        : "다운로드 링크를 열지 못했습니다. 잠시 후 다시 시도해 주세요." };
+        ? "Não foi possível aplicar a atualização. A versão atual foi mantida. Confira espaço em disco, permissão de escrita na pasta e a rede, e tente de novo."
+        : "Não foi possível abrir o link de download. Tente de novo daqui a pouco." };
     }
   });
 }

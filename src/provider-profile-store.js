@@ -100,7 +100,7 @@ class ProviderProfileStore {
 
   setActive(key) {
     if (!PROFILE_KEY.test(String(key || ""))) {
-      throw new Error("올바르지 않은 계정 키입니다.");
+      throw new Error("A chave da conta é inválida.");
     }
     atomicWriteText(this.activePath, `${key}\n`);
   }
@@ -142,7 +142,7 @@ class ProviderProfileStore {
     const normalizedEmail = normalizeEmail(email);
     const secretKey = secretFingerprint(secret);
     const key = profileFingerprint(secret, normalizedEmail);
-    if (!key) throw new Error("로그인 정보를 찾지 못했습니다.");
+    if (!key) throw new Error("Não encontrei o login.");
 
     const activeKey = this.getActiveKey();
     const candidates = this.records().filter((record) =>
@@ -160,7 +160,7 @@ class ProviderProfileStore {
     const normalizedPlan = typeof plan === "string" && plan.trim() ? plan.trim() : existing?.plan;
     const record = {
       key,
-      label: preservedEmail || existing?.label || `계정 ${key.slice(0, 6)}`,
+      label: preservedEmail || existing?.label || `Conta ${key.slice(0, 6)}`,
       email: preservedEmail || null,
       plan: normalizedPlan || null,
       secret,
@@ -205,14 +205,14 @@ class ProviderProfileStore {
 
   delete(key) {
     if (!PROFILE_KEY.test(String(key || ""))) {
-      throw new Error("올바르지 않은 계정 키입니다.");
+      throw new Error("A chave da conta é inválida.");
     }
     if (this.getActiveKey() === key) {
-      throw new Error("현재 사용 중인 계정은 삭제할 수 없습니다.");
+      throw new Error("A conta em uso não pode ser excluída.");
     }
 
     const profile = this.get(key);
-    if (!profile) throw new Error("저장된 계정을 찾지 못했습니다.");
+    if (!profile) throw new Error("Não encontrei a conta salva.");
     fs.rmSync(path.join(this.dir, `${key}.json`), { force: true });
     const chatRoot = path.resolve(this.root, "chat");
     const chatProfile = path.resolve(chatRoot, key);

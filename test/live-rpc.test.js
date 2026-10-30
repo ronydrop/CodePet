@@ -28,8 +28,8 @@ test('RPC timeout removes the request and process exit rejects every pending req
   const { rpc, child } = fixture(t);
   // Keep the test alive while the client unrefs its timeout.
   const keepAlive = setTimeout(() => {}, 1000); t.after(() => clearTimeout(keepAlive));
-  await assert.rejects(rpc.request('slow', {}, 5), /초과/); assert.equal(rpc.pending.size, 0);
-  const pending = rpc.request('pending'); const rejected = assert.rejects(pending, /종료/);
+  await assert.rejects(rpc.request('slow', {}, 5), /não respondeu a tempo/); assert.equal(rpc.pending.size, 0);
+  const pending = rpc.request('pending'); const rejected = assert.rejects(pending, /encerrada/);
   child.emit('close', 1); await rejected; assert.equal(rpc.closed, true);
-  await assert.rejects(rpc.request('after-close'), /종료/);
+  await assert.rejects(rpc.request('after-close'), /encerrada/);
 });

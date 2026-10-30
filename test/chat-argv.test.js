@@ -191,12 +191,12 @@ test("모델 문자열 검증: 셸 특수문자는 거부", () => {
 test("워크스페이스 없이 workspace 모드를 요구하면 실패", () => {
   const result = build("claude", { permissionMode: "workspace-read" });
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("워크스페이스"));
+  assert.ok(result.error.includes("workspace"));
 });
 
 test("agy: cli 상태가 아니면 실행 불가", () => {
   const absent = buildAgentInvocation({
-    provider: { id: "agy", name: "Antigravity", status: "gui-only", reason: "설치 안내" },
+    provider: { id: "agy", name: "Antigravity", status: "gui-only", reason: "Como instalar" },
     chatCwd: CHAT_CWD,
   });
   assert.equal(absent.ok, false);

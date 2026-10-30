@@ -17,7 +17,7 @@ function clientId(credential) {
       return claims.aud;
     }
   } catch { /* A missing client requires a fresh login in Antigravity. */ }
-  throw new Error("AGY 인증 정보를 갱신할 수 없습니다. Antigravity에서 다시 로그인해 주세요.");
+  throw new Error("Não foi possível renovar a autenticação do AGY. Entre de novo no Antigravity.");
 }
 
 function expired(credential) {
@@ -27,19 +27,19 @@ function expired(credential) {
 
 async function refreshAntigravityCredential(credential, { store = defaultStore, fetchImpl = fetch, resolveClient = resolveAntigravityClient } = {}) {
   const refreshToken = credential?.token?.refresh_token;
-  if (!refreshToken) throw new Error("AGY 로그인 정보가 만료됐습니다. Antigravity에서 다시 로그인해 주세요.");
+  if (!refreshToken) throw new Error("O login do AGY expirou. Entre de novo no Antigravity.");
   let pending = refreshes.get(refreshToken);
   if (!pending) {
     pending = (async () => {
       const current = await store.read();
       if (current?.token?.refresh_token !== refreshToken) {
-        throw new Error("AGY 계정이 변경됐습니다. 다시 조회해 주세요.");
+        throw new Error("A conta do AGY mudou. Consulte de novo.");
       }
       // Another request or Antigravity itself may already have refreshed it.
       if (current.token.access_token !== credential.token.access_token && !expired(current)) return current;
       const audience = clientId(current);
       const client = await resolveClient(audience);
-      if (!client?.clientSecret || client.clientId !== audience) throw new Error("AGY 인증 갱신 설정을 찾지 못했습니다. Antigravity를 업데이트하고 다시 로그인해 주세요.");
+      if (!client?.clientSecret || client.clientId !== audience) throw new Error("Não encontrei a configuração para renovar a autenticação do AGY. Atualize o Antigravity e entre de novo.");
       const response = await fetchImpl("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -47,13 +47,13 @@ async function refreshAntigravityCredential(credential, { store = defaultStore, 
         signal: AbortSignal.timeout(8000),
       });
       if (!response.ok) {
-        const error = new Error(`AGY 인증 갱신에 실패했습니다 (HTTP ${response.status}). Antigravity에서 다시 로그인해 주세요.`);
+        const error = new Error(`Não foi possível renovar a autenticação do AGY (HTTP ${response.status}). Entre de novo no Antigravity.`);
         error.status = response.status;
         throw error;
       }
       const data = await response.json();
       if (typeof data.access_token !== "string" || !data.access_token || !(Number(data.expires_in) > 0)) {
-        throw new Error("AGY 인증 갱신 응답이 올바르지 않습니다.");
+        throw new Error("A resposta de renovação do AGY é inválida.");
       }
       const next = {
         ...current,
@@ -68,7 +68,7 @@ async function refreshAntigravityCredential(credential, { store = defaultStore, 
       };
       const latest = await store.read();
       if (latest?.token?.refresh_token !== refreshToken) {
-        throw new Error("AGY 계정이 변경됐습니다. 다시 조회해 주세요.");
+        throw new Error("A conta do AGY mudou. Consulte de novo.");
       }
       if (latest.token.access_token !== current.token.access_token && !expired(latest)) return latest;
       await store.write(next, { expectedRefreshToken: refreshToken });
@@ -85,7 +85,7 @@ async function refreshAntigravityCredential(credential, { store = defaultStore, 
 }
 
 async function withAntigravityCredential(credential, request, options = {}) {
-  if (!credential?.token?.access_token) throw new Error("AGY 로그인 정보가 없습니다.");
+  if (!credential?.token?.access_token) throw new Error("Não há login do AGY.");
   let refreshed = false;
   if (expired(credential) && credential.token.refresh_token) {
     await refreshAntigravityCredential(credential, options);

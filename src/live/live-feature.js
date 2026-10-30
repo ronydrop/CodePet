@@ -53,16 +53,16 @@ function createLiveFeature({ electron, root, defaultWorkspace = os.homedir(), ge
   }
   function registerIpcHandlers() {
     const handle = (channel, fn) => ipcMain.handle(channel, async (event, input) => {
-      if (!authorized(event)) return { ok: false, error: '허용되지 않은 Live 요청입니다.' };
+      if (!authorized(event)) return { ok: false, error: 'Pedido do Live não permitido.' };
       try { return { ok: true, data: await fn(input) }; }
       catch (error) { return { ok: false, error: publicError(error) }; }
     });
     handle('live:catalog', async input => ({ ...await ensureService().prepare(input?.refresh === true), appearance: getAppearance(), workspace }));
     handle('live:workspace:choose', async () => {
-      const result = await dialog.showOpenDialog(window, { title: '작업 폴더 선택', defaultPath: workspace, properties: ['openDirectory'] });
+      const result = await dialog.showOpenDialog(window, { title: 'Escolher pasta de trabalho', defaultPath: workspace, properties: ['openDirectory'] });
       if (result.canceled || !result.filePaths?.[0]) return { canceled: true };
       const selected = fs.realpathSync(result.filePaths[0]);
-      if (!fs.statSync(selected).isDirectory()) throw new Error('선택한 폴더를 확인할 수 없습니다.');
+      if (!fs.statSync(selected).isDirectory()) throw new Error('Não foi possível confirmar a pasta escolhida.');
       await ensureService().setWorkspace(selected);
       workspace = selected;
       return { workspace };
@@ -71,9 +71,9 @@ function createLiveFeature({ electron, root, defaultWorkspace = os.homedir(), ge
     handle('live:history:list', () => ensureService().listHistory());
     handle('live:history:delete', async input => {
       const target = (await ensureService().listHistory()).find(item => item.id === input?.id);
-      if (!target) throw new Error('대화 기록을 찾을 수 없습니다.');
-      const answer = await dialog.showMessageBox(window, { type: 'warning', title: '대화 삭제',
-        message: '이 대화를 삭제할까요?', detail: target.title, buttons: ['취소', '삭제'], defaultId: 0, cancelId: 0, noLink: true });
+      if (!target) throw new Error('O histórico da conversa não foi encontrado.');
+      const answer = await dialog.showMessageBox(window, { type: 'warning', title: 'Excluir conversa',
+        message: 'Excluir esta conversa?', detail: target.title, buttons: ['Cancelar', 'Excluir'], defaultId: 0, cancelId: 0, noLink: true });
       if (answer.response !== 1) return { canceled: true };
       const result = await ensureService().deleteHistory(target.id);
       if (result.active) workspace = rootWorkspace;

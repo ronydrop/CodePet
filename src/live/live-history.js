@@ -5,7 +5,7 @@ const { atomicWriteText } = require('../provider-profile-store');
 const validId = id => typeof id === 'string' && /^[a-f0-9-]{36}$/i.test(id);
 class LiveHistory {
   constructor(home) { this.dir = path.join(home, 'live-history'); }
-  file(id) { if (!validId(id)) throw new Error('대화 ID가 올바르지 않습니다.'); return path.join(this.dir, `${id}.json`); }
+  file(id) { if (!validId(id)) throw new Error('O ID da conversa é inválido.'); return path.join(this.dir, `${id}.json`); }
   read(id) {
     try { return JSON.parse(fs.readFileSync(this.file(id), 'utf8')); }
     catch (error) { if (error.code === 'ENOENT') return null; throw error; }

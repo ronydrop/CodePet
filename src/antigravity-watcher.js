@@ -22,11 +22,11 @@ function extractCwd(value) {
 
 function toolLabel(type, content) {
   const value = text(content);
-  if (type === "VIEW_FILE") return value || "파일 확인";
-  if (type === "GREP_SEARCH") return value || "코드 검색";
-  if (type === "LIST_DIRECTORY") return value || "폴더 확인";
-  if (type === "CODE_ACTION") return value || "파일 수정";
-  return value || "명령 실행";
+  if (type === "VIEW_FILE") return value || "Conferir arquivo";
+  if (type === "GREP_SEARCH") return value || "Pesquisar no código";
+  if (type === "LIST_DIRECTORY") return value || "Conferir pasta";
+  if (type === "CODE_ACTION") return value || "Modificar arquivo";
+  return value || "Executar comando";
 }
 
 function parseAntigravityRow(row, file) {

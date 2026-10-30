@@ -85,7 +85,7 @@ test("failed account discovery never falls back to the global model list; delete
   assert.equal(record.catalogStatus, "unavailable");
   assert.deepEqual(record.models, []);
   profiles.splice(0, 1);
-  assert.throws(() => service.prepare("a"), /저장된 Codex 계정/);
+  assert.throws(() => service.prepare("a"), /conta do Codex salva/);
   assert.equal(service.record("a", base).catalogStatus, "unavailable");
 });
 

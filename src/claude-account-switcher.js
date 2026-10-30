@@ -43,7 +43,7 @@ class ClaudeAccountSwitcher {
   snapshotCurrent(meta = {}) {
     const live = this.current();
     if (!ClaudeAccountSwitcher.hasClaudeToken(live)) {
-      throw new Error("Claude 로그인 정보를 찾지 못했습니다.");
+      throw new Error("Não encontrei o login do Claude.");
     }
     const localMeta = readClaudeAccountMetadata(this.home);
     const credentialMeta = normalizeClaudeAccountMetadata(live.claudeAiOauth);
@@ -57,8 +57,8 @@ class ClaudeAccountSwitcher {
 
   deleteProfile(key) {
     const profile = this.listProfiles().find((item) => item.key === key);
-    if (!profile) throw new Error("저장된 Claude 계정을 찾지 못했습니다.");
-    if (profile.active) throw new Error("현재 사용 중인 계정은 삭제할 수 없습니다.");
+    if (!profile) throw new Error("Não encontrei a conta salva do Claude.");
+    if (profile.active) throw new Error("A conta em uso não pode ser excluída.");
     const configDir = path.join(this.store.root, "chat", profile.key);
     if (fs.existsSync(configDir)) createClaudeLiveStore({ home: this.home, configDir }).remove();
     return this.store.delete(key);
@@ -78,11 +78,11 @@ class ClaudeAccountSwitcher {
   async switchToProfile(key) {
     const profile = this.store.get(key);
     if (!ClaudeAccountSwitcher.hasClaudeToken(profile?.secret)) {
-      throw new Error("저장된 Claude 계정을 찾지 못했습니다.");
+      throw new Error("Não encontrei a conta salva do Claude.");
     }
     if (!ClaudeAccountSwitcher.isProfileUsable(profile.secret)) {
       throw new Error(
-        "이 계정의 저장된 로그인 정보가 만료됐습니다. 해당 계정으로 다시 로그인한 뒤 전환해 주세요."
+        "O login salvo desta conta expirou. Entre de novo nessa conta e então troque."
       );
     }
     const liveNow = this.current();

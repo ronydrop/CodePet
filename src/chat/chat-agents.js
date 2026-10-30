@@ -38,8 +38,8 @@ function roomAgentFromCapability(record, config = {}, permissionMode = "chat") {
     reason: modeSupported
       ? record.reason || invalidSelection
       : permissionMode === "chat"
-        ? "채팅 실행 통합이 아직 준비되지 않았습니다."
-        : permission?.reason || `${record.name}는 이 권한 모드를 지원하지 않습니다.`,
+        ? "A integração de execução do chat ainda não está pronta."
+        : permission?.reason || `${record.name} não aceita este modo de permissão.`,
     version: record.version || "",
     model,
     effort,

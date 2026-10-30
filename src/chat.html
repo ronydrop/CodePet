@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CodePet 채팅</title>
+    <title>Chat do CodePet</title>
     <link rel="stylesheet" href="./chat.css" />
     <link rel="stylesheet" href="./app-theme.css" />
   </head>
@@ -11,22 +11,22 @@
     <div class="titlebar">
       <div class="titlebar-drag">
         <span class="titlebar-logo"><i></i><i></i></span>
-        <span class="titlebar-title">CodePet 채팅</span>
+        <span class="titlebar-title">Chat do CodePet</span>
       </div>
       <div class="titlebar-controls">
-        <button class="titlebar-btn btn-settings" id="btn-settings" type="button" aria-label="설정 열기" title="설정">
+        <button class="titlebar-btn btn-settings" id="btn-settings" type="button" aria-label="Abrir configurações" title="Configurações">
           <svg viewBox="0 0 10 10" aria-hidden="true">
             <path d="M 1,2.5 L 9,2.5 M 1,5 L 9,5 M 1,7.5 L 9,7.5 M 3,1.2 L 3,3.8 M 7,3.7 L 7,6.3 M 4.5,6.2 L 4.5,8.8" />
           </svg>
         </button>
-        <button class="titlebar-btn btn-minimize" id="btn-minimize" type="button" aria-label="최소화">
+        <button class="titlebar-btn btn-minimize" id="btn-minimize" type="button" aria-label="Minimizar">
           <svg viewBox="0 0 10 10"><path d="M 1,5 L 9,5" /></svg>
         </button>
-        <button class="titlebar-btn btn-maximize" id="btn-maximize" type="button" aria-label="최대화">
+        <button class="titlebar-btn btn-maximize" id="btn-maximize" type="button" aria-label="Maximizar">
           <svg class="icon-maximize" viewBox="0 0 10 10"><path d="M 2,2 L 8,2 L 8,8 L 2,8 Z" /></svg>
           <svg class="icon-restore" viewBox="0 0 10 10" style="display: none;"><path d="M 2,4 L 6,4 L 6,8 L 2,8 Z M 4,4 L 4,2 L 8,2 L 8,6 L 6,6" /></svg>
         </button>
-        <button class="titlebar-btn btn-close" id="btn-close" type="button" aria-label="닫기">
+        <button class="titlebar-btn btn-close" id="btn-close" type="button" aria-label="Fechar">
           <svg viewBox="0 0 10 10"><path d="M 2,2 L 8,8 M 8,2 L 2,8" /></svg>
         </button>
       </div>
@@ -35,30 +35,30 @@
     <div class="app">
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-head">
-          <span class="sidebar-title">세션</span>
-          <button class="button button-small" id="btn-new-session" type="button">+ 새 채팅</button>
+          <span class="sidebar-title">Sessão</span>
+          <button class="button button-small" id="btn-new-session" type="button">+ Novo chat</button>
         </div>
         <div class="session-search">
           <input
             id="session-search-input"
             type="search"
-            aria-label="세션 메시지 검색"
-            placeholder="세션 메시지 검색"
+            aria-label="Pesquisar nas mensagens"
+            placeholder="Pesquisar nas mensagens"
             autocomplete="off"
             spellcheck="false"
           />
         </div>
-        <ul class="session-list" id="session-list" aria-label="세션 목록"></ul>
+        <ul class="session-list" id="session-list" aria-label="Lista de sessões"></ul>
         <div class="sidebar-foot">
-          <button class="text-button" id="btn-doctor" type="button">환경 진단</button>
-          <button class="text-button" id="btn-refresh-providers" type="button" title="설치된 CLI를 다시 탐지합니다">CLI 다시 탐지</button>
+          <button class="text-button" id="btn-doctor" type="button">Diagnóstico</button>
+          <button class="text-button" id="btn-refresh-providers" type="button" title="Detecta de novo as CLIs instaladas">Detectar CLIs de novo</button>
         </div>
       </aside>
       <div
         class="sidebar-resizer"
         id="sidebar-resizer"
         role="separator"
-        aria-label="세션 사이드바 너비 조절"
+        aria-label="Ajustar a largura da barra de sessões"
         aria-orientation="vertical"
         tabindex="0"
       >
@@ -66,42 +66,42 @@
           class="sidebar-toggle"
           id="sidebar-toggle"
           type="button"
-          aria-label="세션 사이드바 접기"
+          aria-label="Recolher a barra de sessões"
           aria-expanded="true"
-          title="사이드바 접기"
+          title="Recolher a barra lateral"
         >‹</button>
       </div>
 
       <div class="chat-main">
         <header class="room-bar">
           <div class="room-info">
-            <strong id="session-title" title="더블클릭하면 이름을 바꿀 수 있어요">세션</strong>
+            <strong id="session-title" title="Clique duas vezes para renomear">Sessão</strong>
             <div class="room-controls">
-              <button class="chip-button" id="btn-workspace" type="button" title="세션 워크스페이스 폴더">
-                <span class="chip-icon">📁</span><span id="workspace-label">워크스페이스 없음</span>
+              <button class="chip-button" id="btn-workspace" type="button" title="Pasta do workspace da sessão">
+                <span class="chip-icon">📁</span><span id="workspace-label">Sem workspace</span>
               </button>
-              <select id="permission-select" aria-label="권한 모드">
-                <option value="chat">대화만 (도구 없음)</option>
-                <option value="workspace-read">워크스페이스 읽기</option>
-                <option value="workspace-write">워크스페이스 쓰기</option>
+              <select id="permission-select" aria-label="Modo de permissão">
+                <option value="chat">Só conversa (sem ferramentas)</option>
+                <option value="workspace-read">Leitura do workspace</option>
+                <option value="workspace-write">Escrita do workspace</option>
               </select>
               <span class="enforcement-hint" id="enforcement-hint"></span>
-              <button class="chip-button" id="btn-discussion" type="button" title="에이전트 토론 시작">💬 토론</button>
-              <button class="chip-button" id="btn-export-session" type="button" title="현재 세션을 마크다운 파일로 내보내기">
-                <span class="chip-icon" aria-hidden="true">⇩</span><span>내보내기</span>
+              <button class="chip-button" id="btn-discussion" type="button" title="Começar a discussão dos agentes">💬 Discussão</button>
+              <button class="chip-button" id="btn-export-session" type="button" title="Exportar a sessão atual para um arquivo Markdown">
+                <span class="chip-icon" aria-hidden="true">⇩</span><span>Exportar</span>
               </button>
             </div>
           </div>
           <div class="room-actions">
-            <div class="agent-chips" id="agent-chips" aria-label="참가자"></div>
-            <button class="chip-button" id="btn-add-account" type="button">계정 추가</button>
+            <div class="agent-chips" id="agent-chips" aria-label="Participantes"></div>
+            <button class="chip-button" id="btn-add-account" type="button">Adicionar conta</button>
           </div>
         </header>
 
         <div class="store-warning" id="store-warning" hidden></div>
 
         <main class="chat-scroll" id="chat-scroll">
-          <button type="button" class="history-load" id="history-load" hidden>이전 대화 불러오기</button>
+          <button type="button" class="history-load" id="history-load" hidden>Carregar conversa anterior</button>
           <ol class="message-list" id="message-list" aria-live="polite"></ol>
           <div class="typing-row" id="typing-row" hidden></div>
         </main>
@@ -109,33 +109,33 @@
         <footer class="composer">
           <div class="mention-popup" id="mention-popup" role="listbox" hidden></div>
           <div class="attachment-row" id="attachment-row" hidden></div>
-          <section class="turn-queue-bar" id="turn-queue-bar" aria-label="발언 큐" hidden>
+          <section class="turn-queue-bar" id="turn-queue-bar" aria-label="Fila de falas" hidden>
             <div class="turn-queue-status" aria-live="polite">
               <span class="turn-current" id="turn-current" hidden></span>
-              <span class="turn-next-label" id="turn-next-label" hidden>다음</span>
-              <div class="turn-queue-list" id="turn-queue-list" role="list" aria-label="대기 중인 발언"></div>
+              <span class="turn-next-label" id="turn-next-label" hidden>Próxima</span>
+              <div class="turn-queue-list" id="turn-queue-list" role="list" aria-label="Falas em espera"></div>
             </div>
             <div class="turn-queue-actions">
-              <button class="turn-action turn-action-danger" id="btn-interject" type="button" hidden>응답 중단</button>
-              <button class="turn-action" id="btn-clear-turns" type="button" hidden>모두 비우기</button>
+              <button class="turn-action turn-action-danger" id="btn-interject" type="button" hidden>Interromper resposta</button>
+              <button class="turn-action" id="btn-clear-turns" type="button" hidden>Limpar tudo</button>
             </div>
           </section>
-          <section class="reply-preview" id="reply-preview" aria-label="인용 답장" hidden>
+          <section class="reply-preview" id="reply-preview" aria-label="Resposta citada" hidden>
             <div class="reply-preview-copy">
               <strong id="reply-preview-author"></strong>
               <span id="reply-preview-excerpt"></span>
             </div>
-            <button class="reply-preview-clear" id="btn-clear-reply" type="button" aria-label="인용 해제" title="인용 해제">×</button>
+            <button class="reply-preview-clear" id="btn-clear-reply" type="button" aria-label="Tirar a citação" title="Tirar a citação">×</button>
           </section>
           <div class="composer-box" id="composer-box">
-            <button class="icon-button" id="btn-attach" type="button" title="파일 첨부 (이미지·문서, 최대 20MiB)">＋</button>
+            <button class="icon-button" id="btn-attach" type="button" title="Anexar arquivo (imagem ou documento, até 20 MiB)">＋</button>
             <textarea
               id="composer-input"
               rows="1"
-              placeholder="참여 중인 에이전트에게 메시지…  (@로 대상 지정 · Enter 전송)"
+              placeholder="Mensagem para os agentes da sessão… (@ escolhe o destinatário · Enter envia)"
               autocomplete="off"
             ></textarea>
-            <button class="button button-primary" id="btn-send" type="button">전송</button>
+            <button class="button button-primary" id="btn-send" type="button">Enviar</button>
           </div>
         </footer>
       </div>
@@ -148,27 +148,27 @@
         <div class="doctor-head">
           <div>
             <p class="doctor-eyebrow">CODEPET DOCTOR</p>
-            <h2 id="doctor-title">에이전트 환경 진단</h2>
-            <p id="doctor-summary">설치와 로그인 상태를 확인하고 있어요.</p>
+            <h2 id="doctor-title">Diagnóstico dos agentes</h2>
+            <p id="doctor-summary">Conferindo instalação e login.</p>
           </div>
-          <button class="icon-button doctor-close" id="doctor-close" type="button" aria-label="환경 진단 닫기">×</button>
+          <button class="icon-button doctor-close" id="doctor-close" type="button" aria-label="Fechar o diagnóstico">×</button>
         </div>
         <div class="doctor-list" id="doctor-list" aria-live="polite"></div>
         <div class="doctor-actions">
-          <button class="button" id="doctor-refresh" type="button">다시 진단</button>
-          <button class="button button-primary" id="doctor-done" type="button">확인</button>
+          <button class="button" id="doctor-refresh" type="button">Diagnosticar de novo</button>
+          <button class="button button-primary" id="doctor-done" type="button">OK</button>
         </div>
       </section>
     </div>
     <div class="approval-backdrop" id="approval-backdrop" hidden>
       <section class="approval-dialog" role="dialog" aria-modal="true" aria-labelledby="approval-title">
-        <h2 id="approval-title">도구 실행 권한 요청</h2>
+        <h2 id="approval-title">Pedido de permissão da ferramenta</h2>
         <p id="approval-summary"></p>
         <pre id="approval-detail"></pre>
-        <p class="approval-warning">현재 CLI headless 실행에서는 개별 명령만 승인할 수 없어, 승인하면 이 턴 전체를 자동 승인 모드로 다시 실행합니다.</p>
+        <p class="approval-warning">Nesta execução headless da CLI não dá para aprovar um comando isolado. Se você aprovar, este turno inteiro é executado de novo em modo de aprovação automática.</p>
         <div class="approval-actions">
-          <button class="button" id="approval-deny" type="button">거부</button>
-          <button class="button button-primary" id="approval-approve" type="button">이 턴 승인 후 다시 실행</button>
+          <button class="button" id="approval-deny" type="button">Recusar</button>
+          <button class="button button-primary" id="approval-approve" type="button">Aprovar este turno e executar de novo</button>
         </div>
       </section>
     </div>

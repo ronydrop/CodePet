@@ -73,7 +73,7 @@ test("saved account participants keep their models, mentions, traces and CLI ide
   assert.ok(calls[0].outputFile);
   assert.ok(calls[0].argv.includes("model-a"));
   assert.equal(calls[0].argv[calls[0].argv.indexOf("--sandbox") + 1], "read-only");
-  assert.match(calls[0].prompt, /참가자 "@리뷰"\(검토 담당\)/);
+  assert.match(calls[0].prompt, /@리뷰\(검토 담당\)/);
   await invoke("chat:send", { sessionId, text: "@모두 확인해" });
   const state = await completed(3);
   assert.deepEqual(calls.slice(1).map((call) => call.env.CODEX_HOME).sort(), [privateHome("a"), privateHome("b")].sort());

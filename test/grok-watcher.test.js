@@ -137,7 +137,7 @@ test("Grok watcher는 updates.jsonl만 찾고 GROK_HOME을 존중한다", (t) =>
 test("main process는 Grok watcher를 등록하고 모든 수명주기에서 정리한다", () => {
   const source = fs.readFileSync(path.join(__dirname, "..", "src", "main.js"), "utf8");
   assert.match(source, /new GrokWatcher\(\)/);
-  assert.match(source, /registerExternalWatcher\(grokWatcher, "Grok"\)/);
+  assert.match(source, /registerExternalWatcher\(grokWatcher, "Grok", "grok"\)/);
   assert.match(source, /grokWatcher\.start\(\)/);
   assert.ok((source.match(/grokWatcher\.stop\(\)/g) || []).length >= 2);
   assert.match(source, /isAnyProviderWorking[\s\S]*grokWatcher\.working/);

@@ -40,13 +40,13 @@ for (const petVisible of [true, false]) {
       const petItems = calls.petMenus[0].items;
       assert.deepEqual(petItems.map((item) => item.label || item.type), calls.trayMenu.items.map((item) => item.label || item.type));
       for (const items of [petItems, calls.trayMenu.items]) {
-        items.find((item) => item.label === "남은 한도 보기…").click();
-        const toggle = items.find((item) => item.label === "작업표시줄에 표시");
+        items.find((item) => item.label === "Ver limite restante…").click();
+        const toggle = items.find((item) => item.label === "Mostrar na barra de tarefas");
         assert.equal(toggle.checked, taskbarVisible !== false);
         toggle.click();
-        assert.ok(items.some((item) => item.label === "모션 실행"));
-        items.find((item) => item.label === "Live 음성 대화…").click();
-        assert.ok(items.some((item) => item.label === "로그인 시 자동 실행"));
+        assert.ok(items.some((item) => item.label === "Executar movimento"));
+        items.find((item) => item.label === "Conversa de voz Live…").click();
+        assert.ok(items.some((item) => item.label === "Abrir ao entrar no Windows"));
         assert.ok(!items.some((item) => item.label === "마우스 따라가기"));
       }
       assert.equal(calls.popup, 2);

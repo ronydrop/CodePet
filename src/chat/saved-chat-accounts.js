@@ -91,7 +91,7 @@ class SavedChatAccounts {
 
   prepare(key) {
     const profile = this.switcher.store.get(key);
-    if (!profile) throw new Error(`저장된 ${this.label} 계정이 없습니다. 설정에서 다시 로그인해 주세요.`);
+    if (!profile) throw new Error(`Não há conta salva de ${this.label}. Entre de novo nas configurações.`);
     const dir = path.join(this.switcher.store.root, "chat", profile.key);
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     let credentials = this.credentials.get(key);
@@ -101,7 +101,7 @@ class SavedChatAccounts {
     const seed = readJson(seedFile);
     // Preserve CLI token rotation across processes and application restarts.
     if (seed?.sourceHash !== sourceHash || !this.valid(credentials.read())) {
-      if (!this.valid(profile.secret)) throw new Error(`${this.label} 로그인 정보가 만료됐습니다. 설정에서 다시 로그인해 주세요.`);
+      if (!this.valid(profile.secret)) throw new Error(`O login de ${this.label} expirou. Entre de novo nas configurações.`);
       credentials.write(profile.secret);
       atomicWrite(seedFile, { sourceHash });
       const runtime = this.runtimes.get(key);
@@ -143,7 +143,7 @@ class SavedChatAccounts {
     const pending = (async () => {
       let models = [], reason = "";
       try {
-        if (!base?.commandPath || base.status !== "cli") throw new Error(`${this.label} CLI를 먼저 설치해 주세요.`);
+        if (!base?.commandPath || base.status !== "cli") throw new Error(`Instale a CLI de ${this.label} antes.`);
         const account = this.prepare(key);
         try { models = normalizeCatalog(await this.probe(base.commandPath, base.needsShell, 15000, { env: account.env })); }
         finally { await account.finish(); }
@@ -159,8 +159,8 @@ class SavedChatAccounts {
   }
 
   record(key, base) {
-    if (this.switcher.store.get(key)) return this.cache.get(key)?.record || { ...base, models: [], modelOptions: [], catalogStatus: "unavailable", reason: "이 계정의 모델 목록을 다시 확인해 주세요." };
-    return { ...base, models: [], modelOptions: [], catalogStatus: "unavailable", reason: "저장된 계정이 삭제되었습니다. 참가자를 다시 추가해 주세요." };
+    if (this.switcher.store.get(key)) return this.cache.get(key)?.record || { ...base, models: [], modelOptions: [], catalogStatus: "unavailable", reason: "Confira de novo a lista de modelos desta conta." };
+    return { ...base, models: [], modelOptions: [], catalogStatus: "unavailable", reason: "A conta salva foi excluída. Adicione o participante de novo." };
   }
 }
 

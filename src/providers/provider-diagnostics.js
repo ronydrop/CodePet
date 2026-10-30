@@ -70,7 +70,7 @@ function toDiagnostic(record) {
     diagnostic.loggedIn = true;
     if (record.catalogStatus !== "ready") {
       diagnostic.errorCode = ERROR_CODES.MODEL_CATALOG_UNAVAILABLE;
-      diagnostic.message = record.catalogReason || "CLI에서 모델 목록을 확인하지 못했습니다.";
+      diagnostic.message = record.catalogReason || "A CLI não informou a lista de modelos.";
     }
   } else if (record.authStatus === "unauthenticated") {
     diagnostic.loggedIn = false;

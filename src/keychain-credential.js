@@ -8,7 +8,7 @@ const KEYCHAIN_ACCOUNT = "codepet";
 // 비밀 값이 프로세스 인수(ps 출력)에 노출되지 않도록 `security -i`의 stdin으로 명령을 전달합니다.
 function runSecurity(stdinCommand, { timeoutMs = 10000 } = {}) {
   if (process.platform !== "darwin") {
-    return Promise.reject(new Error("Keychain 자격 증명은 macOS에서만 사용할 수 있습니다."));
+    return Promise.reject(new Error("Credenciais do Keychain só podem ser usadas no macOS."));
   }
   return new Promise((resolve, reject) => {
     const child = spawn("security", ["-i"], { stdio: ["pipe", "pipe", "pipe"] });
@@ -24,7 +24,7 @@ function runSecurity(stdinCommand, { timeoutMs = 10000 } = {}) {
     };
     const timer = setTimeout(() => {
       child.kill();
-      finish(new Error("Keychain 작업 시간이 초과됐습니다."));
+      finish(new Error("A operação do Keychain expirou."));
     }, timeoutMs);
     child.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
@@ -32,10 +32,10 @@ function runSecurity(stdinCommand, { timeoutMs = 10000 } = {}) {
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
     });
-    child.once("error", () => finish(new Error("Keychain 작업을 시작하지 못했습니다.")));
+    child.once("error", () => finish(new Error("Não foi possível iniciar a operação do Keychain.")));
     child.once("close", (code) => {
       finish(
-        code === 0 ? null : new Error(stderr.trim() || "Keychain 작업에 실패했습니다."),
+        code === 0 ? null : new Error(stderr.trim() || "A operação do Keychain falhou."),
         stdout.trim()
       );
     });
@@ -51,7 +51,7 @@ async function readCredential(target) {
   const encoded = await runSecurity(
     `find-generic-password -a ${quoteSecurityArgument(KEYCHAIN_ACCOUNT)} -s ${quoteSecurityArgument(target)} -w`
   );
-  if (!encoded) throw new Error("저장된 자격 증명이 없습니다.");
+  if (!encoded) throw new Error("Não há credencial salva.");
   return Buffer.from(encoded, "base64").toString("utf8");
 }
 

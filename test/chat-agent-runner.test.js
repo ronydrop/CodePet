@@ -81,7 +81,7 @@ test("outputFile이 있으면 stdout보다 우선한다", async () => {
 test("parseLine이 delta/status/final 이벤트를 발생시키고 final을 답변으로 쓴다", async () => {
   const events = [];
   const script = [
-    "console.log(JSON.stringify({kind:'status',label:'생각 중'}))",
+    "console.log(JSON.stringify({kind:'status',label:'Pensando'}))",
     "console.log(JSON.stringify({kind:'delta',text:'부분'}))",
     "console.log(JSON.stringify({kind:'final',text:'파서 최종'}))",
   ].join(";");
@@ -137,7 +137,7 @@ test("출력 상한을 넘으면 프로세스를 종료하고 오류를 반환�
   });
   const result = await run.promise;
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("출력이 너무 길어"));
+  assert.ok(result.error.includes("longa demais"));
 });
 
 test("누적 JSON 로그가 2MiB를 넘어도 최종 답변을 보존하고 실행을 완료한다", async () => {
@@ -154,7 +154,7 @@ test("누적 JSON 로그가 2MiB를 넘어도 최종 답변을 보존하고 실�
 test("일반 출력은 오래된 미리보기만 생략하며 종료하지 않는다", async () => {
   const result = await runNode("process.stdout.write('x'.repeat(3*1024*1024)+'최종 끝')").promise;
   assert.equal(result.ok, true);
-  assert.ok(result.text.startsWith("[앞부분 출력 생략]"));
+  assert.ok(result.text.startsWith("[início da saída omitido]"));
   assert.ok(result.text.endsWith("최종 끝"));
   assert.ok(result.text.length <= 2 * 1024 * 1024);
 });
@@ -165,7 +165,7 @@ test("개행 없는 비정상 단일 이벤트는 메모리를 무한히 늘리�
     maxLineBytes: 4096,
   }).promise;
   assert.equal(result.ok, false);
-  assert.match(result.error, /단일 실행 이벤트/);
+  assert.match(result.error, /evento de execução ficou grande/);
 });
 
 test("큰 stderr에서도 마지막 실제 실패 원인을 보존한다", async () => {
@@ -199,7 +199,7 @@ test("명시적으로 제한을 요청한 테스트 실행에서만 타임아웃
   const run = runNode("setTimeout(()=>{}, 60000)", { timeoutMs: 300 });
   const result = await run.promise;
   assert.equal(result.ok, false);
-  assert.ok(result.error.includes("시간 초과"));
+  assert.ok(result.error.includes("Tempo esgotado"));
 });
 
 test("실패 종료 시 stderr 마지막 줄이 오류가 된다", async () => {
@@ -234,7 +234,7 @@ test("긴 argv 프롬프트는 지침 앞부분과 최신 대화를 남기며 Wi
   assert.equal(compacted.length, MAX_ARGV_PROMPT_CHARS);
   assert.ok(compacted.startsWith("RULES:"));
   assert.ok(compacted.endsWith("z".repeat(100)));
-  assert.ok(compacted.includes("이전 대화 일부 생략"));
+  assert.ok(compacted.includes("conversa anterior omitida"));
 });
 
 test("성공한 실행은 stderr에 권한 문구가 있어도 성공으로 남는다", async () => {
@@ -269,7 +269,7 @@ test("cancel과 timeout은 외부 컨테이너 정리 훅을 한 번만 호출�
   assert.equal(timeoutCalls, 1);
 });
 
-test("일반 permission denied 실패는 승인 요청이 아닌 실행 오류로 남는다", async () => {
+test("일반 permission denied 실패는 Pedir aprovação이 아닌 Erro de execução로 남는다", async () => {
   const script =
     "process.stderr.write('EACCES: permission denied, open /ws/file.txt');process.exit(1)";
   const result = await runNode(script).promise;
@@ -279,24 +279,24 @@ test("일반 permission denied 실패는 승인 요청이 아닌 실행 오류�
   assert.equal(result.diagnostics.exitCode, 1);
 });
 
-test("실패한 실행의 명시적 승인 요청 문구는 원문과 함께 승인 요청으로 승격된다", async () => {
+test("실패한 실행의 명시적 Pedir aprovação 문구는 원문과 함께 Pedir aprovação으로 승격된다", async () => {
   const script = "process.stderr.write('approval required: run_command');process.exit(1)";
   const result = await runNode(script, { provider: "codex", runId: "r-1" }).promise;
   assert.equal(result.ok, false);
   assert.equal(result.approvalRequired, true);
-  assert.match(result.approval.detail, /종료 코드 1/);
+  assert.match(result.approval.detail, /código de saída 1/);
   assert.match(result.approval.detail, /approval required/);
   assert.equal(result.diagnostics.provider, "codex");
   assert.equal(result.diagnostics.runId, "r-1");
 });
 
-test("샌드박스 차단 실패는 샌드박스 안내와 함께 승인 요청이 된다", async () => {
+test("샌드박스 차단 실패는 샌드박스 안내와 함께 Pedir aprovação이 된다", async () => {
   const script =
     "process.stderr.write('exec error: windows sandbox: CreateProcessWithLogonW failed: 2');process.exit(1)";
   const result = await runNode(script).promise;
   assert.equal(result.ok, false);
   assert.equal(result.approvalRequired, true);
-  assert.match(result.approval.summary, /샌드박스/);
+  assert.match(result.approval.summary, /sandbox/i);
 });
 
 test("실패 진단은 민감정보를 제거하고 provider와 종료 코드를 보존한다", async () => {
@@ -317,7 +317,7 @@ test("AGY headless auto-denial requests approval even when the CLI exits zero", 
   const result = await runNode(`process.stderr.write(${JSON.stringify(error)})`, { provider: "agy", parseLine: () => null }).promise;
   assert.equal(result.ok, false);
   assert.equal(result.approvalRequired, true);
-  assert.match(result.approval.summary, /명령 실행 승인/);
+  assert.match(result.approval.summary, /aprovar a execução do comando/);
   assert.equal(result.diagnostics.exitCode, 0);
 });
 

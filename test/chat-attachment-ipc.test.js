@@ -110,6 +110,6 @@ test("드롭 IPC는 차단 파일을 errors로 돌리고 나머지는 계속 처
   assert.deepEqual(result.attachments.map((entry) => entry.name), ["before.txt", "after.txt"]);
   assert.equal(result.errors.length, 1);
   assert.equal(result.errors[0].name, "blocked.exe");
-  assert.match(result.errors[0].error, /실행 파일/);
+  assert.match(result.errors[0].error, /executáv/);
   assert.equal(result.pendingAttachments.length, 2);
 });

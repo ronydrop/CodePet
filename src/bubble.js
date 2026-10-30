@@ -40,13 +40,35 @@ window.bubbleApi.onAppearance((appearance) => {
   }
 });
 
-function createTitle(titleText, busy) {
+const AGENT_MARKS = Object.freeze({
+  claude: "./chat-assets/claude.png",
+  codex: "./chat-assets/gpt.png",
+  agy: "./chat-assets/gemini.png",
+  grok: "./chat-assets/grok.png",
+});
+
+function createStatusMark(provider, busy) {
+  const src = AGENT_MARKS[provider];
+  if (!src) {
+    const dot = document.createElement("span");
+    dot.className = busy ? "dot busy" : "dot";
+    return dot;
+  }
+
+  const mark = document.createElement("span");
+  mark.className = busy ? "agent-mark busy" : "agent-mark";
+  const image = document.createElement("img");
+  image.src = src;
+  image.alt = "";
+  image.draggable = false;
+  mark.appendChild(image);
+  return mark;
+}
+
+function createTitle(titleText, busy, provider) {
   const title = document.createElement("div");
   title.className = "title";
-
-  const dot = document.createElement("span");
-  dot.className = busy ? "dot busy" : "dot";
-  title.appendChild(dot);
+  title.appendChild(createStatusMark(provider, busy));
   title.appendChild(document.createTextNode(titleText));
 
   return title;
@@ -71,7 +93,7 @@ function renderActions(container, actions) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "action-button";
-    button.textContent = action.label || "실행";
+    button.textContent = action.label || "Executar";
     button.disabled = Boolean(action.disabled);
 
     button.addEventListener("click", (event) => {
@@ -88,7 +110,7 @@ function renderActions(container, actions) {
 }
 
 function renderUsage(data) {
-  bubbleElement.replaceChildren(createTitle(data.title, false));
+  bubbleElement.replaceChildren(createTitle(data.title, false, data.provider));
 
   for (const gaugeData of data.gauges || []) {
     const gauge = document.createElement("div");
@@ -101,7 +123,7 @@ function renderUsage(data) {
     label.textContent = gaugeData.label;
     const pct = document.createElement("span");
     pct.className = "pct";
-    pct.textContent = `${Math.round(100 - gaugeData.usedPercent)}% 남음`;
+    pct.textContent = `${Math.round(100 - gaugeData.usedPercent)}% restante`;
     row.append(label, pct);
 
     const bar = document.createElement("div");
@@ -130,7 +152,7 @@ function renderUsage(data) {
 }
 
 function appendActivityContent(container, data) {
-  container.appendChild(createTitle(data.title, Boolean(data.busy)));
+  container.appendChild(createTitle(data.title, Boolean(data.busy), data.provider));
 
   const body = document.createElement("div");
   body.className = "body-text";
@@ -170,6 +192,7 @@ function renderActivity(data) {
     });
     const row = document.createElement("div");
     row.className = "activity-row";
+    row.appendChild(createStatusMark(sectionData.provider, Boolean(sectionData.busy)));
     const label = document.createElement("div");
     label.className = "activity-row-label";
     label.textContent = sectionData.title;

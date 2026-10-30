@@ -28,7 +28,7 @@ function quotePowerShell(value) {
 
 function runPowerShell(script, { stdin = "", timeoutMs = 10000 } = {}) {
   if (process.platform !== "win32") {
-    return Promise.reject(new Error("Windows 자격 증명은 Windows에서만 사용할 수 있습니다."));
+    return Promise.reject(new Error("Credenciais do Windows só podem ser usadas no Windows."));
   }
   return new Promise((resolve, reject) => {
     const encoded = Buffer.from(script, "utf16le").toString("base64");
@@ -48,14 +48,14 @@ function runPowerShell(script, { stdin = "", timeoutMs = 10000 } = {}) {
     };
     const timer = setTimeout(() => {
       child.kill();
-      finish(new Error("Windows 자격 증명 작업 시간이 초과됐습니다."));
+      finish(new Error("A operação de credencial do Windows expirou."));
     }, timeoutMs);
     child.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
     });
-    child.once("error", () => finish(new Error("Windows 자격 증명 작업을 시작하지 못했습니다.")));
+    child.once("error", () => finish(new Error("Não foi possível iniciar a operação de credencial do Windows.")));
     child.once("close", (code) => {
-      finish(code === 0 ? null : new Error("Windows 자격 증명 작업에 실패했습니다."), stdout.trim());
+      finish(code === 0 ? null : new Error("A operação de credencial do Windows falhou."), stdout.trim());
     });
     child.stdin.end(stdin);
   });

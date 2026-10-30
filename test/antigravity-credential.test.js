@@ -128,7 +128,7 @@ test("갱신 저장 직전에 Keychain을 읽지 못해도 다른 파일 계정�
   keychain.read = async () => { throw new Error("denied"); };
   await assert.rejects(store.write(credential("next"), {
     expectedRefreshToken: current.token.refresh_token,
-  }), /계정이 변경/);
+  }), /conta do AGY mudou/);
   assert.equal(JSON.parse(keychain.value).token.refresh_token, "keychain");
   assert.equal(fs.readFileSync(tokenFile(home), "utf8"), fileCredential);
 });
@@ -165,7 +165,7 @@ test("CLI 저장소 밖의 standalone 계정 파일은 읽거나 삭제하지 �
   const standaloneCredential = JSON.stringify(credential("standalone"));
   fs.writeFileSync(standaloneFile, standaloneCredential);
   const store = createAntigravityCredentialStore({ platform: "darwin", home, keychain: memoryKeychain() });
-  await assert.rejects(store.read(), /자격 증명이 없습니다/);
+  await assert.rejects(store.read(), /credencial salva do AGY/);
   await store.clear();
   assert.equal(fs.readFileSync(standaloneFile, "utf8"), standaloneCredential);
 });
@@ -191,7 +191,7 @@ test("로그아웃 준비는 Keychain과 토큰 파일을 모두 비우고, 없�
   await store.clear();
   assert.equal(keychain.value, null);
   assert.equal(fs.existsSync(tokenFile(home)), false);
-  await assert.rejects(store.read(), /자격 증명이 없습니다/);
+  await assert.rejects(store.read(), /credencial salva do AGY/);
 });
 
 for (const platform of ["win32", "linux"]) test(`${platform}는 기존 자격 증명 저장소를 그대로 사용한다`, async (t) => {

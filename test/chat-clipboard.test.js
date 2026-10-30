@@ -48,7 +48,7 @@ test("붙여넣은 이미지를 IPC용 ArrayBuffer payload로 직렬화한다", 
   ], { now: () => 1234 });
 
   assert.deepEqual(result.errors, []);
-  assert.equal(result.images[0].name, "붙여넣은-이미지-1234-1.png");
+  assert.equal(result.images[0].name, "imagem-colada-1234-1.png");
   assert.equal(result.images[1].name, "named.png");
   assert.equal(result.images[0].mime, "image/png");
   assert.deepEqual(new Uint8Array(result.images[0].data), PNG_BYTES);
@@ -64,6 +64,6 @@ test("너무 크거나 읽을 수 없는 클립보드 이미지는 오류로 분
 
   assert.deepEqual(result.images, []);
   assert.equal(result.errors.length, 2);
-  assert.match(result.errors[0].error, /너무 큽니다/);
-  assert.match(result.errors[1].error, /읽지 못했습니다/);
+  assert.match(result.errors[0].error, /grande demais/);
+  assert.match(result.errors[1].error, /Não foi possível ler/);
 });

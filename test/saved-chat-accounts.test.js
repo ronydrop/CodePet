@@ -57,11 +57,11 @@ for (const providerId of ["claude", "grok"]) {
     fs.writeFileSync(path.join(accounts[0].dir, config), edited);
     service.prepare(profiles[0].key);
     assert.equal(fs.readFileSync(path.join(accounts[0].dir, config), "utf8"), edited);
-    assert.throws(() => service.prepare("../../outside"), /저장된/);
+    assert.throws(() => service.prepare("../../outside"), /salva/);
     store.delete(profiles[1].key);
     assert.equal(fs.existsSync(accounts[1].dir), false);
     assert.equal(service.record(profiles[1].key, base).catalogStatus, "unavailable");
-    assert.throws(() => service.prepare(profiles[1].key), /저장된/);
+    assert.throws(() => service.prepare(profiles[1].key), /salva/);
   });
 }
 

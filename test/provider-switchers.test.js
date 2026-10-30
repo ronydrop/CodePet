@@ -107,7 +107,7 @@ test("AGY 전환은 선택한 자격 증명을 쓰고 활성 계정과 계정 �
   assert.equal(accountHint.active, "beta@example.com");
 });
 
-test("AGY 첫 로그인은 저장할 현재 계정이 없어도 자격 증명을 비우고 앱을 연다", async (t) => {
+test("AGY 첫 로그인은 저장할 Conta atual이 없어도 자격 증명을 비우고 앱을 연다", async (t) => {
   const home = tempHome(t);
   let clearCount = 0;
   let restartCount = 0;
@@ -186,7 +186,7 @@ test("비활성 저장 프로필만 삭제하고 활성 프로필 삭제는 거�
   const active = store.save({ secret: claudeSecret("active"), active: true });
   const inactive = store.save({ secret: claudeSecret("inactive") });
 
-  assert.throws(() => store.delete(active.key), /현재 사용 중/);
+  assert.throws(() => store.delete(active.key), /conta em uso/);
   assert.equal(store.delete(inactive.key).key, inactive.key);
   assert.equal(store.get(inactive.key), null);
 });
@@ -199,7 +199,7 @@ test("Claude는 live 활성 계정의 저장 프로필 삭제를 거부한다", 
   const inactive = switcher.store.save({ secret: claudeSecret("inactive") });
 
   const active = switcher.listProfiles().find((profile) => profile.active);
-  assert.throws(() => switcher.deleteProfile(active.key), /현재 사용 중/);
+  assert.throws(() => switcher.deleteProfile(active.key), /conta em uso/);
   assert.equal(switcher.deleteProfile(inactive.key).key, inactive.key);
 });
 
@@ -213,7 +213,7 @@ test("Claude 전환은 만료된 accessToken-only 프로필을 거부한다", as
     secret: { claudeAiOauth: { accessToken: "old", expiresAt: Date.now() - 60000 } },
     email: "stale@example.com",
   });
-  await assert.rejects(() => switcher.switchToProfile(expired.key), /만료/);
+  await assert.rejects(() => switcher.switchToProfile(expired.key), /expirou/);
 
   // refreshToken이 있으면 만료 여부와 무관하게 전환 가능
   const refreshable = switcher.store.save({

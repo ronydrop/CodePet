@@ -93,10 +93,10 @@ function normalizeAgyGeminiQuota(data) {
 
 function normalizeClaudeUsage(data) {
   const windows = [
-    ["5시간", data?.five_hour],
-    ["7일", data?.seven_day],
-    ["7일 · Sonnet", data?.seven_day_sonnet],
-    ["7일 · Opus", data?.seven_day_opus],
+    ["5 horas", data?.five_hour],
+    ["7 dias", data?.seven_day],
+    ["7 dias · Sonnet", data?.seven_day_sonnet],
+    ["7 dias · Opus", data?.seven_day_opus],
   ];
   return windows.flatMap(([label, value]) => {
     if (value?.utilization == null || value.utilization === "") return [];
@@ -118,7 +118,7 @@ function normalizeGrokUsage(entry) {
     : "";
   const gauges = Number.isFinite(usedPercent)
     ? [{
-      label: "주간 한도",
+      label: "Limite semanal",
       usedPercent: clampPercent(usedPercent),
       resetText: config.currentPeriod?.end || config.billingPeriodEnd || "",
     }]
@@ -158,12 +158,12 @@ function readGrokUsage({
     if (entry?.msg !== "billing: fetched credits config") continue;
     const timestamp = Date.parse(entry.ts);
     if (Number.isFinite(timestamp) && now - timestamp > maxAgeMs) {
-      throw new Error("Grok 한도 정보가 오래되어 다시 조회해야 합니다.");
+      throw new Error("A informação de limite do Grok está velha e precisa ser consultada de novo.");
     }
     const usage = normalizeGrokUsage(entry);
     if (usage) return usage;
   }
-  throw new Error("Grok 한도 정보를 찾지 못했습니다.");
+  throw new Error("Não encontrei a informação de limite do Grok.");
 }
 
 async function json(url, options, timeout = 8000) {
@@ -172,7 +172,7 @@ async function json(url, options, timeout = 8000) {
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     if (!response.ok) {
-      throw new HttpError(`사용량 서버가 HTTP ${response.status}를 반환했습니다.`, response.status);
+      throw new HttpError(`O servidor de uso respondeu HTTP ${response.status}.`, response.status);
     }
     return response.json();
   } finally {
@@ -182,7 +182,7 @@ async function json(url, options, timeout = 8000) {
 
 async function refreshClaudeOAuth(credentials, store) {
   const oauth = credentials.claudeAiOauth;
-  if (!oauth?.refreshToken) throw new Error("Claude 로그인 정보가 만료됐습니다.");
+  if (!oauth?.refreshToken) throw new Error("O login do Claude expirou.");
   const refresh = await json("https://platform.claude.com/v1/oauth/token", {
     method: "POST",
     headers: {
@@ -212,9 +212,9 @@ async function refreshClaudeOAuth(credentials, store) {
 async function fetchClaudeUsage({ home = os.homedir(), force = false, credentialStore } = {}) {
   const store = credentialStore || createClaudeFileStore(home);
   const credentials = store.read();
-  if (!credentials) throw new Error("Claude 로그인 정보가 없습니다.");
+  if (!credentials) throw new Error("Não há login do Claude.");
   let oauth = credentials.claudeAiOauth;
-  if (!oauth?.accessToken) throw new Error("Claude 로그인 정보가 없습니다.");
+  if (!oauth?.accessToken) throw new Error("Não há login do Claude.");
   const key = tokenKey("claude", oauth.refreshToken || oauth.accessToken);
 
   return cached(key, async () => {
@@ -254,7 +254,7 @@ const AGY_USER_AGENT = `antigravity/cli/1.0.11 ${process.platform === "win32" ? 
 
 async function fetchAntigravityUsage({ credential, force = false, credentialStore } = {}) {
   const token = credential?.token?.access_token;
-  if (!token) throw new Error("AGY 로그인 정보가 없습니다.");
+  if (!token) throw new Error("Não há login do AGY.");
   const key = tokenKey("agy", credential?.token?.refresh_token || token);
 
   return cached(key, () => withAntigravityCredential(credential, async (accessToken) => {
@@ -273,7 +273,7 @@ async function fetchAntigravityUsage({ credential, force = false, credentialStor
     ]);
     const projectValue = assist?.cloudaicompanionProject;
     const project = typeof projectValue === "string" ? projectValue : projectValue?.id;
-    if (!project) throw new Error("AGY 프로젝트 정보를 찾지 못했습니다.");
+    if (!project) throw new Error("Não encontrei os dados do projeto do AGY.");
     const quota = await json(
       "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary",
       {
@@ -306,7 +306,7 @@ async function fetchAntigravityUsage({ credential, force = false, credentialStor
 
 async function fetchAntigravityIdentity({ credential, force = false, credentialStore } = {}) {
   const token = credential?.token?.access_token;
-  if (!token) throw new Error("AGY 로그인 정보가 없습니다.");
+  if (!token) throw new Error("Não há login do AGY.");
   const key = tokenKey("agy:identity", credential?.token?.refresh_token || token);
   return cached(key, () => withAntigravityCredential(credential, async (accessToken) => {
     const identity = await json("https://www.googleapis.com/oauth2/v2/userinfo", {

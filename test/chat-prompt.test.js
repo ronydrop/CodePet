@@ -11,7 +11,7 @@ function message(author, text, authorType = "agent") {
   return { author, authorType, text };
 }
 
-test("프롬프트에 역할, 참가자, 대화 기록이 화자 라벨과 함께 들어간다", () => {
+test("프롬프트에 역할, Participantes, 대화 기록이 화자 라벨과 함께 들어간다", () => {
   const prompt = buildAgentPrompt({
     agent: AGENTS[1],
     agents: AGENTS,
@@ -21,11 +21,11 @@ test("프롬프트에 역할, 참가자, 대화 기록이 화자 라벨과 함�
     ],
   });
 
-  assert.match(prompt, /참가자 "@codex"\(Codex\)/);
-  assert.match(prompt, /사용자\(User\), @claude\(Claude\), @codex\(Codex\)/);
+  assert.match(prompt, /Você é "@codex" \(Codex\)/);
+  assert.match(prompt, /Participantes: Usuário \(User\), @claude\(Claude\), @codex\(Codex\)/);
   assert.match(prompt, /\[User\] @codex, @claude 응답해라/);
   assert.match(prompt, /\[@claude\] 안녕하세요!/);
-  assert.match(prompt, /지금 "@codex"로서 답할 차례입니다\./);
+  assert.match(prompt, /Agora é a vez de "@codex" responder\./);
 });
 
 test("@멘션은 실제 호출이고 이름만 쓰면 언급이라는 규칙이 들어간다", () => {
@@ -34,9 +34,9 @@ test("@멘션은 실제 호출이고 이름만 쓰면 언급이라는 규칙이 
     agents: AGENTS,
     messages: [message("user", "안녕", "user")],
   });
-  assert.match(prompt, /그러면 그 참가자가 이어서 답합니다/);
-  assert.match(prompt, /@ 없이 이름만 쓰세요/);
-  assert.doesNotMatch(prompt, /자동으로 호출되지는 않습니다/);
+  assert.match(prompt, /Esse participante responde em seguida/);
+  assert.match(prompt, /use o nome sem @/);
+  assert.doesNotMatch(prompt, /não pode chamar outros participantes/);
 });
 
 test("여러 AI는 친한 경쟁자처럼 가볍게 견제하되 협업 목표를 우선한다", () => {
@@ -45,10 +45,10 @@ test("여러 AI는 친한 경쟁자처럼 가볍게 견제하되 협업 목표�
     agents: AGENTS,
     messages: [message("user", "같이 검토해줘", "user")],
   });
-  assert.match(prompt, /친한 동료이자 은근한 경쟁자/);
-  assert.match(prompt, /가벼운 도발이나 장난/);
-  assert.match(prompt, /인신공격·모욕·과한 비꼼·근거 없는 반대는 하지 말고/);
-  assert.match(prompt, /사용자의 목표 및 팀의 최종 결론을 항상 우선/);
+  assert.match(prompt, /colega próximo e um rival sutil/);
+  assert.match(prompt, /provoque de leve/);
+  assert.match(prompt, /Sem ataques pessoais/);
+  assert.match(prompt, /Priorize a precisão/);
 });
 
 test("긴 대화는 최근 메시지만 남기고 생략 안내를 넣는다", () => {
@@ -62,28 +62,28 @@ test("긴 대화는 최근 메시지만 남기고 생략 안내를 넣는다", (
     maxMessages: 10,
   });
 
-  assert.match(prompt, /\(이전 메시지 40개 생략\)/);
+  assert.match(prompt, /\(40 mensagens anteriores omitidas\)/);
   assert.doesNotMatch(prompt, /\[User\] 메시지 39\n/);
   assert.match(prompt, /\[User\] 메시지 49/);
 });
 
-test("다른 참가자가 없으면 멘션 규칙을 생략한다", () => {
+test("다른 Participantes가 없으면 멘션 규칙을 생략한다", () => {
   const prompt = buildAgentPrompt({
     agent: AGENTS[0],
     agents: [AGENTS[0]],
     messages: [message("user", "안녕", "user")],
   });
-  assert.doesNotMatch(prompt, /다른 참가자/);
+  assert.doesNotMatch(prompt, /Para chamar outro participante/);
 });
 
-test("권한 모드에 따라 도구 규칙이 달라진다", () => {
+test("Modo de permissão에 따라 도구 규칙이 달라진다", () => {
   const chat = buildAgentPrompt({
     agent: AGENTS[0],
     agents: AGENTS,
     messages: [message("user", "안녕", "user")],
     permissionMode: "chat",
   });
-  assert.match(chat, /대화로만 답하세요/);
+  assert.match(chat, /Responda só em conversa/);
 
   const read = buildAgentPrompt({
     agent: AGENTS[0],
@@ -91,7 +91,7 @@ test("권한 모드에 따라 도구 규칙이 달라진다", () => {
     messages: [message("user", "안녕", "user")],
     permissionMode: "workspace-read",
   });
-  assert.match(read, /읽고 검색할 수 있지만/);
+  assert.match(read, /pode ler e pesquisar/);
 
   const write = buildAgentPrompt({
     agent: AGENTS[0],
@@ -99,7 +99,7 @@ test("권한 모드에 따라 도구 규칙이 달라진다", () => {
     messages: [message("user", "안녕", "user")],
     permissionMode: "workspace-write",
   });
-  assert.match(write, /읽고 수정할 수 있습니다/);
+  assert.match(write, /pode ler e modificar/);
 });
 
 test("토론 컨텍스트가 자율 종료 신호와 함께 들어간다", () => {
@@ -109,7 +109,7 @@ test("토론 컨텍스트가 자율 종료 신호와 함께 들어간다", () =>
     messages: [message("user", "주제", "user")],
     discussion: { turn: 2 },
   });
-  assert.match(prompt, /자율 토론 2턴/);
+  assert.match(prompt, /turno 2 da discussão autônoma/);
   assert.match(prompt, /CODEPET_DISCUSSION:CONCLUDE/);
 });
 
@@ -126,7 +126,7 @@ test("첨부가 있는 메시지는 첨부 이름이 함께 표기된다", () =>
       },
     ],
   });
-  assert.match(prompt, /\[첨부: 정리\.md, shot\.png\]/);
+  assert.match(prompt, /\[Anexo: 정리\.md, shot\.png\]/);
 });
 
 test("extraLines가 대화 끝 뒤에 추가된다", () => {
@@ -136,27 +136,27 @@ test("extraLines가 대화 끝 뒤에 추가된다", () => {
     messages: [message("user", "안녕", "user")],
     extraLines: ["=== 첨부 내용 ===", "파일: note.txt"],
   });
-  assert.match(prompt, /=== 대화 끝 ===\n=== 첨부 내용 ===\n파일: note\.txt/);
+  assert.match(prompt, /=== Fim da conversa ===\n=== 첨부 내용 ===\n파일: note\.txt/);
 });
 
-test("에이전트가 매 답변에 이모티콘 한 개를 선택하도록 안내한다", () => {
+test("에이전트가 매 답변에 Emoticon 한 개를 선택하도록 안내한다", () => {
   const prompt = buildAgentPrompt({
     agent: AGENTS[0],
     agents: AGENTS,
     messages: [message("user", "검토해줘", "user")],
   });
-  assert.match(prompt, /이모티콘을 1개만 사용하세요/);
-  assert.match(prompt, /CODEPET_EMOTE:키/);
-  assert.match(prompt, /이모티콘 의미 사전/);
-  assert.match(prompt, /주인님=사용자를 친근하게/);
-  assert.match(prompt, /멍청=.*사용자를 모욕하는 용도로는 사용 금지/);
-  assert.match(prompt, /단어가 답변에 등장했다는 이유만으로 고르지 말고/);
-  assert.match(prompt, /본문 처음·문단 사이·끝/);
-  assert.match(prompt, /표기 앞뒤는 줄바꿈/);
+  assert.match(prompt, /use só 1 emoticon/);
+  assert.match(prompt, /CODEPET_EMOTE:chave/);
+  assert.match(prompt, /Dicionário de emoticons/);
+  assert.match(prompt, /주인님=ao receber um pedido/);
+  assert.match(prompt, /멍청=.*Nunca para insultar o usuário/);
+  assert.match(prompt, /Não escolha uma chave só porque a palavra apareceu/);
+  assert.match(prompt, /início, entre parágrafos ou no fim/);
+  assert.match(prompt, /Quebre a linha antes e depois/);
   assert.match(prompt, /검토완료/);
 });
 
-test("인용 답장은 대상 발언과 발췌를 사용자 메시지 앞에 표시한다", () => {
+test("Resposta citada은 대상 발언과 발췌를 사용자 메시지 앞에 표시한다", () => {
   const prompt = buildAgentPrompt({
     agent: AGENTS[0],
     agents: AGENTS,
@@ -175,5 +175,5 @@ test("인용 답장은 대상 발언과 발췌를 사용자 메시지 앞에 표
     ],
   });
 
-  assert.match(prompt, /\[User\] \(인용: @codex "첫 줄 둘째 줄"\) 이 의견을 검토해줘/);
+  assert.match(prompt, /\[User\] \(Citação: @codex "첫 줄 둘째 줄"\) 이 의견을 검토해줘/);
 });

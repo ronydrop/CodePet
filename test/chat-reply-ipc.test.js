@@ -34,7 +34,7 @@ test("chat:send는 replyTo를 메인 프로세스 정제 후 저장소까지 전
   assert.equal(typeof send, "function");
   const result = await send({}, {
     sessionId,
-    text: "IPC 인용 답장",
+    text: "IPC Resposta citada",
     attachmentIds: [],
     replyTo: {
       messageId: "m-source",
@@ -47,7 +47,7 @@ test("chat:send는 replyTo를 메인 프로세스 정제 후 저장소까지 전
 
   assert.equal(result.ok, true);
   const [message] = store.readMessages(sessionId);
-  assert.equal(message.text, "IPC 인용 답장");
+  assert.equal(message.text, "IPC Resposta citada");
   assert.deepEqual(message.replyTo, {
     messageId: "m-source",
     author: "codex",

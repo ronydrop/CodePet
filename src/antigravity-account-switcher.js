@@ -27,7 +27,7 @@ class AntigravityAccountSwitcher {
   async snapshotCurrent(meta = {}) {
     const secret = await this.read();
     if (!secret?.token?.refresh_token) {
-      throw new Error("AGY 로그인 정보를 찾지 못했습니다.");
+      throw new Error("Não encontrei o login do AGY.");
     }
     return this.store.save({
       secret,
@@ -85,7 +85,7 @@ class AntigravityAccountSwitcher {
   async switchToProfile(key) {
     const profile = this.store.get(key);
     if (!profile?.secret?.token?.refresh_token) {
-      throw new Error("저장된 AGY 계정을 찾지 못했습니다.");
+      throw new Error("Não encontrei a conta salva do AGY.");
     }
     try {
       await this.snapshotCurrent();

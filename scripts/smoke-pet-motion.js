@@ -52,7 +52,7 @@ async function main() {
   const report = { bubble: h.bubbles.at(-1), mainState: h.context.runtime.currentState,
     renderer: await js("({state:currentStateName, row:getPetState().cells[0]?.row, frames:getPetState().frames})") };
   fs.writeFileSync(path.join(output, "report.json"), JSON.stringify(report, null, 2));
-  assert.equal(report.bubble.title, "Claude 명령 실행 중");
+  assert.equal(report.bubble.title, "Claude Executando comando");
   assert.equal(report.mainState, "running", output);
   assert.equal(report.renderer.state, "running", output);
   assert.equal(report.renderer.row, 7);
@@ -62,7 +62,7 @@ async function main() {
       contextIsolation: true, nodeIntegration: false, sandbox: false, backgroundThrottling: false } });
   await bubble.loadFile(path.join(sourceRoot, "bubble.html"));
   bubble.webContents.send("bubble:update", applyActivityPrivacy(report.bubble, "status"));
-  await until(async () => (await bubble.webContents.executeJavaScript("document.body.innerText")).includes("Claude 작업 중입니다."));
+  await until(async () => (await bubble.webContents.executeJavaScript("document.body.innerText")).includes("Claude Trabalhando입니다."));
   fs.writeFileSync(path.join(output, "bubble.png"), (await bubble.webContents.capturePage(undefined, { stayHidden: true })).toPNG());
   const bubblePid = bubble.webContents.getOSProcessId();
   releaseHiddenWindow(bubble, { delayMs: 100 });

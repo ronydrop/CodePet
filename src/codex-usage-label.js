@@ -3,13 +3,13 @@ function rateWindowLabel(rateWindow) {
     typeof rateWindow === "object" ? rateWindow?.window_minutes : rateWindow
   );
   let label;
-  if (!Number.isFinite(windowMinutes) || windowMinutes <= 0) label = "사용 한도";
-  else if (Math.abs(windowMinutes - 300) < 0.01) label = "5시간 한도";
-  else if (Math.abs(windowMinutes - 10080) < 0.01) label = "주간 한도";
-  else if (windowMinutes >= 28 * 1440 && windowMinutes <= 31 * 1440) label = "월간 한도";
-  else if (windowMinutes % 1440 === 0) label = `${windowMinutes / 1440}일 한도`;
-  else if (windowMinutes % 60 === 0) label = `${windowMinutes / 60}시간 한도`;
-  else label = `${Math.round(windowMinutes)}분 한도`;
+  if (!Number.isFinite(windowMinutes) || windowMinutes <= 0) label = "Limite de uso";
+  else if (Math.abs(windowMinutes - 300) < 0.01) label = "Limite de 5 horas";
+  else if (Math.abs(windowMinutes - 10080) < 0.01) label = "Limite semanal";
+  else if (windowMinutes >= 28 * 1440 && windowMinutes <= 31 * 1440) label = "Limite mensal";
+  else if (windowMinutes % 1440 === 0) label = `limite de ${windowMinutes / 1440} dias`;
+  else if (windowMinutes % 60 === 0) label = `limite de ${windowMinutes / 60} horas`;
+  else label = `limite de ${Math.round(windowMinutes)} min`;
   return rateWindow?.scope ? `${rateWindow.scope} · ${label}` : label;
 }
 

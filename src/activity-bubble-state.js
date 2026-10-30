@@ -6,6 +6,14 @@ function safeWorkerLabel(value) {
   return WORKER_LABELS.has(value) ? value : null;
 }
 
+function providerFromThread(threadId) {
+  const id = String(threadId || "");
+  if (id.startsWith("claude:")) return "claude";
+  if (id.startsWith("agy:")) return "agy";
+  if (id.startsWith("grok:")) return "grok";
+  return null;
+}
+
 // Watcher 활동을 rollout thread 단위로 보관합니다. 화면은 이 상태의 스냅샷만 렌더링하므로
 // 한 세션의 새 이벤트가 다른 세션의 내용을 덮어쓰지 않습니다.
 class ActivityBubbleState {
@@ -74,18 +82,22 @@ class ActivityBubbleState {
 
     const activeTaskCount = entries.length;
     const visibleEntries = entries.slice(0, 5);
-    const sections = visibleEntries.map((entry) => ({
-      ...entry.data,
-      title: formatActivityTitle(entry.data.title, {
-        workerLabel: entry.workerLabel,
-      }),
-      threadId: entry.threadId,
-    }));
+    const sections = visibleEntries.map((entry) => {
+      const provider = entry.data.provider || providerFromThread(entry.threadId);
+      return {
+        ...entry.data,
+        ...(provider ? { provider } : {}),
+        title: formatActivityTitle(entry.data.title, {
+          workerLabel: entry.workerLabel,
+        }),
+        threadId: entry.threadId,
+      };
+    });
 
     if (sections.length === 1) return sections[0];
     return {
       kind: "activity",
-      title: `총 ${activeTaskCount}개 작업 중`,
+      title: `${activeTaskCount} tarefas em andamento`,
       activeTaskCount,
       sections,
     };
@@ -105,7 +117,7 @@ function applyActivityPrivacy(data, mode) {
   const applyToSection = (section) => {
     const visible = { ...section };
     if (mode === "status") {
-      visible.text = section.statusText || section.title || "Codex가 작업 중입니다.";
+      visible.text = section.statusText || section.title || "O Codex está trabalhando.";
     }
     delete visible.statusText;
     return visible;

@@ -20,6 +20,7 @@ const instanceReady = relaunchingForX11 ? null : require("./app-instance").claim
   });
 if (!relaunchingForX11 && !instanceReady) return;
 const { CodexAccountSwitcher } = require("./codex-account-switcher");
+const { importNexusAccounts } = require("./nexus-account-import");
 const { CodexWatcher } = require("./codex-watcher");
 const { AntigravityWatcher } = require("./antigravity-watcher");
 const { ClaudeWatcher } = require("./claude-watcher");
@@ -322,19 +323,19 @@ function buildActivityBubbleModeSubmenu() {
   const currentMode = getActivityBubbleMode();
   return [
     {
-      label: "전체 내용",
+      label: "Conteúdo completo",
       type: "radio",
       checked: currentMode === ACTIVITY_BUBBLE_MODES.FULL,
       click: () => setActivityBubbleMode(ACTIVITY_BUBBLE_MODES.FULL),
     },
     {
-      label: "상태만",
+      label: "Só o status",
       type: "radio",
       checked: currentMode === ACTIVITY_BUBBLE_MODES.STATUS,
       click: () => setActivityBubbleMode(ACTIVITY_BUBBLE_MODES.STATUS),
     },
     {
-      label: "끄기",
+      label: "Desligar",
       type: "radio",
       checked: currentMode === ACTIVITY_BUBBLE_MODES.OFF,
       click: () => setActivityBubbleMode(ACTIVITY_BUBBLE_MODES.OFF),
@@ -361,7 +362,7 @@ function listAvailablePets() {
     }
     pets.push({
       key: "custom",
-      label: "커스텀 (pet 폴더)",
+      label: "Personalizado (pasta pet)",
       spritePath: customPath,
       spriteVersionNumber,
     });
@@ -396,7 +397,7 @@ function listAvailablePets() {
   if (fs.existsSync(SPRITE_ASSET.filePath)) {
     pets.push({
       key: "builtin",
-      label: "기본 펫 (내장)",
+      label: "Pet padrão (incluso)",
       spritePath: SPRITE_ASSET.filePath,
       spriteVersionNumber: SPRITE_ASSET.spriteVersionNumber,
     });
@@ -588,7 +589,7 @@ function listCodexProxyAccounts() {
     (right.key === activeKey ? 1 : 0) - (left.key === activeKey ? 1 : 0)
   );
   if (accounts.length === 0 && fs.existsSync(codexAccountSwitcher.targetAuthPath)) {
-    accounts.push({ key: "live", label: "현재 계정", authPath: codexAccountSwitcher.targetAuthPath });
+    accounts.push({ key: "live", label: "Conta atual", authPath: codexAccountSwitcher.targetAuthPath });
   }
 
   cachedProxyAccounts = accounts;
@@ -618,7 +619,7 @@ const codexProxy = new CodexProxy({
       }
       appendDebugLog(`codex auto-switch to ${account.key} (${reason})`);
       showCodexAccountBubble(
-        `Codex 한도가 소진돼 "${account.label}" 계정으로 자동 전환했습니다.\n재시작 없이 바로 적용됐어요.`
+        `O limite do Codex acabou. A conta foi trocada automaticamente para "${account.label}".\nJá vale, sem reiniciar.`
       );
     });
   },
@@ -669,7 +670,7 @@ async function ensureCodexProxyReadyForRun() {
         disableProxyInConfig();
       } catch {}
       codexProxy.stop();
-      throw new Error(`Codex 로컬 프록시 복구 실패: ${error?.message || String(error)}`);
+      throw new Error(`Falha ao recuperar o proxy local do Codex: ${error?.message || String(error)}`);
     }
   })().finally(() => {
     codexProxyRecoveryPromise = null;
@@ -690,7 +691,7 @@ async function setCodexProxyMode(enabled) {
       codexProxyLastError = null;
       writeSettings({ codexProxyMode: true });
       showCodexAccountBubble(
-        "재시작 없는 전환(프록시)을 켰습니다.\n실행 중인 Codex CLI/앱은 한 번만 다시 시작하면 이후 전환부터는 재시작이 필요 없습니다."
+        "A troca sem reinício (proxy) foi ligada.\nReinicie uma vez o Codex CLI ou o aplicativo que já estiver aberto. Nas próximas trocas, não precisa reiniciar."
       );
     } else {
       disableProxyInConfig();
@@ -698,11 +699,11 @@ async function setCodexProxyMode(enabled) {
       codexProxyActive = false;
       codexProxyLastError = null;
       writeSettings({ codexProxyMode: false });
-      showCodexAccountBubble("재시작 없는 전환(프록시)을 껐습니다.\nCodex는 원래 방식으로 되돌아갑니다.");
+      showCodexAccountBubble("A troca sem reinício (proxy) foi desligada.\nO Codex volta ao modo original.");
     }
   } catch (error) {
     appendDebugLog(`codex proxy toggle failed: ${error.message || String(error)}`);
-    showCodexAccountBubble(`프록시 모드 전환에 실패했습니다.\n${error.message || String(error)}`);
+    showCodexAccountBubble(`Não foi possível mudar o modo proxy.\n${error.message || String(error)}`);
     if (enabled) {
       // 주입이 실패했으면 Codex가 반쯤 걸린 상태가 되지 않도록 config를 원복하고 완전히 끕니다.
       codexProxyActive = false;
@@ -768,6 +769,11 @@ const grokWatcher = new GrokWatcher();
 const claudeLiveStore = createClaudeLiveStore();
 const claudeAccountSwitcher = new ClaudeAccountSwitcher({ liveStore: claudeLiveStore });
 const grokAccountSwitcher = new GrokAccountSwitcher();
+importNexusAccounts({
+  codex: codexAccountSwitcher,
+  claude: claudeAccountSwitcher,
+  grok: grokAccountSwitcher,
+});
 // AGY live 자격 증명은 OS마다 위치가 달라 전용 저장소로 읽습니다.
 const antigravityCredentialStore = createAntigravityCredentialStore();
 const antigravityAccountSwitcher = new AntigravityAccountSwitcher({
@@ -1100,10 +1106,9 @@ function initializeWindowGeometry() {
     runtime.y = restored.y;
     runtime.width = restored.width;
     runtime.height = restored.height;
-    return;
+  } else {
+    placeInitialWindow();
   }
-
-  placeInitialWindow();
 }
 
 // 자동 이동 타이머를 멈춥니다.
@@ -1263,7 +1268,7 @@ function buildPetSelectionSubmenu() {
   if (pets.length === 0) {
     return [
       {
-        label: "사용 가능한 스프라이트 없음",
+        label: "Nenhum sprite disponível",
         enabled: false,
       },
     ];
@@ -1282,8 +1287,8 @@ function buildPetSelectionSubmenu() {
 function formatCodexAccountLabel(profile) {
   const label = profile.hasAuth
     ? profile.label || `Codex ${profile.shortId || "unknown"}`
-    : `${profile.id || profile.key} (로그인 필요)`;
-  return profile.active ? `${label} (현재)` : label;
+    : `${profile.id || profile.key} (login necessário)`;
+  return profile.active ? `${label} (atual)` : label;
 }
 
 // PowerShell 명령 문자열에 파일 경로를 안전하게 넣기 위한 작은 helper입니다.
@@ -1418,7 +1423,7 @@ function writeCodexLoginScript(profile) {
 // 대신 pending profile CODEX_HOME을 만든 뒤 별도 터미널에서 `codex login`을 한 번만 실행합니다.
 async function openCodexLoginTerminal() {
   if (codexLoginLaunchInProgress) {
-    showCodexAccountBubble("이미 Codex 로그인 터미널을 여는 중입니다.");
+    showCodexAccountBubble("O terminal de login do Codex já está sendo aberto.");
     return false;
   }
 
@@ -1427,14 +1432,14 @@ async function openCodexLoginTerminal() {
   try {
     codexAccountSwitcher.ensureCurrentAccountProfile();
     if (!["win32", "darwin", "linux"].includes(process.platform)) {
-      throw new Error(`CodePet 로그인 실행기는 ${process.platform}을 지원하지 않습니다.`);
+      throw new Error(`O iniciador de login do CodePet não suporta ${process.platform}.`);
     }
 
     const profile = codexAccountSwitcher.createLoginProfile();
     const scriptPath = writeCodexLoginScript(profile);
 
     showCodexAccountBubble(
-      "새 Codex 로그인 터미널을 여는 중입니다."
+      "Abrindo o terminal de um novo login do Codex."
     );
 
     // 여러 launcher를 순차 시도하면 실패 판정이 애매해서 터미널이 여러 개 뜹니다.
@@ -1444,18 +1449,18 @@ async function openCodexLoginTerminal() {
 
     if (error) {
       showCodexAccountBubble(
-        `Codex 로그인 터미널을 열지 못했어요.\n직접 이 파일을 실행해 주세요:\n${scriptPath}\n\n${error}`
+        `Não foi possível abrir o terminal de login do Codex.\nExecute este arquivo manualmente:\n${scriptPath}\n\n${error}`
       );
       return false;
     }
 
     showCodexAccountBubble(
-      "Codex 로그인 터미널을 열었어요.\n로그인이 끝나면 '전환' 목록에 실제 계정명으로 나타납니다."
+      "O terminal de login do Codex foi aberto.\nQuando o login terminar, a conta aparece na lista “Trocar” com o nome real."
     );
     return true;
   } catch (error) {
     showCodexAccountBubble(
-      `Codex 로그인 터미널을 열지 못했어요.\n${error.message || String(error)}`
+      `Não foi possível abrir o terminal de login do Codex.\n${error.message || String(error)}`
     );
     return false;
   } finally {
@@ -1610,7 +1615,7 @@ function quitMacApp(appName, timeoutMs = 15000) {
 async function restartAntigravityApp() {
   if (process.platform === "darwin") {
     const executable = resolveAntigravityExecutable();
-    if (!executable) throw new Error("AGY 실행 파일을 찾지 못했습니다.");
+    if (!executable) throw new Error("O executável do AGY não foi encontrado.");
     await quitMacApp("Antigravity");
     await new Promise((resolve) => setTimeout(resolve, 700));
     const child = spawn("open", ["-a", executable], { detached: true, stdio: "ignore" });
@@ -1620,7 +1625,7 @@ async function restartAntigravityApp() {
 
   if (process.platform === "linux") {
     const executable = resolveAntigravityExecutable();
-    if (!executable) throw new Error("AGY 실행 파일을 찾지 못했습니다.");
+    if (!executable) throw new Error("O executável do AGY não foi encontrado.");
     spawnSync("pkill", ["-x", path.basename(executable)], {
       stdio: "ignore",
       timeout: 5000,
@@ -1632,7 +1637,7 @@ async function restartAntigravityApp() {
   }
 
   const executable = resolveAntigravityExecutable();
-  if (!executable) throw new Error("AGY 실행 파일을 찾지 못했습니다.");
+  if (!executable) throw new Error("O executável do AGY não foi encontrado.");
   const executablePath = quotePowerShellString(path.resolve(executable));
   const directoryPath = quotePowerShellString(`${path.dirname(path.resolve(executable))}${path.sep}`);
   const command = `
@@ -1650,7 +1655,7 @@ Write-Output "Stopped $($processes.Count) AGY process(es)."
 `.trim();
   const result = await runHiddenPowerShell(command, 15000);
   if (!result.ok) {
-    throw new Error(result.stderr || result.stdout || "AGY를 종료하지 못했습니다.");
+    throw new Error(result.stderr || result.stdout || "Não foi possível encerrar o AGY.");
   }
   const child = spawn(executable, [], { detached: true, stdio: "ignore", windowsHide: true });
   child.unref();
@@ -1659,7 +1664,7 @@ Write-Output "Stopped $($processes.Count) AGY process(es)."
 
 function writeClaudeLoginScript() {
   const claudeCommand = resolveClaudeCommand();
-  if (!claudeCommand) throw new Error("Claude 명령을 찾지 못했습니다.");
+  if (!claudeCommand) throw new Error("O comando do Claude não foi encontrado.");
 
   if (["darwin", "linux"].includes(process.platform)) {
     const fileName = process.platform === "darwin"
@@ -1689,7 +1694,7 @@ function writeClaudeLoginScript() {
 
 function writeGrokLoginScript() {
   const grokCommand = resolveCommand("grok", grokCommandCandidates());
-  if (!grokCommand) throw new Error("Grok 명령을 찾지 못했습니다.");
+  if (!grokCommand) throw new Error("O comando do Grok não foi encontrado.");
 
   if (["darwin", "linux"].includes(process.platform)) {
     const fileName = process.platform === "darwin"
@@ -1734,7 +1739,7 @@ function getGrokStatus() {
   return new Promise((resolve, reject) => {
     const command = resolveCommand("grok", grokCommandCandidates());
     if (!command) {
-      reject(new Error("Grok 명령을 찾지 못했습니다."));
+      reject(new Error("O comando do Grok não foi encontrado."));
       return;
     }
     execFile(
@@ -1751,7 +1756,7 @@ function getGrokStatus() {
         const output = `${stdout || ""}\n${stderr || ""}`;
         const authStatus = parseGrokAuthStatus(output);
         if (error && authStatus === "unknown") {
-          reject(new Error("Grok 로그인 상태를 확인하지 못했습니다."));
+          reject(new Error("Não foi possível verificar o login do Grok."));
           return;
         }
         resolve({
@@ -1767,7 +1772,7 @@ function getClaudeAuthStatus() {
   return new Promise((resolve, reject) => {
     const command = resolveClaudeCommand();
     if (!command) {
-      reject(new Error("Claude 명령을 찾지 못했습니다."));
+      reject(new Error("O comando do Claude não foi encontrado."));
       return;
     }
     execFile(
@@ -1782,13 +1787,13 @@ function getClaudeAuthStatus() {
       },
       (error, stdout) => {
         if (error) {
-          reject(new Error("Claude 로그인 상태를 확인하지 못했습니다."));
+          reject(new Error("Não foi possível verificar o login do Claude."));
           return;
         }
         try {
           resolve(normalizeClaudeAccountMetadata(JSON.parse(stdout)));
         } catch {
-          reject(new Error("Claude 로그인 상태 형식이 올바르지 않습니다."));
+          reject(new Error("O formato do estado de login do Claude é inválido."));
         }
       }
     );
@@ -1807,7 +1812,7 @@ async function stopCodexDesktopApp() {
     // osascript 실패(자동화 권한 거부/타임아웃)를 성공으로 보고하면, 실제로는 멈추지 않은 앱을
     // 멈춘 것으로 오인해 사용자에게 "전환됨"이라고 잘못 알립니다. 실제 결과를 그대로 전달합니다.
     if (!result.ok) {
-      throw new Error(result.stderr || "Codex Desktop 종료에 실패했습니다. (자동화 권한을 확인하세요)");
+      throw new Error(result.stderr || "Não foi possível encerrar o Codex Desktop. Confira a permissão de automação.");
     }
     return { ok: true, skipped: false, stdout: result.stderr || "Codex Desktop quit requested." };
   }
@@ -1885,12 +1890,12 @@ async function restartCodexDesktopApp() {
 
 async function restartCurrentCodexDesktopApp() {
   try {
-    showCodexAccountBubble("Codex Desktop App을 다시 실행하는 중입니다.");
+    showCodexAccountBubble("O Codex Desktop está sendo aberto de novo.");
     await restartCodexDesktopApp();
-    showCodexAccountBubble("Codex Desktop App 재실행을 요청했습니다.");
+    showCodexAccountBubble("A reabertura do Codex Desktop foi solicitada.");
   } catch (error) {
     showCodexAccountBubble(
-      `Codex Desktop App 재실행에 실패했습니다.\n${error.message || String(error)}`
+      `Não foi possível reabrir o Codex Desktop.\n${error.message || String(error)}`
     );
   }
 }
@@ -1903,15 +1908,15 @@ function buildCodexAccountActions() {
   return [
     {
       id: BUBBLE_ACTIONS.LOGIN_CODEX_ACCOUNT,
-      label: "계정 추가",
+      label: "Adicionar conta",
     },
     {
       id: BUBBLE_ACTIONS.SAVE_CODEX_ACCOUNT,
-      label: "현재 저장",
+      label: "Salvar atual",
     },
     {
       id: BUBBLE_ACTIONS.SWITCH_CODEX_ACCOUNT,
-      label: readyCount > 0 ? `전환 (${readyCount})` : "전환",
+      label: readyCount > 0 ? `Trocar (${readyCount})` : "Trocar",
     },
   ];
 }
@@ -1924,7 +1929,7 @@ function showCodexAccountBubble(text) {
   showPetWindowFromTray();
   showBubble({
     kind: "activity",
-    title: "Codex 계정",
+    title: "Conta do Codex",
     busy: false,
     text,
   });
@@ -1941,11 +1946,11 @@ function saveCurrentCodexAccount() {
     invalidateProxyAccountsCache();
     refreshTrayMenu();
     showCodexAccountBubble(
-      `"${profile.label}" 계정을 저장했습니다.\n전환 목록에는 로그인된 계정만 표시됩니다.`
+      `A conta "${profile.label}" foi salva.\nA lista de troca mostra só contas que estão logadas.`
     );
   } catch (error) {
     showCodexAccountBubble(
-      `현재 Codex 계정을 저장하지 못했어요.\n${error.message || String(error)}`
+      `Não foi possível salvar a conta atual do Codex.\n${error.message || String(error)}`
     );
   }
 }
@@ -1960,7 +1965,7 @@ function showCodexAccountSwitchMenu() {
 
   if (profiles.length === 0) {
     showCodexAccountBubble(
-      "저장된 Codex 계정이 없습니다.\n먼저 '현재 저장'을 누르거나 '계정 추가'로 새 계정에 로그인하세요."
+      "Não há conta do Codex salva.\nUse “Salvar atual” ou entre em uma conta nova com “Adicionar conta”."
     );
     return;
   }
@@ -1990,9 +1995,9 @@ async function switchCodexAccount(profileKey) {
   }
 
   if (proxyModeRequested && !codexProxyActive) {
-    const reason = codexProxyLastError?.message || "프록시가 아직 활성화되지 않았습니다.";
+    const reason = codexProxyLastError?.message || "O proxy ainda não está ativo.";
     showCodexAccountBubble(
-      `Codex 계정을 전환하지 않았습니다.\n재시작 없는 프록시 모드 시작에 실패했습니다.\n${reason}`
+      `A conta do Codex não foi trocada.\nO modo proxy sem reinício não iniciou.\n${reason}`
     );
     return false;
   }
@@ -2010,18 +2015,18 @@ async function switchCodexAccount(profileKey) {
       appendDebugLog(`codex account switch disconnected ${disconnectedTunnels} websocket tunnel(s)`);
       refreshTrayMenu();
       showCodexAccountBubble(
-        `"${result.profile.label}" 계정으로 전환했습니다.\n프록시 모드: 재시작 없이 다음 요청부터 바로 적용됩니다.`
+        `Conta alterada para "${result.profile.label}".\nModo proxy: vale a partir do próximo pedido, sem reiniciar.`
       );
       return true;
     } catch (error) {
-      showCodexAccountBubble(`Codex auth 전환에 실패했습니다.\n${error.message || String(error)}`);
+      showCodexAccountBubble(`A troca do auth do Codex falhou.\n${error.message || String(error)}`);
       return false;
     }
   }
 
   try {
     showCodexAccountBubble(
-      "Codex Desktop App을 멈추고 계정 전환을 준비하는 중입니다."
+      "O Codex Desktop está sendo encerrado para preparar a troca de conta."
     );
 
     let stopError = null;
@@ -2037,34 +2042,34 @@ async function switchCodexAccount(profileKey) {
       void usageMonitor?.invalidate();
       refreshTrayMenu();
 
-      let launchText = "Codex Desktop App 재실행을 요청했습니다.";
+      let launchText = "A reabertura do Codex Desktop foi solicitada.";
       try {
         const restartResult = await launchCodexDesktopApp();
         launchText = restartResult.skipped
-          ? "재시작 설정이 꺼져 있어 auth만 교체했습니다."
-          : "Codex Desktop App 재실행을 요청했습니다.";
+          ? "A reabertura está desligada, então só o auth foi trocado."
+          : "A reabertura do Codex Desktop foi solicitada.";
       } catch (launchError) {
-        launchText = `auth 교체는 완료됐지만 Codex Desktop 재실행은 실패했습니다.\n${launchError.message || String(launchError)}`;
+        launchText = `A troca do auth terminou, mas não foi possível reabrir o Codex Desktop.\n${launchError.message || String(launchError)}`;
         appendDebugLog(`Codex Desktop launch failed after switch: ${launchError.message || String(launchError)}`);
       }
 
       const stopText = stopError
-        ? `Codex Desktop 종료 확인은 실패했지만 auth 교체는 진행했습니다.\n${stopError.message || String(stopError)}\n`
+        ? `Não foi possível confirmar o encerramento do Codex Desktop, mas a troca do auth continuou.\n${stopError.message || String(stopError)}\n`
         : "";
 
       showCodexAccountBubble(
-        `"${result.profile.label}" 계정으로 전환했습니다.\n${stopText}${launchText}\n열려 있던 Codex CLI 터미널은 새로 시작해야 적용됩니다.`
+        `Conta alterada para "${result.profile.label}".\n${stopText}${launchText}\nTerminais do Codex CLI que já estavam abertos precisam ser reiniciados.`
       );
       return true;
     } catch (switchError) {
       showCodexAccountBubble(
-        `Codex auth 전환에 실패했습니다.\n${switchError.message || String(switchError)}`
+        `A troca do auth do Codex falhou.\n${switchError.message || String(switchError)}`
       );
       return false;
     }
   } catch (error) {
     showCodexAccountBubble(
-      `Codex 계정을 전환하지 못했어요.\n${error.message || String(error)}`
+      `Não foi possível trocar a conta do Codex.\n${error.message || String(error)}`
     );
     return false;
   }
@@ -2086,63 +2091,63 @@ function buildAppMenu() {
   const isPetVisible = Boolean(petWindow && !petWindow.isDestroyed() && petWindow.isVisible());
 
   return Menu.buildFromTemplate([
-    { label: "남은 한도 보기…", click: () => usageWindows?.togglePopup(tray?.getBounds()) },
-    { label: "작업표시줄에 표시", type: "checkbox", checked: readSettings().taskbarUsageVisible !== false,
+    { label: "Ver limite restante…", click: () => usageWindows?.togglePopup(tray?.getBounds()) },
+    { label: "Mostrar na barra de tarefas", type: "checkbox", checked: readSettings().taskbarUsageVisible !== false,
       click: () => usageWindows?.toggleBar() },
     { type: "separator" },
     {
-      label: "설정…",
+      label: "Configurações…",
       click: openSettingsWindow,
     },
     {
-      label: "에이전트 채팅방…",
+      label: "Sala de chat dos agentes…",
       click: openChatWindow,
     },
     {
-      label: "Live 음성 대화…",
+      label: "Conversa de voz Live…",
       click: () => liveFeature.openWindow(),
     },
     { type: "separator" },
     {
-      label: "CodePet 보이기",
+      label: "Mostrar o CodePet",
       enabled: !isPetVisible,
       click: showPetWindowFromTray,
     },
     {
-      label: "CodePet 숨기기",
+      label: "Ocultar o CodePet",
       enabled: isPetVisible,
       click: hidePetWindowToTray,
     },
     { type: "separator" },
-    { label: "계정", submenu: buildProviderAccountSubmenu() },
+    { label: "Conta", submenu: buildProviderAccountSubmenu() },
     {
-      label: "Codex 재시작 없는 전환 (프록시)",
+      label: "Troca do Codex sem reinício (proxy)",
       type: "checkbox",
       checked: isCodexProxyModeEnabled(),
       click: () => setCodexProxyMode(!isCodexProxyModeEnabled()),
     },
     {
-      label: "펫 바꾸기",
+      label: "Trocar pet",
       submenu: buildPetSelectionSubmenu(),
     },
     { type: "separator" },
     {
-      label: runtime.manualPaused ? "이동 다시 시작" : "이동 일시 정지",
+      label: runtime.manualPaused ? "Retomar o movimento" : "Pausar o movimento",
       click: toggleManualPause,
     },
     {
-      label: "모션 실행",
+      label: "Executar movimento",
       submenu: buildManualMotionSubmenu(),
     },
     {
-      label: "로그인 시 자동 실행",
+      label: "Abrir ao entrar no Windows",
       type: "checkbox",
       checked: isAutoLaunchEnabled(),
       click: toggleAutoLaunch,
     },
     { type: "separator" },
     {
-      label: "완전 종료",
+      label: "Encerrar de vez",
       click: quitApp,
     },
   ]);
@@ -2224,22 +2229,22 @@ function quitApp() {
 
 function buildManualMotionSubmenu() {
   const motions = [
-    { label: "기본 대기", click: () => playManualReaction("idle") },
-    { label: "인사", click: () => playManualReaction("waving") },
-    { label: "점프", click: () => playManualReaction("jumping") },
-    { label: "축 처짐", click: () => playManualReaction("failed") },
-    { label: "대기", click: () => playManualReaction("waiting") },
-    { label: "검토 중", click: () => playManualReaction("review") },
-    { label: "작업 중", click: () => playManualReaction("running") },
-    { label: "오른쪽 이동", click: () => playManualReaction("runningRight") },
-    { label: "왼쪽 이동", click: () => playManualReaction("runningLeft") },
+    { label: "Espera padrão", click: () => playManualReaction("idle") },
+    { label: "Acenar", click: () => playManualReaction("waving") },
+    { label: "Pular", click: () => playManualReaction("jumping") },
+    { label: "Desanimado", click: () => playManualReaction("failed") },
+    { label: "Aguardar", click: () => playManualReaction("waiting") },
+    { label: "Revisando", click: () => playManualReaction("review") },
+    { label: "Trabalhando", click: () => playManualReaction("running") },
+    { label: "Mover para a direita", click: () => playManualReaction("runningRight") },
+    { label: "Mover para a esquerda", click: () => playManualReaction("runningLeft") },
   ];
 
   if (detectPetSpriteRows() === V2_SPRITE_ROWS) {
     motions.push(
       { type: "separator" },
-      { label: "왼쪽 둘러보기", click: () => playManualReaction("lookRow10") },
-      { label: "오른쪽 둘러보기", click: () => playManualReaction("lookRow9") }
+      { label: "Olhar para a esquerda", click: () => playManualReaction("lookRow10") },
+      { label: "Olhar para a direita", click: () => playManualReaction("lookRow9") }
     );
   }
 
@@ -2555,7 +2560,7 @@ async function openCodexThread(threadId) {
   } catch (error) {
     showBubble({
       kind: "activity",
-      title: "Codex 작업 열기 실패",
+      title: "Não foi possível abrir a tarefa do Codex",
       busy: false,
       text: error.message || String(error),
     });
@@ -2594,7 +2599,7 @@ function hideBubble() {
 // 완벽한 파싱이 아니라 자주 쓰이는 기호(코드블록/백틱/볼드/헤더/링크)만 걷어냅니다.
 function stripMarkdown(text) {
   return String(text ?? "")
-    .replace(/```[\s\S]*?```/g, " [코드] ")
+    .replace(/```[\s\S]*?```/g, " [código] ")
     .replace(/`([^`]*)`/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
@@ -2613,23 +2618,23 @@ function truncateForBubble(text) {
 // window_minutes를 "5시간 한도", "주간 한도" 같은 라벨로 바꿉니다.
 // reset_at/resets_at(unix 초)을 "7/3 14:22 (3시간 12분 후 초기화)" 형태로 만듭니다.
 function formatResetInfo(resetsAtSec) {
-  if (!Number.isFinite(resetsAtSec)) return "초기화 정보 없음";
+  if (!Number.isFinite(resetsAtSec)) return "Sem informação de reinício";
 
   const resetDate = new Date(resetsAtSec * 1000);
   const diffMinutes = Math.round((resetDate.getTime() - Date.now()) / 60000);
 
   let relative;
   if (diffMinutes <= 0) {
-    relative = "곧 초기화";
+    relative = "Reinicia em breve";
   } else {
     const days = Math.floor(diffMinutes / 1440);
     const hours = Math.floor((diffMinutes % 1440) / 60);
     const minutes = diffMinutes % 60;
     const parts = [];
-    if (days > 0) parts.push(`${days}일`);
-    if (hours > 0) parts.push(`${hours}시간`);
-    if (minutes > 0 && days === 0) parts.push(`${minutes}분`);
-    relative = `${parts.join(" ") || "1분 미만"} 후 초기화`;
+    if (days > 0) parts.push(`${days} d`);
+    if (hours > 0) parts.push(`${hours} h`);
+    if (minutes > 0 && days === 0) parts.push(`${minutes} min`);
+    relative = `reinicia em ${parts.join(" ") || "menos de 1 min"}`;
   }
 
   const pad = (n) => String(n).padStart(2, "0");
@@ -2669,17 +2674,18 @@ function buildUsageBubbleData(usage) {
     const recorded = new Date(recordedAt);
     if (!Number.isNaN(recorded.getTime())) {
       const pad = (n) => String(n).padStart(2, "0");
-      footerParts.push(`${pad(recorded.getHours())}:${pad(recorded.getMinutes())} 기준`);
+      footerParts.push(`${pad(recorded.getHours())}:${pad(recorded.getMinutes())}`);
     }
   }
 
   footerParts.push(
-    account.hasAuth === false ? "계정 없음" : `${account.displayId || account.shortId || account.label}`
+    account.hasAuth === false ? "Sem conta" : `${account.displayId || account.shortId || account.label}`
   );
 
   return {
     kind: "usage",
-    title: "Codex 사용량",
+    provider: "codex",
+    title: "Uso do Codex",
     gauges,
     footer: footerParts.join(" · "),
     actions: [],
@@ -2690,9 +2696,10 @@ function buildUsageBubbleData(usage) {
 async function showUsageBubble() {
   showBubble({
     kind: "activity",
-    title: "Codex 사용량",
+    provider: "codex",
+    title: "Uso do Codex",
     busy: true,
-    text: "현재 선택된 Codex 프로필의 사용량을 조회하는 중입니다.",
+    text: "Consultando o uso do perfil do Codex selecionado.",
     actions: [],
   });
 
@@ -2705,9 +2712,10 @@ async function showUsageBubble() {
     const current = codexAccountSwitcher.getCurrentAccountSummary();
     showBubble({
       kind: "activity",
-      title: "Codex 사용량",
+      provider: "codex",
+      title: "Uso do Codex",
       busy: false,
-      text: `현재 프로필: ${current.label}\n사용량을 직접 조회하지 못했습니다.\n${error.message || String(error)}`,
+      text: `Perfil atual: ${current.label}\nNão foi possível consultar o uso diretamente.\n${error.message || String(error)}`,
       actions: [],
     });
   }
@@ -2720,7 +2728,8 @@ async function showUsageBubble() {
 // Codex 세션 이벤트를 펫 애니메이션과 말풍선에 연결합니다.
 function showCodexActivityBubble(data, context) {
   const threadId = context?.threadId;
-  if (!activeActivityBubbles.upsert(threadId, data, context)) return false;
+  const stamped = { ...data, provider: data.provider || "codex" };
+  if (!activeActivityBubbles.upsert(threadId, stamped, context)) return false;
   return showActiveActivityBubble();
 }
 
@@ -2791,10 +2800,10 @@ function registerCodexWatcher() {
       }
       showCodexActivityBubble({
         kind: "activity",
-        title: "Codex 작업 중",
+        title: "Codex trabalhando",
         busy: true,
-        text: "Codex가 작업을 시작했어요.",
-        statusText: "Codex가 작업 중입니다.",
+        text: "O Codex começou a tarefa.",
+        statusText: "O Codex está trabalhando.",
       }, context);
       return;
     }
@@ -2823,14 +2832,15 @@ function registerCodexWatcher() {
 
     const completionVisible = showWatcherActivityBubble({
       kind: "activity",
-      title: formatActivityTitle(failed ? "작업 실패" : "작업 완료", result),
+      provider: "codex",
+      title: formatActivityTitle(failed ? "Tarefa falhou" : "Tarefa concluída", result),
       busy: false,
       text: failed
-        ? "작업 중 문제가 발생했어요."
-        : truncateForBubble(result?.message) || "Codex 작업이 끝났어요.",
-      statusText: failed ? "Codex 작업 중 문제가 발생했습니다." : "Codex 작업이 완료됐습니다.",
+        ? "Houve um problema durante a tarefa."
+        : truncateForBubble(result?.message) || "A tarefa do Codex terminou.",
+      statusText: failed ? "Houve um problema na tarefa do Codex." : "A tarefa do Codex foi concluída.",
       primaryAction,
-      clickHint: primaryAction ? "클릭해서 Codex에서 열기" : null,
+      clickHint: primaryAction ? "Clique para abrir no Codex" : null,
     });
 
     if (completionVisible) {
@@ -2845,10 +2855,10 @@ function registerCodexWatcher() {
     pauseAutoMovement("codex", "review");
     showCodexActivityBubble({
       kind: "activity",
-      title: "요청 확인 중",
+      title: "Conferindo o pedido",
       busy: true,
-      text: `요청: ${truncateForBubble(message)}`,
-      statusText: "사용자 요청을 확인하고 있습니다.",
+      text: `Pedido: ${truncateForBubble(message)}`,
+      statusText: "Conferindo o pedido.",
     }, context);
   });
 
@@ -2857,10 +2867,10 @@ function registerCodexWatcher() {
     pauseAutoMovement("codex", "running");
     showCodexActivityBubble({
       kind: "activity",
-      title: "응답 작성 중",
+      title: "Escrevendo a resposta",
       busy: true,
       text: truncateForBubble(message),
-      statusText: "Codex가 응답을 작성하고 있습니다.",
+      statusText: "O Codex está escrevendo a resposta.",
     }, context);
   });
 
@@ -2873,40 +2883,40 @@ function registerCodexWatcher() {
     let statusText;
     let petState = "review";
     if (activity.kind === "patch") {
-      const prefix = activity.success ? "파일 수정" : "파일 수정 실패";
-      title = activity.success ? "파일 수정 중" : "파일 수정 실패";
+      const prefix = activity.success ? "Modificar arquivo" : "Falha ao modificar o arquivo";
+      title = activity.success ? "Modificando arquivo" : "Falha ao modificar o arquivo";
       text = `${prefix}: ${truncateForBubble(activity.files.join(", "))}`;
       statusText = activity.success
-        ? "Codex가 파일을 수정하고 있습니다."
-        : "Codex가 파일을 수정하지 못했습니다.";
+        ? "O Codex está modificando arquivos."
+        : "O Codex não conseguiu modificar o arquivo.";
       petState = activity.success ? "running" : "failed";
     } else if (activity.kind === "search") {
-      title = "자료 확인 중";
-      text = activity.query ? `웹 검색: ${truncateForBubble(activity.query)}` : "웹 검색 중";
-      statusText = "Codex가 자료를 확인하고 있습니다.";
+      title = "Conferindo referências";
+      text = activity.query ? `Pesquisa na web: ${truncateForBubble(activity.query)}` : "Pesquisando na web";
+      statusText = "O Codex está conferindo referências.";
     } else if (activity.kind === "read") {
-      title = "파일 확인 중";
-      text = activity.command ? `읽기: ${truncateForBubble(activity.command)}` : "파일을 읽고 있어요.";
-      statusText = "Codex가 파일을 확인하고 있습니다.";
+      title = "Conferindo arquivo";
+      text = activity.command ? `Leitura: ${truncateForBubble(activity.command)}` : "Lendo o arquivo.";
+      statusText = "O Codex está conferindo arquivos.";
     } else if (activity.kind === "image") {
-      title = "이미지 생성 중";
-      text = "이미지를 생성하고 있어요.";
-      statusText = "Codex가 이미지를 생성하고 있습니다.";
+      title = "Gerando imagem";
+      text = "Gerando uma imagem.";
+      statusText = "O Codex está gerando uma imagem.";
       petState = "running";
     } else if (activity.kind === "test") {
-      title = "테스트 중";
-      text = activity.command ? `테스트 실행: ${truncateForBubble(activity.command)}` : "테스트 실행 중";
-      statusText = "Codex가 테스트를 실행하고 있습니다.";
+      title = "Testando";
+      text = activity.command ? `Teste: ${truncateForBubble(activity.command)}` : "Executando testes";
+      statusText = "O Codex está executando testes.";
       petState = "running";
     } else if (activity.kind === "build") {
-      title = "빌드 중";
-      text = activity.command ? `빌드 실행: ${truncateForBubble(activity.command)}` : "빌드 실행 중";
-      statusText = "Codex가 빌드를 실행하고 있습니다.";
+      title = "Compilando";
+      text = activity.command ? `Build: ${truncateForBubble(activity.command)}` : "Executando o build";
+      statusText = "O Codex está executando o build.";
       petState = "running";
     } else if (activity.kind === "command") {
-      title = "명령 실행 중";
-      text = activity.command ? `명령 실행: ${truncateForBubble(activity.command)}` : "명령 실행 중";
-      statusText = "Codex가 명령을 실행하고 있습니다.";
+      title = "Executando comando";
+      text = activity.command ? `Comando: ${truncateForBubble(activity.command)}` : "Executando comando";
+      statusText = "O Codex está executando um comando.";
       petState = "running";
     } else {
       return;
@@ -2931,16 +2941,16 @@ function registerCodexWatcher() {
     pauseAutoMovement("codex", "waiting");
     showCodexActivityBubble({
       kind: "activity",
-      title: needsApproval ? "승인 대기" : "입력 대기",
+      title: needsApproval ? "Aguardando aprovação" : "Aguardando entrada",
       busy: true,
       text: needsApproval
-        ? "Codex가 작업 실행 승인을 기다리고 있어요."
-        : "Codex가 사용자 입력을 기다리고 있어요.",
+        ? "O Codex está esperando aprovação para executar a tarefa."
+        : "O Codex está esperando a sua entrada.",
       statusText: needsApproval
-        ? "Codex가 승인을 기다리고 있습니다."
-        : "Codex가 사용자 입력을 기다리고 있습니다.",
+        ? "O Codex está esperando aprovação."
+        : "O Codex está esperando a sua entrada.",
       primaryAction,
-      clickHint: primaryAction ? "클릭해서 Codex에서 열기" : null,
+      clickHint: primaryAction ? "Clique para abrir no Codex" : null,
     }, waiting);
   });
 
@@ -2970,9 +2980,10 @@ function maybeWarnUsage(usage) {
 
     showBubble({
       kind: "activity",
-      title: "⚠️ Codex 한도 임박",
+      provider: "codex",
+      title: "⚠️ Limite do Codex quase no fim",
       busy: false,
-      text: `${rateWindowLabel(window)}를 ${Math.round(window.used_percent)}% 사용했어요.\n${formatResetInfo(resetAtSec)}`,
+      text: `${rateWindowLabel(window)}: ${Math.round(window.used_percent)}% usado.\n${formatResetInfo(resetAtSec)}`,
     });
     bubbleHideTimer = setTimeout(() => {
       restoreActiveActivityBubble();
@@ -2990,7 +3001,7 @@ async function switchProviderAccount(provider, profileKey) {
       : provider === "grok"
         ? grokAccountSwitcher
         : null;
-  if (!switcher) throw new Error("지원하지 않는 계정 유형입니다.");
+  if (!switcher) throw new Error("Tipo de conta não suportado.");
   await switcher.switchToProfile(profileKey);
   clearUsageCache(provider);
   void usageMonitor?.invalidate();
@@ -3000,7 +3011,7 @@ async function switchProviderAccount(provider, profileKey) {
 
 function deleteProviderAccount(provider, profileKey) {
   if (typeof profileKey !== "string" || !profileKey) {
-    throw new Error("올바르지 않은 계정 키입니다.");
+    throw new Error("A chave da conta é inválida.");
   }
   const switcher = provider === "codex"
     ? codexAccountSwitcher
@@ -3011,7 +3022,7 @@ function deleteProviderAccount(provider, profileKey) {
         : provider === "grok"
           ? grokAccountSwitcher
         : null;
-  if (!switcher) throw new Error("지원하지 않는 계정 유형입니다.");
+  if (!switcher) throw new Error("Tipo de conta não suportado.");
   const deleted = switcher.deleteProfile(profileKey);
   if (provider === "codex") invalidateProxyAccountsCache();
   clearUsageCache(provider);
@@ -3073,14 +3084,14 @@ async function startProviderLogin(provider) {
     return true;
   }
 
-  throw new Error("지원하지 않는 계정 유형입니다.");
+  throw new Error("Tipo de conta não suportado.");
 }
 
 function showProviderAccountError(providerLabel, error) {
   playReaction("failed");
   showBubble({
     kind: "activity",
-    title: `${providerLabel} 계정`,
+    title: `Conta ${providerLabel}`,
     busy: false,
     text: error?.message || String(error),
   });
@@ -3091,7 +3102,7 @@ function buildSimpleProviderSubmenu(switcher, provider, providerLabel) {
   const profiles = switcher.listProfiles();
   return buildAccountSubmenu({
     profiles,
-    formatLabel: (profile) => profile.active ? `${profile.label} (현재)` : profile.label,
+    formatLabel: (profile) => profile.active ? `${profile.label} (atual)` : profile.label,
     onSwitch: (key) => switchProviderAccount(provider, key)
       .catch((error) => showProviderAccountError(providerLabel, error)),
     onLogin: () => startProviderLogin(provider)
@@ -3108,15 +3119,16 @@ function buildProviderAccountSubmenu() {
   ];
 }
 
-function registerExternalWatcher(watcher, providerLabel) {
+function registerExternalWatcher(watcher, providerLabel, provider) {
   const show = (title, text, context, state = "review") => {
     pauseAutoMovement("codex", state);
     showCodexActivityBubble({
       kind: "activity",
+      provider,
       title: `${providerLabel} ${title}`,
       busy: true,
       text: truncateForBubble(text),
-      statusText: `${providerLabel} 작업 중입니다.`,
+      statusText: `${providerLabel} está trabalhando.`,
     }, context);
   };
   watcher.on("working-changed", (working, _result, context) => {
@@ -3127,16 +3139,16 @@ function registerExternalWatcher(watcher, providerLabel) {
       }
       return;
     }
-    if (working) show("작업 중", "작업을 시작했어요.", context);
+    if (working) show("Trabalhando", "A tarefa começou.", context);
   });
-  watcher.on("user-message", (message, context) => show("요청 확인 중", `요청: ${message}`, context));
-  watcher.on("agent-message", (message, context) => show("응답 작성 중", message, context, "running"));
+  watcher.on("user-message", (message, context) => show("Conferindo o pedido", `Pedido: ${message}`, context));
+  watcher.on("agent-message", (message, context) => show("Escrevendo a resposta", message, context, "running"));
   watcher.on("tool-activity", (activity, context) => {
     const title = activity.kind === "patch"
-      ? "파일 수정 중"
+      ? "Modificando arquivo"
       : ["read", "search"].includes(activity.kind)
-        ? "자료 확인 중"
-        : "명령 실행 중";
+        ? "Conferindo referências"
+        : "Executando comando";
     const state = activity.success === false
       ? "failed"
       : ["read", "search"].includes(activity.kind)
@@ -3151,14 +3163,15 @@ function registerExternalWatcher(watcher, providerLabel) {
     playReaction(failed ? "failed" : "jumping");
     const visible = showWatcherActivityBubble({
       kind: "activity",
-      title: `${providerLabel} ${failed ? "작업 실패" : "작업 완료"}`,
+      provider,
+      title: `${providerLabel} ${failed ? "falhou" : "concluiu"}`,
       busy: false,
       text: result.message || (failed
-        ? `${providerLabel} 작업 중 문제가 발생했어요.`
-        : `${providerLabel} 작업이 끝났어요.`),
+        ? `Houve um problema na tarefa de ${providerLabel}.`
+        : `A tarefa de ${providerLabel} terminou.`),
       statusText: failed
-        ? `${providerLabel} 작업 중 문제가 발생했습니다.`
-        : `${providerLabel} 작업이 완료됐습니다.`,
+        ? `Houve um problema na tarefa de ${providerLabel}.`
+        : `A tarefa de ${providerLabel} foi concluída.`,
     });
     if (visible) bubbleHideTimer = setTimeout(restoreActiveActivityBubble, BUBBLE_CONFIG.doneAutoHideMs);
   });
@@ -3556,19 +3569,19 @@ function registerIpcHandlers() {
         succeeded = await startGrokDockerLogin();
         return succeeded
           ? { ok: true, data: await getSettingsData() }
-          : { ok: false, error: "Docker Grok 로그인 창을 열지 못했습니다." };
+          : { ok: false, error: "Não foi possível abrir a janela de login do Grok no Docker." };
       }
 
       if (["agy", "claude", "grok"].includes(input?.provider)) {
         if (action === "login") succeeded = await startProviderLogin(input.provider);
         else if (action === "switch" && typeof input.profileKey === "string") succeeded = await switchProviderAccount(input.provider, input.profileKey);
         else if (action === "delete" && typeof input.profileKey === "string") succeeded = Boolean(deleteProviderAccount(input.provider, input.profileKey));
-        else return { ok: false, error: "알 수 없는 계정 작업입니다." };
-        return succeeded ? { ok: true, data: await getSettingsData() } : { ok: false, error: "작업을 완료하지 못했습니다." };
+        else return { ok: false, error: "Operação de conta desconhecida." };
+        return succeeded ? { ok: true, data: await getSettingsData() } : { ok: false, error: "Não foi possível concluir a tarefa." };
       }
 
       if (input?.provider && input.provider !== "codex") {
-        return { ok: false, error: "지원하지 않는 계정 유형입니다." };
+        return { ok: false, error: "Tipo de conta não suportado." };
       }
 
       if (action === "login") {
@@ -3578,13 +3591,13 @@ function registerIpcHandlers() {
       } else if (action === "delete" && typeof input.profileKey === "string") {
         succeeded = Boolean(deleteProviderAccount("codex", input.profileKey));
       } else {
-        return { ok: false, error: "알 수 없는 계정 작업입니다." };
+        return { ok: false, error: "Operação de conta desconhecida." };
       }
 
       if (!succeeded) {
         return {
           ok: false,
-          error: "작업을 완료하지 못했습니다. 펫 말풍선의 안내를 확인해 주세요.",
+          error: "A tarefa não foi concluída. Veja o aviso no balão do pet.",
         };
       }
       return { ok: true, data: await getSettingsData() };
@@ -3621,7 +3634,7 @@ function registerIpcHandlers() {
 if (!relaunchingForX11) app.whenReady().then(() => {
   if (process.env.CODEPET_UPDATE_FAILED === "1") {
     delete process.env.CODEPET_UPDATE_FAILED;
-    dialog.showErrorBox("업데이트 실패", "새 버전을 시작하지 못해 기존 버전으로 복구했습니다. 잠시 후 다시 시도해 주세요.");
+    dialog.showErrorBox("Falha na atualização", "A versão nova não iniciou e a anterior foi restaurada. Tente de novo daqui a pouco.");
   }
   // macOS에서는 데스크톱 펫이 Dock에 남아 있을 이유가 없어 메뉴바(트레이)로만 동작하게 합니다.
   if (process.platform === "darwin" && app.dock) {
@@ -3630,9 +3643,9 @@ if (!relaunchingForX11) app.whenReady().then(() => {
   restoreMovementPreferences();
   registerIpcHandlers();
   registerCodexWatcher();
-  registerExternalWatcher(antigravityWatcher, "AGY");
-  registerExternalWatcher(claudeWatcher, "Claude");
-  registerExternalWatcher(grokWatcher, "Grok");
+  registerExternalWatcher(antigravityWatcher, "AGY", "agy");
+  registerExternalWatcher(claudeWatcher, "Claude", "claude");
+  registerExternalWatcher(grokWatcher, "Grok", "grok");
   createTray();
   usageMonitor = new UsageMonitor([
     { id: "codex", label: "Codex", load: async () => {
@@ -3640,7 +3653,7 @@ if (!relaunchingForX11) app.whenReady().then(() => {
       const usage = await loadCodexUsage();
       const current = codexAccountSwitcher.getCurrentAccountSummary();
       if (before.accountId !== current.accountId || before.email !== current.email) {
-        return { usage: { gauges: [], error: "계정이 변경됐습니다. 새로고침해 주세요." }, accounts: [] };
+        return { usage: { gauges: [], error: "A conta mudou. Atualize." }, accounts: [] };
       }
       return { usage, accounts: current.hasAuth ? [{ key: current.key || current.accountId || current.email || "current",
         active: true, hasAuth: true, email: current.email, label: current.label, plan: current.planType }] : [] };
@@ -3759,7 +3772,7 @@ async function loadCodexUsage() {
     const data = buildUsageBubbleData(await codexAccountSwitcher.fetchCurrentUsage());
     return { id: "codex", label: "Codex", gauges: data.gauges };
   } catch {
-    return { id: "codex", label: "Codex", error: "조회 불가", gauges: [] };
+    return { id: "codex", label: "Codex", error: "Consulta indisponível", gauges: [] };
   }
 }
 
@@ -3767,11 +3780,11 @@ async function loadAntigravityProvider(forceUsage) {
   let credential;
   try {
     credential = await antigravityAccountSwitcher.read();
-    if (!credential?.token?.access_token) throw new Error("로그인 필요");
+    if (!credential?.token?.access_token) throw new Error("Login necessário");
   } catch {
     return {
       accounts: antigravityAccountSwitcher.listProfiles(),
-      usage: { id: "agy", label: "AGY", error: "로그인 필요", gauges: [] },
+      usage: { id: "agy", label: "AGY", error: "Login necessário", gauges: [] },
     };
   }
 
@@ -3802,7 +3815,7 @@ async function loadAntigravityProvider(forceUsage) {
       // 로그인 정보 자체가 없으면 저장할 프로필도 없습니다.
     }
     usage = { id: "agy", label: "AGY", error: error.status === 401 || error.status === 400
-      ? "AGY 재로그인 필요" : "조회 불가", gauges: [] };
+      ? "O AGY precisa de um novo login" : "Consulta indisponível", gauges: [] };
   }
   return { accounts: antigravityAccountSwitcher.listProfiles(), usage };
 }
@@ -3822,7 +3835,7 @@ async function loadClaudeProvider(forceUsage) {
   } catch {
     return {
       accounts: claudeAccountSwitcher.listProfiles(),
-      usage: { id: "claude", label: "Claude", error: "로그인 필요", gauges: [] },
+      usage: { id: "claude", label: "Claude", error: "Login necessário", gauges: [] },
     };
   }
 
@@ -3836,7 +3849,7 @@ async function loadClaudeProvider(forceUsage) {
     });
     usage = { id: "claude", label: "Claude", gauges: data.gauges };
   } catch {
-    usage = { id: "claude", label: "Claude", error: "조회 불가", gauges: [] };
+    usage = { id: "claude", label: "Claude", error: "Consulta indisponível", gauges: [] };
   }
   return { accounts: claudeAccountSwitcher.listProfiles(), usage };
 }
@@ -3851,7 +3864,7 @@ async function loadGrokProvider() {
       setupReady: false,
       authenticated: false,
       loginMode: process.platform === "win32" ? "interactive" : "host-sync",
-      reason: error?.message || "Docker Grok 상태를 확인하지 못했습니다.",
+      reason: error?.message || "Não foi possível verificar o estado do Grok no Docker.",
     };
   }
   let status;
@@ -3860,7 +3873,7 @@ async function loadGrokProvider() {
   } catch {
     return {
       accounts: grokAccountSwitcher.listProfiles(),
-      usage: { id: "grok", label: "Grok", error: "CLI 설치 또는 상태 확인 필요", gauges: [] },
+      usage: { id: "grok", label: "Grok", error: "É preciso instalar a CLI ou confirmar o estado", gauges: [] },
       dockerRead,
     };
   }
@@ -3884,19 +3897,19 @@ async function loadGrokProvider() {
   if (status.authStatus === "authenticated" && !accounts.some((account) => account.active)) {
     accounts = [{
       key: "grok-live",
-      label: "Grok 환경 인증",
+      label: "Autenticação do ambiente Grok",
       active: true,
       email: null,
-      plan: usageData?.plan || "외부 인증",
+      plan: usageData?.plan || "Autenticação externa",
       hasAuth: true,
     }, ...accounts];
   }
 
   const usageError = status.authStatus === "authenticated"
-    ? "Grok 한도 조회 불가"
+    ? "Limite do Grok indisponível"
     : status.authStatus === "unauthenticated"
-      ? "로그인 필요"
-      : "로그인 상태 확인 불가";
+      ? "Login necessário"
+      : "Não foi possível confirmar o login";
   return {
     accounts,
     dockerRead,
@@ -3907,6 +3920,11 @@ async function loadGrokProvider() {
 }
 
 async function getSettingsData({ forceUsage = false } = {}) {
+  importNexusAccounts({
+    codex: codexAccountSwitcher,
+    claude: claudeAccountSwitcher,
+    grok: grokAccountSwitcher,
+  });
   const settings = readSettings();
   const pets = listAvailablePets();
   const [codexUsage, agy, claude, grok] = await Promise.all([
@@ -3951,7 +3969,7 @@ function openSettingsWindow(section = "general") {
     minHeight: 500,
     show: false,
     frame: false,
-    title: "CodePet 설정",
+    title: "Configurações do CodePet",
     backgroundColor: "#fafafa",
     autoHideMenuBar: true,
     webPreferences: {

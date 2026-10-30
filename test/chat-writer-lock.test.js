@@ -21,7 +21,7 @@ for (const owner of [
     const before = JSON.stringify(owner); fs.writeFileSync(file, before);
     let probes = 0;
     t.mock.method(process, 'kill', () => { probes++; throw Object.assign(new Error('not local'), { code: 'ESRCH' }); });
-    assert.throws(() => acquireWriter(dir), /소유 호스트/);
+    assert.throws(() => acquireWriter(dir), /host dono do writer/);
     assert.equal(probes, 0);
     assert.equal(fs.readFileSync(file, 'utf8'), before);
     assert.deepEqual(fs.readdirSync(dir), ['.writer-lock']);
@@ -45,7 +45,7 @@ for (const code of ['ENOTSUP', 'EPERM']) {
   test('unsupported hardlinks fail closed without changing stored data: ' + code, t => {
     const dir = root(t); fs.writeFileSync(path.join(dir, 'sentinel'), 'unchanged');
     t.mock.method(fs, 'linkSync', () => { throw Object.assign(new Error('fixture'), { code }); });
-    assert.throws(() => new ChatStore({ root: dir }).init(), error => /하드 링크/.test(error.message) && error.cause.code === code);
+    assert.throws(() => new ChatStore({ root: dir }).init(), error => /hard links/.test(error.message) && error.cause.code === code);
     assert.deepEqual(fs.readdirSync(dir), ['sentinel']);
     assert.equal(fs.readFileSync(path.join(dir, 'sentinel'), 'utf8'), 'unchanged');
   });

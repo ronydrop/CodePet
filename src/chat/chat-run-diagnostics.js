@@ -1,6 +1,6 @@
 // 에이전트 실행 실패 기록에서 민감정보를 제거하고 기록 길이를 제한한다.
 
-const TRUNCATION_MARKER = "…(잘림)";
+const TRUNCATION_MARKER = "…(cortado)";
 
 // curl의 -b·--cookie 값을 가린다. curl이 명령의 첫 단어가 아니어도(timeout 10 curl, xargs curl,
 // if curl, JSON에 담긴 "bash -lc 'curl …'") 같은 명령 구간에서 curl 뒤에 오면 가리되, 셸처럼

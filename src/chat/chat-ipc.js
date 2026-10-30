@@ -76,20 +76,20 @@ function attachmentContextLines({ attachments, deliveries, attachmentsDir }) {
         limit: INLINE_TEXT_LIMIT,
       });
       if (text !== null) {
-        lines.push(`=== 첨부 파일: ${attachment.name} ===`);
+        lines.push(`=== Anexo: ${attachment.name} ===`);
         lines.push(text);
-        lines.push("=== 첨부 끝 ===");
+        lines.push("=== Fim do anexo ===");
       } else {
         delivery.method = "unsupported";
       }
     } else if (delivery.method === "path") {
       lines.push(
-        `첨부 파일 "${attachment.name}" 경로: ${path.join(attachmentsDir, attachment.fileName)} (읽기 도구로 열 수 있습니다)`
+        `Arquivo anexado "${attachment.name}": ${path.join(attachmentsDir, attachment.fileName)} (dá para abrir com a ferramenta de leitura)`
       );
     } else if (delivery.method === "native-image") {
-      lines.push(`(이미지 "${attachment.name}"가 함께 전달되었습니다.)`);
+      lines.push(`(A imagem "${attachment.name}" foi enviada junto.)`);
     } else if (delivery.method === "unsupported") {
-      lines.push(`(첨부 "${attachment.name}"는 이 에이전트로 전달할 수 없었습니다.)`);
+      lines.push(`(O anexo "${attachment.name}" não pôde ser enviado a este agente.)`);
     }
   }
   return lines;
@@ -106,7 +106,7 @@ function resolveAgentExecution({
   grokDockerRuntime,
 }) {
   if (agentId === "grok" && permissionMode === "workspace-read") {
-    if (!grokDockerRuntime) throw new Error("Grok Docker 실행기가 준비되지 않았습니다.");
+    if (!grokDockerRuntime) throw new Error("O executor Docker do Grok não está pronto.");
     return grokDockerRuntime.buildReadExecution({
       workspace,
       grokArgv: invocation.argv,
@@ -115,7 +115,7 @@ function resolveAgentExecution({
     });
   }
   if (agentId === "grok" && permissionMode === "workspace-write") {
-    if (!grokDockerRuntime) throw new Error("Grok Docker 실행기가 준비되지 않았습니다.");
+    if (!grokDockerRuntime) throw new Error("O executor Docker do Grok não está pronto.");
     return grokDockerRuntime.buildWriteExecution({ workspace, grokArgv: invocation.argv, runId, cwd: chatCwd });
   }
   return {
@@ -167,7 +167,7 @@ function createChatFeature(options) {
     const profile = service.list().find((entry) => entry.key === config.profileKey);
     return {
       ...service.record(config.profileKey, provider), id, providerId: config.providerId,
-      name: `${provider.name} ${id.slice(config.providerId.length + 1)}`, aliases: [id], accountLabel: profile?.label || "계정 없음",
+      name: `${provider.name} ${id.slice(config.providerId.length + 1)}`, aliases: [id], accountLabel: profile?.label || "Sem conta",
     };
   }
 
@@ -207,7 +207,7 @@ function createChatFeature(options) {
       if (!store.readOnly) traceStore = new ChatTraceStore({ root: store.root, hasSession: (id) => store.hasSession(id) });
     } catch (error) {
       storeError = error?.message || String(error);
-      console.warn("[code-pet] 채팅 저장소 초기화 실패:", storeError);
+      console.warn("[code-pet] falha ao iniciar o armazenamento do chat:", storeError);
     }
     return store;
   }
@@ -240,7 +240,7 @@ function createChatFeature(options) {
         refreshRoomAgents(sessionId);
       }
     }).catch((error) => {
-      console.warn("[code-pet] CLI 탐지 실패:", error?.message || String(error));
+      console.warn("[code-pet] falha ao detectar a CLI:", error?.message || String(error));
     }).finally(() => {
       providerRefresh = null;
       if (shuttingDown) return;
@@ -337,7 +337,7 @@ function createChatFeature(options) {
       const providerId = agent.providerId || agent.id;
       if (!record || !meta) {
         return {
-          promise: Promise.resolve({ ok: false, error: "세션 정보를 읽지 못했습니다." }),
+          promise: Promise.resolve({ ok: false, error: "Não foi possível ler os dados da sessão." }),
           cancel: () => {},
         };
       }
@@ -424,7 +424,7 @@ function createChatFeature(options) {
             const messages = readMessageRange(store.transcriptPath(sessionId), {
               afterId: native.lastMessageId, throughId, agentId: agent.id,
             });
-            if (messages === null) throw new Error("CLI 세션의 대화 연결 위치를 찾지 못했습니다.");
+            if (messages === null) throw new Error("Não foi possível achar onde a sessão da CLI continua a conversa.");
             processPrompt = [buildAgentPrompt({ ...promptContext, messages, maxMessages: Infinity, continued: true }),
               ...extraLines, traceContext].filter(Boolean).join("\n");
           }
@@ -502,7 +502,7 @@ function createChatFeature(options) {
           let workspaceChangeSet = null;
           if (providerId === "grok" && permissionMode === "workspace-write") {
             if (!result.workspaceChangeManifest) {
-              throw new Error("Grok이 검증 가능한 변경 세트를 만들지 못했습니다.");
+              throw new Error("O Grok não produziu um conjunto de alterações verificável.");
             }
             workspaceChangeSet = grokDockerRuntime.stageWriteChangeSet({
               sessionId,
@@ -595,7 +595,7 @@ function createChatFeature(options) {
     });
     room.on("agents", (agents) => broadcast("chat:agents", { sessionId, agents }));
     room.on("approval-request", (payload) => {
-      notifyChat(sessionId, payload.agentId, "waiting", "작업 승인을 기다리고 있습니다.");
+      notifyChat(sessionId, payload.agentId, "waiting", "Esperando a aprovação da tarefa.");
       broadcast("chat:approval-request", { sessionId, ...payload });
     });
     room.on("busy", (busy) => {
@@ -673,8 +673,8 @@ function createChatFeature(options) {
   }
 
   function requireSession(sessionId) {
-    if (!ensureStore()) throw new Error(storeError || "저장소를 사용할 수 없습니다.");
-    if (!sessionId || !store.hasSession(sessionId)) throw new Error("세션을 찾을 수 없습니다.");
+    if (!ensureStore()) throw new Error(storeError || "O armazenamento não está disponível.");
+    if (!sessionId || !store.hasSession(sessionId)) throw new Error("A sessão não foi encontrada.");
   }
 
   function wrap(handler) {
@@ -714,7 +714,7 @@ function createChatFeature(options) {
         const allowedUrls = new Set(
           ensureCapabilityService().defs.map((def) => def.installUrl).filter(Boolean)
         );
-        if (!allowedUrls.has(url)) throw new Error("허용되지 않은 외부 주소입니다.");
+        if (!allowedUrls.has(url)) throw new Error("Endereço externo não permitido.");
         await shell.openExternal(url);
         return {};
       })
@@ -723,7 +723,7 @@ function createChatFeature(options) {
     ipcMain.handle(
       "chat:sessions:create",
       wrap(async () => {
-        if (!ensureStore()) throw new Error(storeError || "저장소를 사용할 수 없습니다.");
+        if (!ensureStore()) throw new Error(storeError || "O armazenamento não está disponível.");
         const meta = store.createSession({});
         setActiveSessionId(meta.id);
         refreshProvidersInBackground();
@@ -764,7 +764,7 @@ function createChatFeature(options) {
       "chat:sessions:delete",
       wrap(async ({ sessionId }) => {
         requireSession(sessionId);
-        if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("읽기 전용 저장소입니다.");
+        if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("O armazenamento é somente leitura.");
         const room = rooms.get(sessionId);
         if (room) {
           room.stopAllSilently();
@@ -789,9 +789,9 @@ function createChatFeature(options) {
         requireSession(sessionId);
         const meta = store.readMeta(sessionId);
         const saveOptions = {
-          title: "채팅 세션 내보내기",
+          title: "Exportar sessão de chat",
           defaultPath: safeExportFileName(meta?.title),
-          buttonLabel: "내보내기",
+          buttonLabel: "Exportar",
           filters: [{ name: "Markdown", extensions: ["md"] }],
           properties: ["createDirectory", "showOverwriteConfirmation"],
         };
@@ -802,7 +802,7 @@ function createChatFeature(options) {
         if (result.canceled || !result.filePath) return { canceled: true };
 
         const session = store.getSession(sessionId);
-        if (!session) throw new Error("세션을 찾을 수 없습니다.");
+        if (!session) throw new Error("A sessão não foi encontrada.");
         const markdown = formatSessionMarkdown(session.meta, session.messages);
         await fs.promises.writeFile(result.filePath, markdown, "utf8");
         return { canceled: false, fileName: path.basename(result.filePath) };
@@ -824,7 +824,7 @@ function createChatFeature(options) {
           }
         }
         const entry = room.sendUserMessage({ text, attachments, replyTo });
-        if (!entry) throw new Error("보낼 내용이 없습니다.");
+        if (!entry) throw new Error("Não há conteúdo para enviar.");
         return {};
       })
     );
@@ -851,7 +851,7 @@ function createChatFeature(options) {
       wrap(async ({ sessionId, turnId }) => {
         requireSession(sessionId);
         if (!getRoom(sessionId).cancelTurn(String(turnId || ""))) {
-          throw new Error("이미 시작되었거나 존재하지 않는 턴입니다.");
+          throw new Error("Este turno já começou ou não existe.");
         }
         return {};
       })
@@ -882,7 +882,7 @@ function createChatFeature(options) {
       wrap(async ({ sessionId, approvalId, decision }) => {
         requireSession(sessionId);
         if (!getRoom(sessionId)?.resolveApproval(approvalId, decision)) {
-          throw new Error("이미 처리되었거나 존재하지 않는 권한 요청입니다.");
+          throw new Error("Este pedido de permissão já foi tratado ou não existe.");
         }
         return {};
       })
@@ -895,15 +895,15 @@ function createChatFeature(options) {
         // 워크스페이스 경로의 유일한 출처: OS 폴더 선택 대화상자.
         const result = await dialog.showOpenDialog(chatWindow || undefined, {
           properties: ["openDirectory"],
-          title: "세션 워크스페이스 선택",
+          title: "Escolher o workspace da sessão",
         });
         if (result.canceled || !result.filePaths?.[0]) return { canceled: true };
         let workspace = result.filePaths[0];
         try {
           workspace = fs.realpathSync(workspace);
-          if (!fs.statSync(workspace).isDirectory()) throw new Error("폴더가 아닙니다.");
+          if (!fs.statSync(workspace).isDirectory()) throw new Error("Não é uma pasta.");
         } catch {
-          throw new Error("선택한 폴더를 확인할 수 없습니다.");
+          throw new Error("Não foi possível confirmar a pasta escolhida.");
         }
         grokDockerRuntime.discardSessionChanges(sessionId);
         store.updateMeta(sessionId, { workspace });
@@ -928,10 +928,10 @@ function createChatFeature(options) {
       "chat:permission:set",
       wrap(async ({ sessionId, mode }) => {
         requireSession(sessionId);
-        if (!PERMISSION_MODES.includes(mode)) throw new Error("알 수 없는 권한 모드입니다.");
+        if (!PERMISSION_MODES.includes(mode)) throw new Error("Modo de permissão desconhecido.");
         const meta = store.readMeta(sessionId);
         if (mode !== "chat" && !meta.workspace) {
-          throw new Error("먼저 워크스페이스 폴더를 선택해 주세요.");
+          throw new Error("Escolha primeiro a pasta do workspace.");
         }
         store.updateMeta(sessionId, { permissionMode: mode });
         refreshRoomAgents(sessionId);
@@ -944,9 +944,9 @@ function createChatFeature(options) {
       wrap(async ({ sessionId, agentId, patch }) => {
         requireSession(sessionId);
         const meta = store.readMeta(sessionId);
-        if (store.readOnly || meta.readOnly) throw new Error("읽기 전용 저장소입니다.");
+        if (store.readOnly || meta.readOnly) throw new Error("O armazenamento é somente leitura.");
         const record = participantRecord(meta, agentId);
-        if (!record) throw new Error("알 수 없는 에이전트입니다.");
+        if (!record) throw new Error("Agente desconhecido.");
         const current = meta.agents?.[agentId] || {};
         const next = { ...current };
         Object.assign(next, identityPatch(patch, agentId, buildRoomAgents(meta)));
@@ -959,10 +959,10 @@ function createChatFeature(options) {
         }
         if (typeof patch?.autoApprove === "boolean") {
           if (patch.autoApprove && (store.readMeta(sessionId)?.agents?.[agentId]?.providerId || agentId) === "grok") {
-            throw new Error("Grok 변경은 Docker 복제본 검토 승인을 생략할 수 없습니다.");
+            throw new Error("Alterações do Grok não podem pular a aprovação da revisão da cópia Docker.");
           }
           if (patch.autoApprove && meta.permissionMode !== "workspace-write") {
-            throw new Error("자동 승인은 워크스페이스 쓰기 권한에서만 켤 수 있습니다.");
+            throw new Error("A aprovação automática só pode ser ligada com permissão de escrita no workspace.");
           }
           next.autoApprove = patch.autoApprove;
         }
@@ -997,19 +997,19 @@ function createChatFeature(options) {
 
     ipcMain.handle("chat:agent:add", wrap(async ({ sessionId, profileKey, name, providerId = "codex" }) => {
       requireSession(sessionId);
-      if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("읽기 전용 저장소입니다.");
+      if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("O armazenamento é somente leitura.");
       const service = accountService(providerId);
-      if (!service?.list().some((profile) => profile.key === profileKey)) throw new Error("저장된 계정을 선택해 주세요.");
+      if (!service?.list().some((profile) => profile.key === profileKey)) throw new Error("Escolha uma conta salva.");
       const duplicate = (config) => config.profileKey === profileKey && config.providerId === providerId;
       const meta = store.readMeta(sessionId);
-      if (Object.values(meta.agents || {}).some(duplicate)) throw new Error("이 계정은 이미 참여 중입니다.");
+      if (Object.values(meta.agents || {}).some(duplicate)) throw new Error("Esta conta já está na sessão.");
       await ensureCapabilityService().discover();
       const record = await service.discover(profileKey, ensureCapabilityService().getRecord(providerId));
       if (record.catalogStatus !== "ready") throw new Error(record.reason || record.catalogReason);
       // Re-read after async discovery to preserve other configuration edits.
       const latest = store.readMeta(sessionId);
-      if (!latest || latest.readOnly) throw new Error("세션을 수정할 수 없습니다.");
-      if (Object.values(latest.agents || {}).some(duplicate)) throw new Error("이 계정은 이미 참여 중입니다.");
+      if (!latest || latest.readOnly) throw new Error("Não é possível editar a sessão.");
+      if (Object.values(latest.agents || {}).some(duplicate)) throw new Error("Esta conta já está na sessão.");
       let index = Math.max(2, Number(latest.nextAccountAgentIndex?.[providerId]) || 2,
         providerId === "codex" ? Number(latest.nextCodexAgentIndex) || 2 : 2);
       const occupiedAliases = new Set(buildRoomAgents(latest).flatMap((agent) => agent.aliases.map(aliasKey)));
@@ -1025,11 +1025,11 @@ function createChatFeature(options) {
 
     ipcMain.handle("chat:agent:remove", wrap(async ({ sessionId, agentId }) => {
       requireSession(sessionId);
-      if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("읽기 전용 저장소입니다.");
+      if (store.readOnly || store.readMeta(sessionId)?.readOnly) throw new Error("O armazenamento é somente leitura.");
       const meta = store.readMeta(sessionId);
-      if (!meta.agents?.[agentId]?.profileKey) throw new Error("추가한 계정 참가자만 삭제할 수 있습니다.");
+      if (!meta.agents?.[agentId]?.profileKey) throw new Error("Só é possível remover um participante que foi adicionado por conta.");
       const room = getRoom(sessionId);
-      if (room.turnActive || room.discussionRequested) throw new Error("진행 중인 작업을 마치거나 중지한 후 삭제해 주세요.");
+      if (room.turnActive || room.discussionRequested) throw new Error("Termine ou pare a tarefa em andamento antes de excluir.");
       const next = { ...meta.agents };
       delete next[agentId];
       store.updateMeta(sessionId, { agents: next });
@@ -1043,7 +1043,7 @@ function createChatFeature(options) {
         requireSession(sessionId);
         const result = await dialog.showOpenDialog(chatWindow || undefined, {
           properties: ["openFile", "multiSelections"],
-          title: "첨부할 파일 선택",
+          title: "Escolher arquivos para anexar",
         });
         if (result.canceled) return { attachments: [], errors: [] };
         return importPaths(sessionId, result.filePaths || []);
@@ -1066,7 +1066,7 @@ function createChatFeature(options) {
       wrap(async ({ sessionId, approvalId }) => {
         requireSession(sessionId);
         if (store.readOnly || store.readMeta(sessionId)?.readOnly) {
-          throw new Error("읽기 전용 세션에서는 변경을 적용할 수 없습니다.");
+          throw new Error("Não é possível aplicar alterações em uma sessão somente leitura.");
         }
         return grokDockerRuntime.applyWorkspaceChanges(String(approvalId || ""), sessionId);
       })
@@ -1101,7 +1101,7 @@ function createChatFeature(options) {
       wrap(async ({ sessionId, attachmentId }) => {
         requireSession(sessionId);
         const record = findAttachmentRecord(sessionId, String(attachmentId || ""));
-        if (!record || !record.fileName) throw new Error("첨부를 찾을 수 없습니다.");
+        if (!record || !record.fileName) throw new Error("O anexo não foi encontrado.");
         const preview = readImagePreview({
           attachmentsDir: store.attachmentsDir(sessionId),
           fileName: record.fileName,
@@ -1162,7 +1162,7 @@ function createChatFeature(options) {
     for (const [index, image] of images.entries()) {
       const name = typeof image?.name === "string" && image.name.trim()
         ? image.name.slice(0, 160)
-        : `붙여넣은-이미지-${index + 1}.png`;
+        : `imagem-colada-${index + 1}.png`;
       const result = importAttachmentBuffer({
         name,
         data: image?.data,

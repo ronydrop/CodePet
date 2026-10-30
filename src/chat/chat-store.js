@@ -8,7 +8,7 @@ const { readMessagePage, repairAppendBoundary } = require("./chat-history");
 const STORE_SCHEMA_VERSION = 1;
 const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const AUTO_TITLE_MAX_LENGTH = 30;
-const DEFAULT_SESSION_TITLE = "새 채팅";
+const DEFAULT_SESSION_TITLE = "Novo chat";
 const SEARCH_RESULT_LIMIT = 50;
 const SEARCH_RESULTS_PER_SESSION = 3;
 const SEARCH_CONTEXT_LENGTH = 40;
@@ -301,7 +301,7 @@ class ChatStore {
   }
 
   createSession(input = {}) {
-    if (this.readOnly) throw new Error("저장소가 읽기 전용 상태입니다.");
+    if (this.readOnly) throw new Error("O armazenamento está somente leitura.");
     const now = this.now();
     const id = newSessionId(now);
     const meta = {
@@ -416,7 +416,7 @@ class ChatStore {
           ts: this.now(),
           authorType: "system",
           author: "system",
-          text: "이전 실행이 앱 종료로 중단되었습니다.",
+          text: "A execução anterior foi interrompida porque o aplicativo fechou.",
         },
       });
       this.updateMeta(entry.id, { status: "interrupted" });

@@ -53,7 +53,7 @@ class GrokAccountSwitcher {
     const live = this.current();
     const credential = grokCredential(live);
     if (!credential?.refresh_token) {
-      throw new Error("Grok 로그인 정보를 찾지 못했습니다.");
+      throw new Error("Não encontrei o login do Grok.");
     }
     return this.store.save({
       secret: live,
@@ -65,15 +65,15 @@ class GrokAccountSwitcher {
 
   deleteProfile(key) {
     const profile = this.listProfiles().find((item) => item.key === key);
-    if (!profile) throw new Error("저장된 Grok 계정을 찾지 못했습니다.");
-    if (profile.active) throw new Error("현재 사용 중인 계정은 삭제할 수 없습니다.");
+    if (!profile) throw new Error("Não encontrei a conta salva do Grok.");
+    if (profile.active) throw new Error("A conta em uso não pode ser excluída.");
     return this.store.delete(key);
   }
 
   switchToProfile(key) {
     const profile = this.store.get(key);
     if (!grokCredential(profile?.secret)?.refresh_token) {
-      throw new Error("저장된 Grok 계정을 찾지 못했습니다.");
+      throw new Error("Não encontrei a conta salva do Grok.");
     }
     try {
       this.snapshotCurrent();

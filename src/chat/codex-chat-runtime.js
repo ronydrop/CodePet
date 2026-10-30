@@ -36,7 +36,7 @@ class CodexChatRuntime {
     const names = new Set(["config.toml", "managed_config.toml", "requirements.toml", "AGENTS.md", "AGENTS.override.md", "hooks.json",
       ...entries(source).filter(entry => entry.isFile() && entry.name.endsWith(".config.toml")).map(entry => entry.name)]);
     for (const name of new Set([...names, ...oldNames])) {
-      if (path.basename(name) !== name) throw new Error("잘못된 Codex 설정 파일 경로입니다.");
+      if (path.basename(name) !== name) throw new Error("O caminho do arquivo de configuração do Codex é inválido.");
       const next = names.has(name) ? optional(path.join(source, name)) : null;
       const target = path.join(home, name);
       if (next === null) fs.rmSync(target, { force: true });
@@ -106,18 +106,18 @@ function findRollout(home, id) {
 }
 
 function migrateRollout(sourceHome, home, id) {
-  if (!UUID.test(id)) throw new Error("CLI 세션 ID가 올바르지 않습니다.");
+  if (!UUID.test(id)) throw new Error("O ID da sessão da CLI é inválido.");
   if (findRollout(home, id)) return;
   const source = findRollout(sourceHome, id);
-  if (!source) throw new Error("기존 Codex 대화 기록을 찾지 못해 전용 저장소로 옮기지 못했습니다. 원본 기록을 확인해 주세요.");
+  if (!source) throw new Error("Não encontrei o histórico do Codex para mover ao armazenamento dedicado. Confira o registro original.");
   // Snapshot complete records only; the original may still be open in Desktop.
   const raw = fs.readFileSync(source);
   const end = raw.lastIndexOf(10);
   const snapshot = raw.subarray(0, end + 1);
   const first = JSON.parse(snapshot.subarray(0, snapshot.indexOf(10)).toString("utf8"));
-  if (first.type !== "session_meta" || first.payload?.id !== id) throw new Error("기존 Codex 세션 기록의 ID가 일치하지 않습니다.");
+  if (first.type !== "session_meta" || first.payload?.id !== id) throw new Error("O ID do histórico da sessão do Codex não confere.");
   const date = path.basename(source).match(/^rollout-(\d{4})-(\d{2})-(\d{2})/);
-  if (!date) throw new Error("기존 Codex 대화 기록의 날짜 경로가 올바르지 않습니다.");
+  if (!date) throw new Error("O caminho de data do histórico do Codex está incorreto.");
   const target = path.join(home, "sessions", ...date.slice(1), path.basename(source));
   fs.mkdirSync(path.dirname(target), { recursive: true });
   const temporary = `${target}.${randomUUID()}.tmp`;

@@ -42,7 +42,7 @@ test("native links survive restart, isolate participants/rooms/scopes, and rejec
     assert.equal(changed.cliSessionId, null, key);
     assert.equal(changed.lastMessageId, null, key);
   }
-  assert.throws(() => reopened.observe(randomUUID()), /이어받지/);
+  assert.throws(() => reopened.observe(randomUUID()), /não continuou a sessão/);
   const before = fs.readFileSync(path.join(store.sessionDir(room), "native-sessions.json"), "utf8");
   store.readOnly = true;
   new NativeSessionLink(store, room, "codex", scope).observe(id);
@@ -75,7 +75,7 @@ test("deleted chats cannot be recreated by late session callbacks; corrupt curso
   assert.equal(fs.existsSync(store.sessionDir(room)), false);
   const other = store.createSession({}).id;
   fs.writeFileSync(path.join(store.sessionDir(other), "native-sessions.json"), "[]");
-  assert.throws(() => new NativeSessionLink(store, other, "codex", {}), /읽지 못했습니다/);
+  assert.throws(() => new NativeSessionLink(store, other, "codex", {}), /Não foi possível ler/);
 });
 
 async function setup(t, providerId, behavior) {
@@ -168,7 +168,7 @@ test("trace lookup follow-ups reuse the current native session without repeating
   assert.ok(!(await send("original-task-marker")).error);
   assert.equal(calls.length, 2);
   assert.ok(calls[1].argv.includes("resume"));
-  assert.match(calls[1].prompt, /작업 기록 조회/);
+  assert.match(calls[1].prompt, /Consulta ao histórico/);
   assert.doesNotMatch(calls[1].prompt, /original-task-marker/);
 });
 

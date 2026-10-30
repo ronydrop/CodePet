@@ -108,7 +108,7 @@ function applyAppearance(appearance, fontFamily = appearance?.fontFamily || "") 
 
 function showError(message) {
   clearTimeout(toastTimer);
-  toastElement.textContent = String(message || "오류가 발생했습니다.");
+  toastElement.textContent = String(message || "Ocorreu um erro.");
   toastElement.hidden = false;
   toastTimer = setTimeout(() => {
     toastElement.hidden = true;
@@ -120,7 +120,7 @@ function responseError(response, fallback) {
   return response?.error || fallback;
 }
 
-function setButtonBusy(button, busy, busyLabel = "처리 중…") {
+function setButtonBusy(button, busy, busyLabel = "Processando…") {
   if (!button) return;
   if (busy) {
     button.dataset.label = button.textContent;
@@ -164,7 +164,7 @@ function resolveInstalledFontFamily(fontFamily) {
 }
 
 function updateFontPreview() {
-  $("#font-preview-name").textContent = selectedFont || "시스템 기본";
+  $("#font-preview-name").textContent = selectedFont || "Padrão do sistema";
   fontSizeInput.value = String(selectedFontSize);
   fontSizeValue.value = `${selectedFontSize}px`;
   applyAppearance({ ...(state?.appearance || {}), fontSize: selectedFontSize }, selectedFont);
@@ -182,14 +182,14 @@ function renderFonts() {
   const filteredFonts = query
     ? installedFonts.filter((font) => font.toLocaleLowerCase("ko").includes(query))
     : installedFonts;
-  const options = [createFontOption("시스템 기본", "")];
+  const options = [createFontOption("Padrão do sistema", "")];
 
   if (selectedFont && !filteredFonts.includes(selectedFont)) {
-    options.push(createFontOption(`${selectedFont} · 현재`, selectedFont));
+    options.push(createFontOption(`${selectedFont} · atual`, selectedFont));
   }
   options.push(...filteredFonts.map((font) => createFontOption(font, font)));
   if (fontsReady && query && filteredFonts.length === 0) {
-    const empty = new Option("검색 결과 없음", "__empty__");
+    const empty = new Option("Nenhum resultado", "__empty__");
     empty.disabled = true;
     options.push(empty);
   }
@@ -197,9 +197,9 @@ function renderFonts() {
   replaceOptions(fontSelect, options, selectedFont);
   previewedFontOptions.clear();
   fontSelect.setAttribute("aria-busy", String(!fontsReady && !fontsFailed));
-  $("#font-count").textContent = !fontsReady ? (fontsFailed ? "조회 실패" : "불러오는 중") : query
-    ? `${filteredFonts.length} / ${installedFonts.length}개`
-    : `${installedFonts.length}개`;
+  $("#font-count").textContent = !fontsReady ? (fontsFailed ? "Falha na consulta" : "Carregando") : query
+    ? `${filteredFonts.length} / ${installedFonts.length}`
+    : `${installedFonts.length}`;
   updateFontPreview();
   scheduleFontPreviews();
 }
@@ -271,17 +271,17 @@ function createGrokDockerRow(provider) {
 
   const copy = createElement("div", "list-copy");
   const titleRow = createElement("span");
-  titleRow.appendChild(createElement("strong", "", "Docker 워크스페이스"));
-  if (status.authenticated) titleRow.appendChild(createElement("span", "active-chip", "연결됨"));
+  titleRow.appendChild(createElement("strong", "", "Workspace Docker"));
+  if (status.authenticated) titleRow.appendChild(createElement("span", "active-chip", "Conectada"));
   copy.append(
     titleRow,
-    createElement("small", "", status.reason || "프로젝트 하나만 읽기 전용으로 격리합니다.")
+    createElement("small", "", status.reason || "Isola só um projeto, somente leitura.")
   );
   identity.appendChild(copy);
 
-  let actionLabel = hostSync ? "인증 동기화" : "Docker 로그인";
-  if (status.available === false) actionLabel = "사용 불가";
-  else if (status.authenticated) actionLabel = hostSync ? "다시 동기화" : "다시 로그인";
+  let actionLabel = hostSync ? "Sincronizar autenticação" : "Login do Docker";
+  if (status.available === false) actionLabel = "Indisponível";
+  else if (status.authenticated) actionLabel = hostSync ? "Sincronizar de novo" : "Entrar de novo";
   const button = createElement(
     "button",
     "button",
@@ -305,7 +305,7 @@ function createProviderGroup(provider) {
     createElement("h2", "", provider.label)
   );
 
-  const addButton = createElement("button", "button", "계정 추가");
+  const addButton = createElement("button", "button", "Adicionar conta");
   addButton.type = "button";
   addButton.addEventListener("click", () =>
     runAccountAction({ provider: provider.id, action: "login" }, addButton)
@@ -318,7 +318,7 @@ function createProviderGroup(provider) {
     list.appendChild(createGrokDockerRow(provider));
   }
   if (!provider.accounts?.length) {
-    list.appendChild(createEmptyState("저장된 계정 없음"));
+    list.appendChild(createEmptyState("Nenhuma conta salva"));
   }
 
   for (const account of provider.accounts || []) {
@@ -331,7 +331,7 @@ function createProviderGroup(provider) {
     const copy = createElement("div", "list-copy");
     const titleRow = createElement("span");
     titleRow.appendChild(createElement("strong", "", account.email || account.label));
-    if (account.active) titleRow.appendChild(createElement("span", "active-chip", "현재"));
+    if (account.active) titleRow.appendChild(createElement("span", "active-chip", "Atual"));
     copy.appendChild(titleRow);
     if (account.plan) copy.appendChild(createElement("small", "", account.plan));
     identity.appendChild(copy);
@@ -340,7 +340,7 @@ function createProviderGroup(provider) {
     const switchButton = createElement(
       "button",
       "button",
-      account.active ? "사용 중" : "전환"
+      account.active ? "Em uso" : "Trocar"
     );
     switchButton.type = "button";
     switchButton.disabled = account.active;
@@ -352,12 +352,12 @@ function createProviderGroup(provider) {
     );
     actions.appendChild(switchButton);
 
-    const deleteButton = createElement("button", "button danger-button", "삭제");
+    const deleteButton = createElement("button", "button danger-button", "Excluir");
     deleteButton.type = "button";
     deleteButton.disabled = account.active;
     deleteButton.addEventListener("click", () => {
       const accountLabel = account.email || account.label || provider.label;
-      if (!window.confirm(`"${accountLabel}" 저장 계정을 삭제할까요?`)) return;
+      if (!window.confirm(`Excluir a conta salva "${accountLabel}"?`)) return;
       runAccountAction(
         { provider: provider.id, action: "delete", profileKey: account.key },
         deleteButton
@@ -389,12 +389,12 @@ function resetLabel(value) {
   if (Number.isNaN(date.getTime()) || !/^\d{4}-\d{2}-\d{2}T/.test(String(value))) {
     return String(value);
   }
-  return `${new Intl.DateTimeFormat("ko-KR", {
+  return `${new Intl.DateTimeFormat("pt-BR", {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(date)} 초기화`;
+  }).format(date)} · reinicia`;
 }
 
 function createUsageGauge(gauge) {
@@ -404,7 +404,7 @@ function createUsageGauge(gauge) {
   const row = createElement("div", "usage-row");
   row.append(
     createElement("span", "", gauge.label),
-    createElement("strong", "", `${remaining}% 남음`)
+    createElement("strong", "", `${remaining}% restante`)
   );
   const track = createElement("div", "usage-track");
   const fill = createElement("i", used >= 90 ? "is-danger" : used >= 70 ? "is-warn" : "");
@@ -429,7 +429,7 @@ function renderUsage() {
     if (item.error) {
       card.appendChild(createElement("p", "usage-error", item.error));
     } else if (!item.gauges?.length) {
-      card.appendChild(createElement("p", "usage-error", "한도 정보 없음"));
+      card.appendChild(createElement("p", "usage-error", "Sem informação de limite"));
     } else {
       for (const gauge of item.gauges) card.appendChild(createUsageGauge(gauge));
     }
@@ -445,16 +445,16 @@ function renderAll(options = {}) {
 
 async function runAccountAction(input, sourceButton) {
   const busyLabel = input.action === "switch"
-    ? "전환 중…"
+    ? "Trocando…"
     : input.action === "delete"
-      ? "삭제 중…"
+      ? "Excluindo…"
       : input.action === "docker-login"
-        ? "준비 중…"
-        : "여는 중…";
+        ? "Preparando…"
+        : "Abrindo…";
   setButtonBusy(sourceButton, true, busyLabel);
   try {
     const response = await api.account(input);
-    if (!response?.ok) throw new Error(responseError(response, "계정 작업에 실패했습니다."));
+    if (!response?.ok) throw new Error(responseError(response, "A operação da conta falhou."));
     state = response.data;
     renderAccounts();
     renderUsage();
@@ -535,7 +535,7 @@ function registerAppearanceControls() {
   });
   $("#save").addEventListener("click", async (event) => {
     const button = event.currentTarget;
-    setButtonBusy(button, true, "적용 중…");
+    setButtonBusy(button, true, "Aplicando…");
     try {
       const response = await api.save({
         fontFamily: selectedFont || null,
@@ -547,7 +547,7 @@ function registerAppearanceControls() {
         bubbleBgColor: $("#bubble-bg-color").value.trim() || null,
         bubbleTextColor: $("#bubble-text-color").value.trim() || null,
       });
-      if (!response?.ok) throw new Error(responseError(response, "설정을 적용하지 못했습니다."));
+      if (!response?.ok) throw new Error(responseError(response, "Não foi possível aplicar as configurações."));
       state = response.data;
       renderAll({ resetAppearance: true });
       applyAppearance(state.appearance, selectedFont);
@@ -562,10 +562,10 @@ function registerAppearanceControls() {
 function registerProviderControls() {
   $("#refresh-accounts").addEventListener("click", async (event) => {
     const button = event.currentTarget;
-    setButtonBusy(button, true, "확인 중…");
+    setButtonBusy(button, true, "Verificando…");
     try {
       const response = await api.get();
-      if (!response?.ok) throw new Error(responseError(response, "계정을 확인하지 못했습니다."));
+      if (!response?.ok) throw new Error(responseError(response, "Não foi possível consultar as contas."));
       state = response.data;
       renderAccounts();
       renderUsage();
@@ -578,10 +578,10 @@ function registerProviderControls() {
 
   $("#refresh-usage").addEventListener("click", async (event) => {
     const button = event.currentTarget;
-    setButtonBusy(button, true, "확인 중…");
+    setButtonBusy(button, true, "Verificando…");
     try {
       const response = await api.usage();
-      if (!response?.ok) throw new Error(responseError(response, "사용량을 확인하지 못했습니다."));
+      if (!response?.ok) throw new Error(responseError(response, "Não foi possível consultar o uso."));
       state = response.data;
       renderAccounts();
       renderUsage();
@@ -617,11 +617,11 @@ function registerTitlebarControls() {
     if (isMaximized) {
       if (maxIcon) maxIcon.style.display = "none";
       if (restoreIcon) restoreIcon.style.display = "block";
-      btn.setAttribute("aria-label", "이전 크기로 복원");
+      btn.setAttribute("aria-label", "Restaurar tamanho");
     } else {
       if (maxIcon) maxIcon.style.display = "block";
       if (restoreIcon) restoreIcon.style.display = "none";
-      btn.setAttribute("aria-label", "최대화");
+      btn.setAttribute("aria-label", "Maximizar");
     }
   });
 }
@@ -693,7 +693,7 @@ async function initialize() {
   try {
     const settingsResponse = await api.get();
     if (!settingsResponse?.ok) {
-      throw new Error(responseError(settingsResponse, "설정을 불러오지 못했습니다."));
+      throw new Error(responseError(settingsResponse, "Não foi possível carregar as configurações."));
     }
     state = settingsResponse.data;
     selectedFont = resolveInstalledFontFamily(state.appearance.fontFamily);
@@ -713,15 +713,15 @@ function registerUpdateControls() {
   let checking = false;
   let busy = false;
   let currentVersion = version.textContent;
-  let actionLabel = "새 버전 다운로드";
+  let actionLabel = "Baixar versão nova";
   function renderProgress(update) {
     busy = ["downloading", "verifying", "restarting"].includes(update?.phase);
     button.disabled = busy;
     checkButton.disabled = checking || busy;
     button.setAttribute("aria-busy", String(busy));
-    const label = update?.phase === "downloading" ? `다운로드 ${update.percent || 0}%`
-      : update?.phase === "verifying" ? "파일 확인 중…"
-        : update?.phase === "restarting" ? "재시작 중…" : null;
+    const label = update?.phase === "downloading" ? `Download ${update.percent || 0}%`
+      : update?.phase === "verifying" ? "Conferindo o arquivo…"
+        : update?.phase === "restarting" ? "Reiniciando…" : null;
     version.textContent = label || currentVersion;
     button.title = label || actionLabel;
     button.setAttribute("aria-label", button.title);
@@ -732,23 +732,23 @@ function registerUpdateControls() {
     checking = true;
     checkButton.disabled = true;
     checkButton.setAttribute("aria-busy", "true");
-    feedback.textContent = "업데이트를 확인하는 중…";
+    feedback.textContent = "Procurando atualizações…";
     try {
       const result = await api.checkUpdate(force);
       if (result?.currentVersion) currentVersion = `VERSION ${result.currentVersion}`;
       if (busy) return;
       button.hidden = result?.status !== "available";
       if (!button.hidden) {
-        actionLabel = result.automatic ? `새 버전 ${result.latestVersion} 업데이트 후 재시작` : `새 버전 ${result.latestVersion} 다운로드`;
+        actionLabel = result.automatic ? `Atualizar para ${result.latestVersion} e reiniciar` : `Baixar a versão ${result.latestVersion}`;
       }
       renderProgress(result?.update);
-      feedback.textContent = result?.status === "available" ? `새 버전 ${result.latestVersion}을 사용할 수 있습니다.`
-        : result?.status === "up-to-date" ? "최신 버전입니다."
-          : "업데이트를 확인하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.";
-      if (result?.retryAfterMs) feedback.textContent += ` ${Math.ceil(result.retryAfterMs / 1000)}초 후 다시 확인할 수 있습니다.`;
+      feedback.textContent = result?.status === "available" ? `A versão ${result.latestVersion} está disponível.`
+        : result?.status === "up-to-date" ? "Esta é a versão mais recente."
+          : "Não foi possível procurar atualizações. Confira a conexão e tente de novo.";
+      if (result?.retryAfterMs) feedback.textContent += ` Você pode verificar de novo em ${Math.ceil(result.retryAfterMs / 1000)} s.`;
     } catch {
       button.hidden = true;
-      feedback.textContent = "업데이트를 확인하지 못했습니다. 다시 시도해 주세요.";
+      feedback.textContent = "Não foi possível procurar atualizações. Tente de novo.";
     } finally {
       checking = false;
       checkButton.disabled = busy;
@@ -762,13 +762,13 @@ function registerUpdateControls() {
       const result = await api.downloadUpdate();
       if (!result?.ok) {
         renderProgress({ phase: "error" });
-        showError(responseError(result, "업데이트를 시작하지 못했습니다."));
+        showError(responseError(result, "Não foi possível iniciar a atualização."));
       } else {
         renderProgress({ phase: result.restarting ? "restarting" : "idle" });
       }
     } catch {
       renderProgress({ phase: "error" });
-      showError("업데이트를 시작하지 못했습니다. 다시 시도해 주세요.");
+      showError("Não foi possível iniciar a atualização. Tente de novo.");
     }
   });
   api.onUpdateProgress?.(renderProgress);

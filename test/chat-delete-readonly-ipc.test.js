@@ -38,7 +38,7 @@ for (const mode of ["session", "store", "writable"]) {
       assert.equal(changeDiscards, 1);
     } else {
       assert.equal(result.ok, false);
-      assert.match(result.error, /읽기 전용/);
+      assert.match(result.error, /somente leitura/);
       assert.equal(fs.existsSync(store.sessionDir(meta.id)), true);
       assert.equal(traceDiscards, 0);
       assert.equal(changeDiscards, 0);

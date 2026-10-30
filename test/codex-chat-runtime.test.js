@@ -100,7 +100,7 @@ test("missing legacy history leaves the saved cursor intact instead of silently 
   const legacyScope = { home: f.sourceHome }, old = new NativeSessionLink(store, room, "codex", legacyScope);
   old.observe(randomUUID()); old.delivered("anchor");
   const before = fs.readFileSync(old.file, "utf8"), runtime = f.prepare();
-  assert.throws(() => new NativeSessionLink(store, room, "codex", { home: runtime.home }, { legacyScope, migrate: runtime.migrate }), /기존 Codex 대화 기록/);
+  assert.throws(() => new NativeSessionLink(store, room, "codex", { home: runtime.home }, { legacyScope, migrate: runtime.migrate }), /histórico do Codex/);
   assert.equal(fs.readFileSync(old.file, "utf8"), before);
 });
 

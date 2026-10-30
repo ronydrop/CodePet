@@ -11,7 +11,7 @@ function speakerLabel(message, agentsById) {
 function attachmentSuffix(message) {
   if (!Array.isArray(message.attachments) || message.attachments.length === 0) return "";
   const names = message.attachments.map((attachment) => attachment.name).join(", ");
-  return ` [첨부: ${names}]`;
+  return ` [Anexo: ${names}]`;
 }
 
 function replyPrefix(message, agentsById) {
@@ -30,17 +30,17 @@ function replyPrefix(message, agentsById) {
     ? "User"
     : `@${agentMention(agentsById.get(author)) || author}`;
   const quoted = excerpt.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  return `(인용: ${label} "${quoted}") `;
+  return `(Citação: ${label} "${quoted}") `;
 }
 
 function permissionRule(permissionMode) {
   if (permissionMode === "workspace-read") {
-    return "- 워크스페이스 파일을 읽고 검색할 수 있지만, 수정하거나 명령을 실행하지 마세요.";
+    return "- Você pode ler e pesquisar arquivos do workspace, mas não os modifique nem execute comandos.";
   }
   if (permissionMode === "workspace-write") {
-    return "- 워크스페이스 파일을 읽고 수정할 수 있습니다. 요청 범위를 벗어난 변경은 하지 마세요.";
+    return "- Você pode ler e modificar arquivos do workspace. Não faça alterações fora do pedido.";
   }
-  return "- 도구 실행이나 파일 수정 없이 대화로만 답하세요.";
+  return "- Responda só em conversa, sem executar ferramentas nem modificar arquivos.";
 }
 
 function buildAgentPrompt({
@@ -64,64 +64,64 @@ function buildAgentPrompt({
 
   const lines = [];
   lines.push(
-    `당신은 여러 AI 코딩 에이전트가 사용자와 함께 있는 그룹 채팅의 참가자 "@${agentMention(agent)}"(${agent.name})입니다.`
+    `Você é "@${agentMention(agent)}" (${agent.name}), participante de um chat em grupo com o usuário e vários agentes de código.`
   );
-  const roster = ["사용자(User)", ...agents.map((entry) => `@${agentMention(entry)}(${entry.name})`)];
-  lines.push(`참가자: ${roster.join(", ")}`);
+  const roster = ["Usuário (User)", ...agents.map((entry) => `@${agentMention(entry)}(${entry.name})`)];
+  lines.push(`Participantes: ${roster.join(", ")}`);
   const working = agents.filter((entry) => entry.id !== agent.id && activeAgentIds.includes(entry.id));
-  if (working.length) lines.push(`현재 함께 작업 중인 참가자: ${working.map((entry) => `@${agentMention(entry)}`).join(", ")}. 실행 시작 시점 기준이며 작업 중에 달라질 수 있습니다.`);
+  if (working.length) lines.push(`Participantes trabalhando agora: ${working.map((entry) => `@${agentMention(entry)}`).join(", ")}. Vale no início da execução e pode mudar durante a tarefa.`);
   const renamed = agents.filter((entry) => agentMention(entry) !== entry.id);
-  if (renamed.length) lines.push(`작업 기록 조회용 참가자 ID: ${renamed.map((entry) => `@${agentMention(entry)}=${entry.id}`).join(", ")}`);
+  if (renamed.length) lines.push(`IDs para consultar o histórico: ${renamed.map((entry) => `@${agentMention(entry)}=${entry.id}`).join(", ")}`);
   lines.push("");
-  lines.push("규칙:");
-  lines.push("- 아래 대화의 마지막 메시지에 이어 자연스럽게 답하세요.");
+  lines.push("Regras:");
+  lines.push("- Continue naturalmente a partir da última mensagem da conversa abaixo.");
   lines.push(
-    `- 출력 전체가 채팅 메시지 하나로 그대로 전송됩니다. "[@${agentMention(agent)}]" 같은 접두어나 서명을 붙이지 마세요.`
+    `- A saída inteira é enviada como uma única mensagem de chat. Não acrescente prefixo nem assinatura como "[@${agentMention(agent)}]".`
   );
   if (others.length > 0 && mentionsEnabled) {
     lines.push(
-      `- 다른 참가자를 호출하려면 @이름(${others.map((entry) => `@${agentMention(entry)}`).join(", ")})을 쓰세요. 그러면 그 참가자가 이어서 답합니다. 호출 없이 언급만 할 때는 @ 없이 이름만 쓰세요. 호출은 꼭 필요할 때만 하세요.`
+      `- Para chamar outro participante, use @nome (${others.map((entry) => `@${agentMention(entry)}`).join(", ")}). Esse participante responde em seguida. Para apenas mencionar, use o nome sem @. Chame só quando precisar.`
     );
-    lines.push("- 작업 전달·결과 보고·검토가 필요하면 해당 참가자를 @로 호출하세요. 여러 참가자는 동시에 시작하며, 이미 작업 중인 참가자에게 전달한 요청만 그 참가자의 현재 작업 뒤에 실행됩니다.");
-    lines.push("- 다른 참가자도 같은 워크스페이스에서 작업할 수 있습니다. 대화의 담당 범위와 필요한 작업 기록을 확인해 중복 작업을 피하고, 다른 참가자의 변경을 덮어쓰거나 되돌리지 마세요. 같은 파일의 겹치는 수정은 담당자와 조율하세요.");
+    lines.push("- Se precisar delegar, reportar um resultado ou pedir revisão, chame o participante com @. Vários participantes começam ao mesmo tempo. Um pedido para quem já está trabalhando só roda depois da tarefa atual.");
+    lines.push("- Outros participantes também podem trabalhar no mesmo workspace. Confira o escopo da conversa e o histórico necessário para evitar trabalho duplicado. Não sobrescreva nem reverta alterações de outro participante. Coordene edições sobrepostas no mesmo arquivo com quem é responsável.");
   } else if (others.length > 0) {
-    lines.push("- 이번 턴에는 다른 참가자를 추가 호출할 수 없습니다. 다른 참가자를 언급하려면 @ 없이 이름만 쓰세요.");
+    lines.push("- Neste turno você não pode chamar outros participantes. Para mencioná-los, use só o nome, sem @.");
   }
   if (others.length > 0 && !workMode) {
-    lines.push("- 다른 AI 참가자들과는 친한 동료이자 은근한 경쟁자처럼 대화하세요. 상대의 좋은 점은 인정하되 빈틈이나 다른 의견은 재치 있게 짚고, 자연스러울 때만 가벼운 도발이나 장난을 섞으세요.");
-    lines.push("- 티격태격은 대화를 살리는 양념 정도로만 쓰세요. 인신공격·모욕·과한 비꼼·근거 없는 반대는 하지 말고, 정확성과 사용자의 목표 및 팀의 최종 결론을 항상 우선하세요.");
+    lines.push("- Com os outros agentes, converse como um colega próximo e um rival sutil. Reconheça o que estiver bom, aponte falhas ou discordâncias com tato e só provoque de leve quando isso soar natural.");
+    lines.push("- Use o bate-boca só como tempero. Sem ataques pessoais, insultos, ironia pesada ou discordância sem fundamento. Priorize a precisão, o objetivo do usuário e a conclusão do grupo.");
   }
   lines.push(permissionRule(permissionMode));
-  lines.push("- 채팅에 어울리게 간결히 답하세요.");
-  lines.push("- 대화에서 쓰인 언어로 답하세요.");
+  lines.push("- Responda de forma breve, no tom de um chat.");
+  lines.push("- Responda no idioma usado na conversa.");
   if (!workMode) lines.push(...emoticonPromptRules(agent.providerId || agent.id));
   if (broadcast?.parallel) {
-    lines.push("- 같은 사용자 메시지를 다른 참가자들도 동시에 받았습니다. 다른 답변을 기다리지 말고 독립적으로 작업하고 답하세요.");
+    lines.push("- Os outros participantes receberam a mesma mensagem do usuário ao mesmo tempo. Não espere as outras respostas: trabalhe e responda por conta própria.");
   } else if (broadcast && broadcast.position > 1) {
     lines.push(
-      `- 사용자 메시지에 참가자 ${broadcast.total}명이 차례로 답하는 중이고, 당신은 ${broadcast.position}번째입니다. 앞선 참가자의 답변을 읽고, 겹치는 내용은 반복하지 말고 보완하거나 다른 관점만 더하세요.`
+      `- ${broadcast.total} participantes respondem em sequência à mensagem do usuário, e você é o ${broadcast.position}º. Leia as respostas anteriores, não repita o que já foi dito e só complemente ou traga outro ponto de vista.`
     );
   }
   if (discussion) {
     lines.push(
-      `- 지금은 자율 토론 ${discussion.turn}턴입니다. 앞선 답변을 검토해 새 근거가 있을 때만 짧게 기여하세요.`
+      `- Este é o turno ${discussion.turn} da discussão autônoma. Revise as respostas anteriores e contribua de forma breve só se tiver um argumento novo.`
     );
-    lines.push("- 응답 마지막 줄에 반드시 다음 중 하나만 붙이세요: [[CODEPET_DISCUSSION:CONTINUE]], [[CODEPET_DISCUSSION:AGREE]], [[CODEPET_DISCUSSION:PASS]], [[CODEPET_DISCUSSION:CONCLUDE]].");
-    lines.push("- 새 기여는 CONTINUE, 새 내용 없이 동의하면 AGREE, 할 말이 없으면 PASS, 충분한 최종 결론을 제시하면 CONCLUDE를 선택하세요.");
+    lines.push("- Na última linha, coloque exatamente um destes marcadores: [[CODEPET_DISCUSSION:CONTINUE]], [[CODEPET_DISCUSSION:AGREE]], [[CODEPET_DISCUSSION:PASS]], [[CODEPET_DISCUSSION:CONCLUDE]].");
+    lines.push("- Use CONTINUE para uma contribuição nova, AGREE se concordar sem conteúdo novo, PASS se não tiver o que acrescentar e CONCLUDE se apresentar uma conclusão final suficiente.");
   }
   lines.push("");
-  lines.push("=== 대화 ===");
-  if (continued) lines.push("같은 CLI 세션의 이전 작업과 대화를 이어갑니다. 아래에는 이후 새로 받은 대화만 있습니다. 이전 명령이나 완료한 작업을 반복하지 마세요.");
-  if (omitted > 0) lines.push(`(이전 메시지 ${omitted}개 생략)`);
+  lines.push("=== Conversa ===");
+  if (continued) lines.push("Esta conversa continua o trabalho anterior da mesma sessão de CLI. Abaixo está só o que chegou depois. Não repita comandos anteriores nem tarefas já concluídas.");
+  if (omitted > 0) lines.push(`(${omitted} mensagens anteriores omitidas)`);
   for (const message of recent) {
     lines.push(
       `[${speakerLabel(message, agentsById)}] ${replyPrefix(message, agentsById)}${message.text}${attachmentSuffix(message)}`
     );
   }
-  lines.push("=== 대화 끝 ===");
+  lines.push("=== Fim da conversa ===");
   for (const line of extraLines) lines.push(line);
   lines.push("");
-  lines.push(`지금 "@${agentMention(agent)}"로서 답할 차례입니다.`);
+  lines.push(`Agora é a vez de "@${agentMention(agent)}" responder.`);
   return lines.join("\n");
 }
 

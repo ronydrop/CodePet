@@ -35,7 +35,7 @@ function runSecurity(args, { stdin, timeoutMs = 10000 } = {}) {
   return new Promise((resolve, reject) => {
     const child = stdin === undefined
       ? execFile("security", args, { timeout: timeoutMs }, (error, stdout) => {
-        if (error) reject(Object.assign(new Error("Keychain 작업에 실패했습니다."), { code: error.code }));
+        if (error) reject(Object.assign(new Error("A operação do Keychain falhou."), { code: error.code }));
         else resolve(stdout);
       })
       : spawn("security", args, { stdio: ["pipe", "ignore", "ignore"] });
@@ -43,12 +43,12 @@ function runSecurity(args, { stdin, timeoutMs = 10000 } = {}) {
     const timer = setTimeout(() => child.kill(), timeoutMs);
     child.once("error", () => {
       clearTimeout(timer);
-      reject(new Error("Keychain 작업을 시작하지 못했습니다."));
+      reject(new Error("Não foi possível iniciar a operação do Keychain."));
     });
     child.once("close", (code) => {
       clearTimeout(timer);
       if (code === 0) resolve("");
-      else reject(Object.assign(new Error("Keychain 작업에 실패했습니다."), { code }));
+      else reject(Object.assign(new Error("A operação do Keychain falhou."), { code }));
     });
     // 비밀 값이 ps 출력에 보이지 않도록 `security -i`의 stdin으로만 전달합니다.
     child.stdin.end(stdin);
@@ -130,13 +130,13 @@ function createLayeredStore(locations) {
   return {
     async read() {
       const found = (await load()).filter((entry) => entry.credential);
-      if (!found.length) throw new Error("저장된 AGY 자격 증명이 없습니다.");
+      if (!found.length) throw new Error("Não há credencial salva do AGY.");
       return JSON.stringify(found[0].credential);
     },
     async write(value, { expectedRefreshToken } = {}) {
       const target = (await load()).find((entry) => entry.credential);
       if (expectedRefreshToken !== undefined && target?.credential?.token?.refresh_token !== expectedRefreshToken) {
-        throw new Error("AGY 계정이 변경됐습니다. 다시 조회해 주세요.");
+        throw new Error("A conta do AGY mudou. Consulte de novo.");
       }
       if (target) {
         await target.location.write(value);

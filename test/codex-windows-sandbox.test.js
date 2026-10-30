@@ -41,7 +41,7 @@ test("reparse points are rejected before copying protected sandbox state", t => 
   const f = fixture(t); f.seed();
   fs.symlinkSync(path.join(f.source, ".sandbox"), path.join(f.home, ".sandbox"), process.platform === "win32" ? "junction" : "dir");
   const state = new CodexWindowsSandboxState({ platform: "win32", run: f.run });
-  assert.throws(() => state.prepare(f.home, f.source), /실제 폴더/);
+  assert.throws(() => state.prepare(f.home, f.source), /pasta real/);
   assert.equal(f.calls.length, 0);
 });
 test("fresh Windows homes initialize the canonical sandbox once before syncing participants", async t => {

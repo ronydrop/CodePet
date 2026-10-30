@@ -118,7 +118,7 @@ test("shell function call을 실시간 도구 상태로 변환한다", () => {
   assert.equal(activities[0].threadId, THREAD_ID);
 });
 
-test("동시 작업 중 먼저 끝난 세션의 thread id를 유지한다", () => {
+test("동시 Trabalhando 먼저 끝난 세션의 thread id를 유지한다", () => {
   const watcher = new CodexWatcher({ getCodexHomes: () => [] });
   const secondThreadId = "019f4a31-1111-7222-8333-444444444444";
   const secondPath = ROLLOUT_PATH.replace(THREAD_ID, secondThreadId);
@@ -186,7 +186,7 @@ test("동시 rollout은 각자의 작업자 이름과 활성 수를 유지한다
   ]);
 });
 
-test("작업 시작은 파일별로 멱등이고 완료와 중단에서 활성 수를 줄인다", () => {
+test("Tarefa iniciada은 파일별로 멱등이고 완료와 중단에서 활성 수를 줄인다", () => {
   const watcher = new CodexWatcher({ getCodexHomes: () => [] });
   const secondPath = ROLLOUT_PATH.replace(THREAD_ID, "019f4a31-1111-7222-8333-444444444444");
   watcher.handleLine(ROLLOUT_PATH, JSON.stringify({ type: "event_msg", payload: { type: "task_started" } }));
@@ -238,7 +238,7 @@ test("동시 작업 하나만 stale이면 그 파일만 활성 수에서 제거�
   });
 });
 
-test("첫 poll에서 이미 실행 중인 여러 rollout의 작업자와 활성 수를 복원한다", (t) => {
+test("첫 poll에서 이미 Em execução인 여러 rollout의 작업자와 활성 수를 복원한다", (t) => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "codepet-watcher-"));
   t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
   const secondThreadId = "019f4a31-1111-7222-8333-444444444444";
@@ -282,7 +282,7 @@ test("첫 poll에서 이미 실행 중인 여러 rollout의 작업자와 활성 
   ]);
 });
 
-test("두 번째 작업 시작은 즉시 활성 수 변경 문맥을 발행한다", () => {
+test("두 번째 Tarefa iniciada은 즉시 활성 수 변경 문맥을 발행한다", () => {
   const watcher = new CodexWatcher({ getCodexHomes: () => [] });
   const secondPath = ROLLOUT_PATH.replace(THREAD_ID, "019f4a31-1111-7222-8333-444444444444");
   const changes = [];
@@ -296,11 +296,11 @@ test("두 번째 작업 시작은 즉시 활성 수 변경 문맥을 발행한�
 });
 
 test("활동 제목은 작업자와 상태만 표시하고 작업 수는 행에 반복하지 않는다", () => {
-  assert.equal(formatActivityTitle("작업 중", { workerLabel: "Terra", activeTaskCount: 1 }), "Terra · 작업 중");
-  assert.equal(formatActivityTitle("작업 중", { activeTaskCount: 3 }), "작업 중");
-  assert.equal(formatActivityTitle("작업 중", { workerLabel: "Terra", activeTaskCount: 3 }), "Terra · 작업 중");
-  assert.equal(formatActivityTitle("작업 중", { workerLabel: "Terra", activeTaskCount: 0 }), "Terra · 작업 중");
-  assert.equal(formatActivityTitle("작업 중", { activeTaskCount: 1 }), "작업 중");
+  assert.equal(formatActivityTitle("Trabalhando", { workerLabel: "Terra", activeTaskCount: 1 }), "Terra · Trabalhando");
+  assert.equal(formatActivityTitle("Trabalhando", { activeTaskCount: 3 }), "Trabalhando");
+  assert.equal(formatActivityTitle("Trabalhando", { workerLabel: "Terra", activeTaskCount: 3 }), "Terra · Trabalhando");
+  assert.equal(formatActivityTitle("Trabalhando", { workerLabel: "Terra", activeTaskCount: 0 }), "Terra · Trabalhando");
+  assert.equal(formatActivityTitle("Trabalhando", { activeTaskCount: 1 }), "Trabalhando");
 });
 
 test("runtime task_started의 구조화 timestamp를 작업 문맥에 전달한다", () => {

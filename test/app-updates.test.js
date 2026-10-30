@@ -159,5 +159,5 @@ test("portable update IPC uses trusted metadata, exposes progress and never open
   assert.equal(installed[0].asset.url, `${root}/download/v1.0.13/CodePet-1.0.13.exe`);
   updater.install = async () => { throw new Error("integrity failure"); };
   const error = await handlers.get("settings:download-update")();
-  assert.equal(error.ok, false); assert.match(error.error, /기존 버전은 유지/);
+  assert.equal(error.ok, false); assert.match(error.error, /versão atual foi mantida/);
 });

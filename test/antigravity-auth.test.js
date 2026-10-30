@@ -64,7 +64,7 @@ test("AGY does not overwrite an account selected during token refresh", async ()
     await f.store.write({ token: { access_token: "other", refresh_token: "other-account" } });
     return fetchImpl(...args);
   };
-  await assert.rejects(withAntigravityCredential(f.credential, async () => {}, f.options), /계정이 변경/);
+  await assert.rejects(withAntigravityCredential(f.credential, async () => {}, f.options), /conta do AGY mudou/);
   assert.equal((await f.store.read()).token.refresh_token, "other-account");
   assert.equal(f.calls.writes, 1);
 });

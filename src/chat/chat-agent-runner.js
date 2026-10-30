@@ -20,7 +20,7 @@ const MAX_ARGV_PROMPT_CHARS = 24 * 1024;
 function textTail(previous, text, limit = MAX_CAPTURE_CHARS) {
   const combined = previous + text;
   if (combined.length <= limit) return combined;
-  const marker = "[앞부분 출력 생략]\n";
+  const marker = "[início da saída omitido]\n";
   let tail = combined.slice(-(limit - marker.length));
   if (/^[\uDC00-\uDFFF]/.test(tail)) tail = tail.slice(1);
   return marker + tail;
@@ -74,14 +74,14 @@ function matchApprovalHint(text) {
   // Setup failures need sandbox repair, not an approval that disables isolation.
   if (/helper_sandbox_lock_failed|setup refresh had errors|SetNamedSecurityInfoW.*failed/i.test(text)) return null;
   if (/a tool required the ["'][^"']+["'] permission that headless mode cannot prompt for, so it was auto-denied/i.test(text)) {
-    return { summary: "명령 실행 승인이 필요합니다." };
+    return { summary: "É preciso aprovar a execução do comando." };
   }
   if (APPROVAL_HINT_PATTERNS.some((pattern) => pattern.test(text))) {
-    return { summary: "도구 실행 권한이 필요합니다." };
+    return { summary: "É preciso permissão para executar a ferramenta." };
   }
   if (SANDBOX_BLOCK_PATTERNS.some((pattern) => pattern.test(text))) {
     return {
-      summary: "샌드박스 제한으로 실행이 차단되었습니다. 승인하면 샌드박스 없이 다시 시도합니다.",
+      summary: "O sandbox bloqueou a execução. Se você aprovar, a tentativa seguinte roda sem sandbox.",
     };
   }
   return null;
@@ -104,7 +104,7 @@ function quoteArgForShell(arg) {
 function compactArgvPrompt(prompt, limit = MAX_ARGV_PROMPT_CHARS) {
   const text = String(prompt || "");
   if (text.length <= limit) return text;
-  const marker = "\n\n[AGY CLI 명령줄 한도로 이전 대화 일부 생략]\n\n";
+  const marker = "\n\n[parte da conversa anterior omitida pelo limite de linha de comando da CLI AGY]\n\n";
   const headLength = Math.min(6000, Math.floor((limit - marker.length) / 3));
   const tailLength = limit - marker.length - headLength;
   return text.slice(0, headLength) + marker + text.slice(-tailLength);
@@ -222,7 +222,7 @@ function runAgentProcess({
         await closed;
         const deadline = Date.now() + 2000;
         while (groupRunning(child.pid, platform)) {
-          if (Date.now() >= deadline) throw new Error("프로세스 그룹 종료를 확인하지 못했습니다.");
+          if (Date.now() >= deadline) throw new Error("Não foi possível confirmar o encerramento do grupo de processos.");
           await new Promise(resolve => setTimeout(resolve, 20));
         }
       }
@@ -260,11 +260,11 @@ function runAgentProcess({
     };
 
     if (!["stdin", "argv", "file"].includes(promptTransport)) {
-      finish({ ok: false, error: `알 수 없는 프롬프트 전달 방식: ${promptTransport}` });
+      finish({ ok: false, error: `Forma desconhecida de enviar o prompt: ${promptTransport}` });
       return;
     }
     if (promptTransport === "argv" && needsShell) {
-      finish({ ok: false, error: "셸 래퍼에는 argv 프롬프트를 안전하게 전달할 수 없습니다." });
+      finish({ ok: false, error: "Não dá para passar o prompt por argv com segurança neste wrapper de shell." });
       return;
     }
     const executionArgv = [...argv];
@@ -272,14 +272,14 @@ function runAgentProcess({
       executionArgv.push("--print", compactArgvPrompt(prompt));
     } else if (promptTransport === "file") {
       if (!/^--[a-z0-9-]+$/i.test(String(promptFileFlag || ""))) {
-        finish({ ok: false, error: "프롬프트 파일 플래그가 올바르지 않습니다." });
+        finish({ ok: false, error: "A flag do arquivo de prompt é inválida." });
         return;
       }
       try {
         promptFile = createPromptFile(prompt, promptFileDirectory);
         executionArgv.push(promptFileFlag, promptFile);
       } catch (error) {
-        finish({ ok: false, error: `프롬프트 파일 생성 실패: ${error.message}` });
+        finish({ ok: false, error: `Falha ao criar o arquivo de prompt: ${error.message}` });
         return;
       }
     }
@@ -295,7 +295,7 @@ function runAgentProcess({
         stdio: ["pipe", "pipe", "pipe"],
       });
     } catch (error) {
-      finish({ ok: false, error: `실행 실패: ${error.message}` });
+      finish({ ok: false, error: `Falha na execução: ${error.message}` });
       return;
     }
 
@@ -346,7 +346,7 @@ function runAgentProcess({
         if (lineBytes > maxLineBytes) {
           cancelled = true;
           terminate();
-          finish({ ok: false, error: "단일 실행 이벤트가 너무 큽니다. 파일·도구 출력을 나눠서 다시 시도해 주세요." });
+          finish({ ok: false, error: "Um único evento de execução ficou grande demais. Divida a saída de arquivos e ferramentas e tente de novo." });
           return;
         }
         lineParts.push(part);
@@ -359,7 +359,7 @@ function runAgentProcess({
         } catch (error) {
           cancelled = true;
           terminate();
-          finish({ ok: false, error: `실행 이벤트 처리 실패: ${redactSensitiveText(error.message)}` });
+          finish({ ok: false, error: `Falha ao processar o evento de execução: ${redactSensitiveText(error.message)}` });
           return;
         }
         if (end < 0) break;
@@ -374,7 +374,7 @@ function runAgentProcess({
       if (Number.isFinite(maxOutputBytes) && maxOutputBytes > 0 && stdoutBytes > maxOutputBytes) {
         cancelled = true;
         terminate();
-        finish({ ok: false, error: "출력이 너무 길어 실행을 중단했습니다." });
+        finish({ ok: false, error: "A saída ficou longa demais e a execução foi interrompida." });
         return;
       }
       if (!parseLine) stdout = textTail(stdout, text);
@@ -394,13 +394,13 @@ function runAgentProcess({
     child.on("error", (error) => {
       if (!child.pid) closing();
       else terminate();
-      finish({ ok: false, error: `실행 실패: ${error.message}` });
+      finish({ ok: false, error: `Falha na execução: ${error.message}` });
     });
     child.on("close", (code) => {
       closing();
       if (settled) return;
       if (cancelled) {
-        finish({ ok: false, status: "cancelled", error: "중지됨", cancelled: true });
+        finish({ ok: false, status: "cancelled", error: "Interrompido", cancelled: true });
         return;
       }
       const stdoutTail = stdoutDecoder.end();
@@ -477,7 +477,7 @@ function runAgentProcess({
             kind: "approval-required",
             summary: approvalHint.summary,
             // 사용자에게 보이는 문구이므로 민감정보를 제거해 담습니다.
-            detail: `종료 코드 ${code} · ${redactSensitiveText(permissionText).slice(-2000)}`,
+            detail: `código de saída ${code} · ${redactSensitiveText(permissionText).slice(-2000)}`,
           },
         });
         return;
@@ -485,7 +485,7 @@ function runAgentProcess({
       const detail = redactSensitiveText(
         parsedError || String(stderr || "").trim().split(/\r?\n/).slice(-3).join(" ")
       ).trim();
-      failWith({ ok: false, error: detail || (code !== 0 ? `종료 코드 ${code}` : "빈 응답") });
+      failWith({ ok: false, error: detail || (code !== 0 ? `código de saída ${code}` : "Resposta vazia") });
     });
 
     child.stdin.on("error", () => {});
@@ -495,7 +495,7 @@ function runAgentProcess({
       timer = setTimeout(() => {
         cancelled = true;
         terminate();
-        finish({ ok: false, error: `시간 초과 (${Math.round(timeoutMs / 1000)}초)` });
+        finish({ ok: false, error: `Tempo esgotado (${Math.round(timeoutMs / 1000)} s)` });
       }, timeoutMs);
       if (typeof timer.unref === "function") timer.unref();
     }

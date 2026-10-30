@@ -65,7 +65,7 @@ class CodexWindowsSandboxState {
           argv: ["sandbox", "--include-managed-config", "--permission-profile", ":read-only", "--", "cmd.exe", "/d", "/c", "echo", "CODEPET_SANDBOX_READY"],
           cwd, env: { ...process.env, CODEX_HOME: source }, prompt: "", provider: "codex", timeoutMs: 120000 });
         this.starting = run.promise.then(result => {
-          if (!result.ok || result.text?.trim() !== "CODEPET_SANDBOX_READY") throw new Error("기본 Codex의 Windows 샌드박스를 초기화하지 못했습니다.");
+          if (!result.ok || result.text?.trim() !== "CODEPET_SANDBOX_READY") throw new Error("Não foi possível inicializar o sandbox do Codex padrão no Windows.");
         }).finally(() => { this.starting = null; });
       }
       await this.starting;
@@ -82,14 +82,14 @@ class CodexWindowsSandboxState {
     if (this.platform !== "win32") return;
     const targetRoot = fs.realpathSync(home);
     const sourceRoot = fs.realpathSync(source);
-    if (targetRoot.toLowerCase() === sourceRoot.toLowerCase()) throw new Error("별도 Codex 계정 경로가 필요합니다.");
+    if (targetRoot.toLowerCase() === sourceRoot.toLowerCase()) throw new Error("É preciso um caminho separado para a conta do Codex.");
     for (const root of [sourceRoot, targetRoot]) {
       for (const name of [".sandbox", ".sandbox-secrets", ...STATE_FILES]) {
         const file = path.join(root, name);
-        if (!file.startsWith(root + path.sep)) throw new Error("잘못된 샌드박스 경로입니다.");
+        if (!file.startsWith(root + path.sep)) throw new Error("O caminho do sandbox é inválido.");
         let stat;
         try { stat = fs.lstatSync(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
-        if (stat?.isSymbolicLink()) throw new Error("Codex 샌드박스 경로는 실제 폴더여야 합니다.");
+        if (stat?.isSymbolicLink()) throw new Error("O caminho do sandbox do Codex precisa ser uma pasta real.");
       }
     }
     const stamp = (root) => STATE_FILES.map((name) => {
@@ -98,7 +98,7 @@ class CodexWindowsSandboxState {
     }).join("|");
     const sourceStamp = stamp(sourceRoot);
     if (sourceStamp.includes("missing")) {
-      throw new Error("기본 Codex의 Windows 샌드박스를 먼저 초기화해 주세요.");
+      throw new Error("Inicialize antes o sandbox do Codex padrão no Windows.");
     }
     const cacheKey = `${sourceRoot}|${sourceStamp}|${stamp(targetRoot)}`;
     if (this.cache.get(targetRoot) === cacheKey) return;
@@ -110,9 +110,9 @@ class CodexWindowsSandboxState {
           CODEPET_SANDBOX_SOURCE: sourceRoot, CODEPET_SANDBOX_TARGET: targetRoot },
       });
     } catch (cause) {
-      throw new Error("Codex의 Windows 샌드박스 상태를 동기화하지 못했습니다. 실행 중인 Codex 작업을 마친 뒤 다시 시도해 주세요.", { cause });
+      throw new Error("Não foi possível sincronizar o sandbox do Codex no Windows. Termine a tarefa do Codex que estiver em execução e tente de novo.", { cause });
     }
-    if (sourceStamp !== stamp(sourceRoot)) throw new Error("Windows 샌드박스 초기화가 진행 중입니다. 잠시 후 다시 시도해 주세요.");
+    if (sourceStamp !== stamp(sourceRoot)) throw new Error("A inicialização do sandbox do Windows ainda está em andamento. Tente de novo daqui a pouco.");
     this.cache.set(targetRoot, `${sourceRoot}|${sourceStamp}|${stamp(targetRoot)}`);
   }
 }

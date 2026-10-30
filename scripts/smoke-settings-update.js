@@ -14,7 +14,7 @@ async function until(check) {
 }
 async function main() {
   const state = { appearance: { fontFamily: null, fontSize: 14, workMode: false },
-    pets: [{ key: "default", label: "기본 펫 (내장)" }], petKey: "default", activityBubbleMode: "full", autoStart: false, providers: [], usage: [] };
+    pets: [{ key: "default", label: "Pet padrão (incluso)" }], petKey: "default", activityBubbleMode: "full", autoStart: false, providers: [], usage: [] };
   const release = { status: "available", currentVersion: "1.1.2", latestVersion: "1.1.3", automatic: true, update: { phase: "idle" } };
   let finish, calls = 0;
   ipcMain.handle("settings:get", () => ({ ok: true, data: state }));
@@ -54,7 +54,7 @@ async function main() {
   await js("document.querySelector('#download-update').click()");
   await until(() => calls === 2);
   finish({ ok: true, restarting: true });
-  await until(() => js("document.querySelector('#app-version').textContent === '재시작 중…'"));
+  await until(() => js("document.querySelector('#app-version').textContent === 'Reiniciando…'"));
   assert.equal(await js("document.querySelector('#download-update').disabled"), true);
   assert.deepEqual(errors, []);
   win.destroy();
